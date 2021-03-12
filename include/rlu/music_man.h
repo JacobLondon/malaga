@@ -8,12 +8,24 @@ typedef struct sound_def_tag {
 	bool loaded;
 } sound_def;
 
+#define DEFINE_SOUND(NAME, PATH) \
+{ \
+	.name=NAME, \
+	.filename=PATH, \
+}
+
 typedef struct music_def_tag {
 	const char *name;
 	const char *filename;
 	Music music;
 	bool loaded;
 } music_def;
+
+#define DEFINE_MUSIC(NAME, PATH) \
+{ \
+	.name=NAME, \
+	.filename=PATH, \
+}
 
 /**
  * initialize the music module
@@ -38,16 +50,16 @@ void music_man_set_volume(float volume);
 float music_man_get_volume(void);
 
 /**
- * Load a sound, it cannot be played until
- * this happens
+ * Load a sound, it cannot be played until this happens.
+ * Return the UID of the sound to be passed into play_sound
  */
-void music_man_load_sound(const char *name);
+int music_man_load_sound(const char *name);
 
 /**
  * Play a sound once, the sound must have been loaded
  * on init
  */
-void music_man_play_sound(const char *name);
+void music_man_play_sound(int uid);
 
 /**
  * Play music from a file on loop until cleanup

@@ -55,4 +55,57 @@ char *arg_get(int argc, char **argv, const char *arg);
 float fast_sqrtf(float number);
 float distance(float x0, float y0, float x1, float y1);
 
+#ifndef min
+int min(int, int);
+#endif
+
+typedef enum param_type_tag {
+	PARAM_TYPE_FLOAT,
+	PARAM_TYPE_INT,
+	PARAM_TYPE_BOOL,
+	PARAM_TYPE_COLOR,
+	PARAM_TYPE_STRING,
+} param_type;
+
+typedef struct param_tag {
+	const char *name;
+	void *value;
+	void *def;
+	int len;
+	param_type type;
+} param;
+
+#define DEFINE_PARAM(TYPE, UNQUOTED_NAME, CONFIG, DEFAULT) \
+{ \
+	.name = #UNQUOTED_NAME, \
+	.value = &CONFIG.UNQUOTED_NAME, \
+	.def = &DEFAULT.UNQUOTED_NAME, \
+	.len = sizeof(CONFIG.UNQUOTED_NAME), \
+	.type = TYPE, \
+}
+
+/** read the config file defined by paramList
+ * Should have the format "varname=value" with 1 item per line
+ */
+int param_read(const char *filename, param paramList[]);
+/** write the param list to the file */
+int param_write(const char *filename, param paramList[]);
+
+/**
+ * Wrap an array to act as a growing/shrinkable vector.
+ * Everything should be an array of pointers.
+ * No point should be owned.
+ */
+typedef struct svec_tag {
+	void **buf;
+	size_t len;
+	size_t end;
+} svec;
+
+void svec_init(svec *out, void **static_array, size_t length);
+void svec_push(svec *self, void *data);
+void svec_pop(svec *self);
+void svec_map(svec *self, void (*func)(void *data));
+void *svec_tail(svec *self); /** get last item */
+
 #endif // RLU_UTIL_H

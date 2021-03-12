@@ -16,9 +16,6 @@ void music_man_init(sound_def *sounds, music_def *songs)
 		return;
 	}
 
-	InitAudioDevice();
-	while (!IsAudioDeviceReady())
-		;
 	SetMasterVolume(master_volume);
 	initialized = true;
 	sound_definitions = sounds;
@@ -32,7 +29,6 @@ void music_man_cleanup(void)
 	}
 
 	music_man_unload();
-	CloseAudioDevice();
 	initialized = false;
 }
 
@@ -82,7 +78,7 @@ float music_man_get_volume(void)
 	return master_volume;
 }
 
-void music_man_load_sound(const char *name)
+int music_man_load_sound(const char *name)
 {
 	int i;
 	assert(name);
@@ -93,25 +89,19 @@ void music_man_load_sound(const char *name)
 				return;
 			}
 			sound_definitions[i].sound = LoadSound(sound_definitions[i].filename);
-			sound_definitions[i].loaded =  true;
-			return;
+			sound_definitions[i].loaded = true;
+			return i;
 		}
 	}
 	msg_assert(0, "Sound %s not found", name);
+	return -1;
 }
 
-void music_man_play_sound(const char *name)
+void music_man_play_sound(int uid)
 {
-	int i;
-	assert(name);
-	for (i = 0; sound_definitions[i].name; i++) {
-		if (streq((char *)sound_definitions[i].name, (char *)name)) {
-			msg_assert(sound_definitions[i].loaded, "Sound %s not loaded", sound_definitions[i].filename);
-			PlaySound(sound_definitions[i].sound);
-			return;
-		}
-	}
-	msg_assert(0, "Sound %s not found", name);
+	assert(uid >= 0);
+	msg_assert(sound_definitions[uid].loaded, "Sound %s not loaded", sound_definitions[uid].filename);
+	PlaySound(sound_definitions[uid].sound);
 }
 
 void music_man_load_music(const char *name)

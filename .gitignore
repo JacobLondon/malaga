@@ -1,7 +1,5 @@
 test
+*.exe
 .vscode
 *.swp
-
 *.o
-
-

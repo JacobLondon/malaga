@@ -1,29 +1,24 @@
-CC=gcc
-TARGET=test
-CFLAGS=\
-	-Iinclude \
-	-lraylib \
-	-lm \
-	-ggdb
-
+ifeq ($(OS),Windows_NT)
+	CC=C:\raylib\tcc\tcc
+	LDFLAGS = C:\raylib\raylib\src\raylib.rc.data -Os -std=c99 -Wall -Iexternal -DPLATFORM_DESKTOP
+	CFLAGS = -lmsvcrt -lraylib -lopengl32 -lgdi32 -lwinmm -lkernel32 -lshell32 -luser32 -Wl -O2 -Iinclude/
+	TARGET = test.exe
+	REMOVE = del
+else
+	CC=gcc
+	LDFLAGS = -O2 -std=c99 -Wall -Iexternal -DPLATFORM_DESKTOP
+	CFLAGS = -lraylib -lm -O2 -Iinclude
+	TARGET = test
+	REMOVE = rm -f
+endif
 
 .PHONY: clean
 
-FILES=\
-	src/main.o \
-	src/rlu/anim.o \
-	src/rlu/anim_man.o \
-	src/rlu/key_object.o \
-	src/rlu/scene.o \
-	src/rlu/scene_man.o \
-	src/rlu/scene_object.o \
-	src/rlu/texture_man.o \
-	src/rlu/ui.o \
-	src/rlu/util.o
+SOURCES = $(wildcard src/rlu/*.c) $(wildcard src/*.c) $(wildcard src/modules/*.c)
 
-$(TARGET): $(FILES)
+$(TARGET): $(SOURCES)
 	$(CC) -o $@ $^ $(CFLAGS)
 
 clean:
-	rm -rf $(TARGET) *.o src/*.o src/rlu/*.o
+	$(REMOVE) $(TARGET)
 

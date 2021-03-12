@@ -14,6 +14,7 @@
 #include <stdarg.h>
 
 #include "anim_man.h"
+#include "context.h"
 #include "key_object.h"
 #include "key_man.h"
 #include "music_man.h"

@@ -1,13 +1,5 @@
 #include <rlu/rlu.h>
 
-#ifndef min
-int min(int, int);
-int min(int a, int b)
-{
-	return (a > b) ? a : b;
-}
-#endif
-
 enum comp_type {
 	TYPE_LABEL,
 	TYPE_BUTTON,

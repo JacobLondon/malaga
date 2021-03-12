@@ -1,5 +1,7 @@
 #include <rlu/rlu.h>
 
+static void param_read_helper(param *item, char *value);
+
 void *(*allocate)(size_t size) = malloc;
 void (*dealloc)(void *p) = free;
 
@@ -152,8 +154,227 @@ float fast_sqrtf(float number)
 	return 1.0f / conv.f;
 }
 
-
 float distance(float x0, float y0, float x1, float y1)
 {
 	return fast_sqrtf((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0));
+}
+
+#ifndef min
+int min(int a, int b)
+{
+	return (a > b) ? a : b;
+}
+#endif
+
+int param_read(const char *filename, param paramList[])
+{
+	char buf[256];
+	FILE *fp;
+	char *p;
+	size_t i;
+
+	assert(filename);
+	assert(paramList);
+
+	// load defaults
+	for (i = 0; paramList[i].name != NULL; i++) {
+		param_read_helper(&paramList[i], NULL);
+	}
+
+	fp = fopen(filename, "r");
+	if (!fp) {
+		// already loaded defaults
+		return 1;
+	}
+
+	// read file line by line
+	while (fgets(buf, sizeof(buf), fp)) {
+		if (buf[0] == '#') {
+			continue;
+		}
+
+		p = strchr(buf, '=');
+		if (!p) {
+			continue;
+		}
+
+		// check if the varname is in the param list, 
+		for (i = 0; paramList[i].name != NULL; i++) {
+			if (strncmp(buf, paramList[i].name, (size_t)(p - buf)) == 0) {
+				param_read_helper(&paramList[i], p + 1);
+				break;
+			}
+		}
+	}
+
+	(void)fclose(fp);
+	return 0;
+}
+
+static void param_read_helper(param *item, char *value)
+{
+	assert(item);
+
+	if (value == NULL) {
+	default_param:
+		(void)memcpy(item->value, item->def, item->len);
+		return;
+	}
+
+	union {
+		float f;
+		int i;
+		Color c;
+		char boolean[8];
+	} tmp;
+	int rv;
+
+	switch (item->type) {
+	case PARAM_TYPE_FLOAT:
+		rv = sscanf(value, "%f", &tmp.f);
+		if (rv != 1) {
+			goto default_param;
+		}
+		*(float *)item->value = tmp.f;
+		break;
+	case PARAM_TYPE_INT:
+		rv = sscanf(value, "%d", &tmp.i);
+		if (rv != 1) {
+			goto default_param;
+		}
+		*(int *)item->value = tmp.i;
+		break;
+	case PARAM_TYPE_BOOL:
+		rv = sscanf(value, "%s", tmp.boolean);
+		if (rv != 1) {
+			goto default_param;
+		}
+		if (strcmp(tmp.boolean, "true") == 0) {
+			*(bool *)item->value = !0;
+		}
+		else {
+			*(bool *)item->value = 0;
+		}
+		break;
+	case PARAM_TYPE_COLOR:
+		rv = sscanf(value, "%d %d %d %d", &tmp.c.r, &tmp.c.g, &tmp.c.b, &tmp.c.a);
+		if (rv != 3 || rv != 4) {
+			goto default_param;
+		}
+		if (rv == 3) {
+			tmp.c.a = 255;
+		}
+		tmp.c.r = min(tmp.c.r, 255);
+		tmp.c.g = min(tmp.c.g, 255);
+		tmp.c.b = min(tmp.c.b, 255);
+		tmp.c.a = min(tmp.c.a, 255);
+		*(Color *)item->value = tmp.c;
+		break;
+	case PARAM_TYPE_STRING:
+		// TODO: Is this fine? 'value' is in buf somewhere
+		(void)snprintf((char *)item->value, (size_t)item->len, "%s", value);
+		break;
+	default:
+		goto default_param;
+	}
+}
+
+int param_write(const char *filename, param paramList[])
+{
+	int i;
+	FILE *fp;
+
+	assert(filename);
+	assert(paramList);
+
+	fp = fopen(filename, "w");
+	if (!fp) {
+		return 1;
+	}
+
+	for (i = 0; paramList[i].name != NULL; i++) {
+		switch (paramList[i].type) {
+		case PARAM_TYPE_FLOAT:
+			(void)fprintf(fp, "%s=%f\n", paramList[i].name, *(float *)paramList[i].value);
+			(void)fflush(fp);
+			break;
+		case PARAM_TYPE_INT:
+			(void)fprintf(fp, "%s=%d\n", paramList[i].name, *(int *)paramList[i].value);
+			(void)fflush(fp);
+			break;
+		case PARAM_TYPE_BOOL:
+			(void)fprintf(fp, "%s=%hhd\n", paramList[i].name, *(bool *)paramList[i].value);
+			(void)fflush(fp);
+			break;
+		case PARAM_TYPE_COLOR:
+			(void)fprintf(fp, "%s=%d %d %d %d\n", paramList[i].name,
+				((Color *)paramList[i].value)->r,
+				((Color *)paramList[i].value)->g,
+				((Color *)paramList[i].value)->b,
+				((Color *)paramList[i].value)->a);
+			(void)fflush(fp);
+			break;
+		case PARAM_TYPE_STRING:
+			(void)fprintf(fp, "%s=%s\n", paramList[i].name, (char *)paramList[i].value);
+			(void)fflush(fp);
+			break;
+		default:
+			break;
+		}
+	}
+
+	(void)fclose(fp);
+	return 0;
+}
+
+void svec_init(svec *out, void **static_array, size_t length)
+{
+	assert(out);
+	assert(static_array);
+
+	(void)memset(out, 0, sizeof(*out));
+	out->buf = static_array;
+	out->len = length;
+	out->end = 0;
+}
+
+void svec_push(svec *self, void *data)
+{
+	assert(self);
+	assert(self->end < self->len);
+
+	self->buf[self->end] = data;
+	self->end++;
+}
+
+void svec_pop(svec *self)
+{
+	assert(self);
+	
+	if (self->end == 0) {
+		self->buf[0] = NULL;
+		return;
+	}
+
+	self->end--;
+	self->buf[self->end] = NULL;
+}
+
+void svec_map(svec *self, void (*func)(void *data))
+{
+	assert(self);
+	assert(func);
+
+	for (size_t i = 0; i < self->end; i++) {
+		func(self->buf[i]);
+	}
+}
+
+void *svec_tail(svec *self)
+{
+	assert(self);
+	if (self->end == 0) {
+		return self->buf[0];
+	}
+	return self->buf[self->end - 1];
 }
