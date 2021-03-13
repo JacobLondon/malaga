@@ -3,20 +3,31 @@
 
 #include "util.h"
 
-void texture_man_init(void);
-void texture_man_cleanup(void);
+#define TEXTURES_MAX 32
+
+typedef struct texture_lookup_tag {
+	char *png;
+	Texture2D texture;
+} texture_lookup;
+
+typedef struct texture_manager_tag {
+	texture_lookup textures[TEXTURES_MAX];
+} texture_manager;
+
+void texture_man_new(texture_manager *out);
+void texture_man_del(texture_manager *self);
 
 /**
  * Load a texture and return a shared pointer to it,
  * ignore the loading if the texture already exists
  */
-Texture2D *texture_man_load(char *png);
+Texture2D *texture_man_load(texture_manager *self, char *png);
 
 /* Extract a texture. If it's not there, assertion */
-Texture2D *texture_man_get(char *png);
+Texture2D *texture_man_get(texture_manager *self, char *png);
 
 /**
- *Test drawing routine
+ * Test drawing routine
  * Only use for test drawing or if animation will not
  * be necessary.
 */

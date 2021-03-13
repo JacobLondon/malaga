@@ -18,7 +18,6 @@ typedef struct so_tag {
 	anim *animation; /* points, doesn't own */
 } so;
 
-
 so *so_new_owner(anim *animation, bool own_animation)
 {
 	assert(animation);

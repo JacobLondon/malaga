@@ -1,49 +1,41 @@
 #include <rlu/rlu.h>
 
-#define KEY_OBJECTS_MAX 32
-
-static key_definition *defs = NULL;
-
-static bool initialized = false;
-static ko *key_objects[KEY_OBJECTS_MAX] = { NULL };
-
-
-void key_man_init(key_definition *definitions)
+void key_man_new(key_manager *out, key_definition *definitions)
 {
-	assert(initialized == false);
+	assert(out);
 	assert(definitions != NULL);
-	memset(key_objects, 0, sizeof(key_objects));
-	initialized = true;
-	defs = definitions;
+
+	memset(out, 0, sizeof(*out));
+	out->defs = definitions;
 }
 
-void key_man_cleanup(void)
+void key_man_del(key_manager *self)
 {
 	int i;
-	assert(initialized == true);
+	assert(self);
+
 	for (i = 0; i < KEY_OBJECTS_MAX; i++) {
-		if (key_objects[i]) {
-			ko_del(key_objects[i]);
+		if (self->key_objects[i]) {
+			ko_del(self->key_objects[i]);
 		}
 	}
-	memset(key_objects, 0, sizeof(key_objects));
-	initialized = false;
+	memset(self->key_objects, 0, sizeof(self->key_objects));
 }
 
-void key_man_load(char **names)
+void key_man_load(key_manager *self, char **names)
 {
 	key_definition *d;
 	int i;
 	ko *tmp;
-	assert(names != NULL);
-	assert(initialized == true);
+	assert(self);
+	assert(names);
 
 	for (i = 0; names[i] != NULL; i++) {
-		for (d = defs; d->name; d++) {
+		for (d = self->defs; d->name; d++) {
 			if (streq(names[i], d->name)) {
 				tmp = ko_new();
 				d->load(tmp);
-				key_objects[i] = tmp;
+				self->key_objects[i] = tmp;
 				break;
 			}
 		}
@@ -53,19 +45,17 @@ void key_man_load(char **names)
 	}
 }
 
-void key_man_update(void)
+void key_man_update(key_manager *self)
 {
 	int i;
-	assert(initialized == true);
 	
 	// update all key objects that exist
 	for (i = 0; i < KEY_OBJECTS_MAX; i++) {
-		if (key_objects[i]) {
-			ko_update(key_objects[i]);
+		if (self->key_objects[i]) {
+			ko_update(self->key_objects[i]);
 		}
 	}
 }
-
 
 /*****************************************************************************
  * 

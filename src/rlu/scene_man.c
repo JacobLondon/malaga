@@ -2,114 +2,133 @@
 
 #define ANIMATION_RATE 10.0f /* animation updates per second, > 0.0 */
 
+struct scene_manager_tag {
+	scene_definition *defs;
+
+	/**
+	 * Map a set name to a grouping of scenes, ordered from back to front, left to right
+	 * NULL term the initializer list
+	 */
+	scene_set *set_definitions;
+
+	size_t set_count;
+	int set_loaded_idx;
+	anim_man *animation_man;
+	scene *active_scenes[ACTIVE_SCENES_MAX];
+	bool *active_visibility[ACTIVE_SCENES_MAX];
+};
+
 /**
  * Take ownership of scene. Remove scene on unload, draw on man_draw,
  * update on man_update, etc... Set visible to true by default
  */
-static void take_scene(scene *other);
+static void take_scene(struct scene_manager_tag *self, scene *other);
 
 /* Create a new scene and give it directly to the scene manager */
-#define emplace_scene(Name, MaxObjects, SceneCb_Init) \
-	take_scene(scene_new((Name), (MaxObjects), (SceneCb_Init))
+#define emplace_scene(Man, Name, MaxObjects, SceneCb_Init) \
+	take_scene((Man), scene_new((Name), (MaxObjects), (SceneCb_Init))
 
-#define emplace_scene_def(SceneDefinition) \
-	take_scene(scene_new_def(SceneDefinition))
+#define emplace_scene_def(Man, SceneDefinition) \
+	take_scene((Man), scene_new_def(SceneDefinition))
 
-static void load_names(char **names);
+static void load_names(struct scene_manager_tag *self, char **names);
 
-static scene_definition *defs = NULL;
+//static scene_definition *defs = NULL;
 
 /**
  * Map a set name to a grouping of scenes, ordered from back to front, left to right
  * NULL term the initializer list
  */
-static scene_set *set_definitions = NULL;
+/*static scene_set *set_definitions = NULL;
 
 static size_t set_count = 0;
 static int set_loaded_idx = 0;
 static bool initialized = false;
 static anim_man *animation_man = NULL;
 static scene *active_scenes[ACTIVE_SCENES_MAX] = { NULL };
-static bool *active_visibility[ACTIVE_SCENES_MAX] = { false };
+static bool *active_visibility[ACTIVE_SCENES_MAX] = { false };*/
 
-
-void scene_man_init(scene_definition *definitions, scene_set *sets)
+void scene_man_new(struct scene_manager_tag *out, scene_definition *definitions, scene_set *sets)
 {
 	size_t i;
 
-	assert(initialized == false);
+	assert(out);
 	assert(definitions);
 	assert(sets);
-	animation_man = anim_man_new();
-	assert(animation_man);
-	memset(active_scenes, 0, sizeof(active_scenes));
-	initialized = true;
-	defs = definitions;
-	set_definitions = sets;
+	(void)memset(out, 0, sizeof(*out));
 
-	for (i = 0, set_count = 0; sets[i].name != NULL; i++, set_count++);
+	out->animation_man = anim_man_new();
+	assert(out->animation_man);
+
+	out->defs = definitions;
+	out->set_definitions = sets;
+
+	// count sets we have
+	for (i = 0, out->set_count = 0; sets[i].name != NULL; i++, out->set_count++);
 }
 
-void scene_man_cleanup(void)
+void scene_man_cleanup(struct scene_manager_tag *self)
 {
 	int i;
-
-	assert(initialized == true);
+	assert(self);
 
 	for (i = 0; i < ACTIVE_SCENES_MAX; i++) {
-		if (active_scenes[i]) {
-			scene_del(active_scenes[i]);
+		if (self->active_scenes[i]) {
+			scene_del(self->active_scenes[i]);
 		}
 	}
 
-	anim_man_del(animation_man);
-	animation_man = NULL;
-	memset(active_scenes, 0, sizeof(active_scenes));
-	initialized = false;
+	anim_man_del(self->animation_man);
+	self->animation_man = NULL;
+	(void)memset(self, 0, sizeof(*self));
 }
 
-void scene_man_load_set(char *name)
+void scene_man_load_set(struct scene_manager_tag *self, char *name)
 {
 	int i;
+	assert(self);
 	assert(name);
-	for (i = 0; i < set_count; i++) {
-		if (streq((char *)set_definitions[i].name, name)) {
+
+	for (i = 0; i < self->set_count; i++) {
+		if (streq((char *)self->set_definitions[i].name, name)) {
 			(void)printf("Default: Scene set %s loaded\n", name);
-			load_names(set_definitions[i].scene_names);
-			set_loaded_idx = i;
+			load_names(self, self->set_definitions[i].scene_names);
+			self->set_loaded_idx = i;
 			return;
 		}
 	}
 	msg_assert(0, "Scene set named %s not found", name);
 }
 
-void scene_man_load_idx(int idx)
+void scene_man_load_idx(struct scene_manager_tag *self, int idx)
 {
-	assert(0 <= idx && idx < set_count);
-	load_names(set_definitions[idx].scene_names);
-	(void)printf("Default: Scene set %s loaded\n", set_definitions[idx].name);
-	set_loaded_idx = idx;
+	assert(0 <= idx && idx < self->set_count);
+	load_names(self, self->set_definitions[idx].scene_names);
+	(void)printf("Default: Scene set %s loaded\n", self->set_definitions[idx].name);
+	self->set_loaded_idx = idx;
 }
 
-void scene_man_load_rand(void)
+void scene_man_load_rand(struct scene_manager_tag *self)
 {
-	int idx = rand_range(0, set_count);
-	load_names(set_definitions[idx].scene_names);
-	(void)printf("Default: Scene set %s loaded\n", set_definitions[idx].name);
-	set_loaded_idx = idx;
+	int idx = rand_range(0, self->set_count);
+	assert(self);
+
+	load_names(self, self->set_definitions[idx].scene_names);
+	(void)printf("Default: Scene set %s loaded\n", self->set_definitions[idx].name);
+	self->set_loaded_idx = idx;
 }
 
-static void load_names(char **names)
+static void load_names(struct scene_manager_tag *self, char **names)
 {
 	scene_definition *d;
 	int i;
-	assert(names != NULL);
-	assert(initialized == true);
+	assert(self);
+	assert(names);
 
 	for (i = 0; names[i] != NULL; i++) {
-		for (d = defs; d->name; d++) {
+		for (d = self->defs; d->name; d++) {
 			if (streq(names[i], d->name)) {
-				emplace_scene_def(d);
+				emplace_scene_def(self, d);
 				break;
 			}
 		}
@@ -119,77 +138,74 @@ static void load_names(char **names)
 	}
 }
 
-void scene_man_update(void)
+void scene_man_update(struct scene_manager_tag *self)
 {
 	int i;
 	static float oof = 0;
-
-	assert(initialized == true);
+	assert(self);
 
 	for (i = 0; i < ACTIVE_SCENES_MAX; i++) {
 		// only update the scene if it's visible (NULL or deref to true means visible)
-		if (active_scenes[i] && (active_visibility[i] == NULL || *active_visibility[i])) {
-			scene_update(active_scenes[i]);
+		if (self->active_scenes[i] && (self->active_visibility[i] == NULL || *self->active_visibility[i])) {
+			scene_update(self->active_scenes[i]);
 		}
 	}
 
 	if (oof > 1.0f / ANIMATION_RATE) {
-		anim_man_update(animation_man);
+		anim_man_update(self->animation_man);
 		oof = 0.0f;
 	}
 	oof += GetFrameTime();
 }
 
-void scene_man_draw(void)
+void scene_man_draw(struct scene_manager_tag *self)
 {
 	int i;
-
-	assert(initialized == true);
+	assert(self);
 
 	for (i = 0; i < ACTIVE_SCENES_MAX; i++) {
-		if (!active_scenes[i]) {
+		if (!self->active_scenes[i]) {
 			continue;
 		}
 
 		// only draw the scene if it's visible
-		if (active_visibility[i] == NULL || *active_visibility[i]) {
-			scene_draw(active_scenes[i]);
+		if (self->active_visibility[i] == NULL || *self->active_visibility[i]) {
+			scene_draw(self->active_scenes[i]);
 		}
 	}
 }
 
-void scene_man_tie_visibility(char *scene_name, bool *is_visible)
+void scene_man_tie_visibility(struct scene_manager_tag *self, char *scene_name, bool *is_visible)
 {
 	int i;
 
-	assert(initialized == true);
-	assert(scene_name != NULL);
-	assert(is_visible != NULL);
+	assert(self);
+	assert(scene_name);
+	assert(is_visible);
 
 	for (i = 0; i < ACTIVE_SCENES_MAX; i++) {
-		if (!active_scenes[i]) {
+		if (!self->active_scenes[i]) {
 			continue;
 		}
 
-		if (streq(scene_name, scene_get_name(active_scenes[i]))) {
-			active_visibility[i] = is_visible;
+		if (streq(scene_name, scene_get_name(self->active_scenes[i]))) {
+			self->active_visibility[i] = is_visible;
 			break;
 		}
 	}
 	msg_assert(i != ACTIVE_SCENES_MAX, "Cannot find scene %s to set visibility", scene_name);
 }
 
-static void take_scene(scene *other)
+static void take_scene(struct scene_manager_tag *self, scene *other)
 {
 	int i;
-
-	assert(initialized == true);
+	assert(self);
 	assert(other);
 
 	for (i = 0; i < ACTIVE_SCENES_MAX; i++) {
-		if (active_scenes[i] == NULL) {
-			active_scenes[i] = other;
-			active_visibility[i] = NULL;
+		if (self->active_scenes[i] == NULL) {
+			self->active_scenes[i] = other;
+			self->active_visibility[i] = NULL;
 			break;
 		}
 	}
@@ -197,9 +213,10 @@ static void take_scene(scene *other)
 	msg_assert(i != ACTIVE_SCENES_MAX, "Too many scenes: %d", i);
 }
 
-anim_man *scene_man_get_anim_man(void)
+anim_man *scene_man_get_anim_man(struct scene_manager_tag *self)
 {
-	return animation_man;
+	assert(self);
+	return self->animation_man;
 }
 
 /*

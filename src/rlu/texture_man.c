@@ -1,66 +1,54 @@
 #include <rlu/rlu.h>
 
-#define TEXTURES_MAX 32
-
-typedef struct texture_lookup_tag {
-	char *png;
-	Texture2D texture;
-} texture_lookup;
-
-static bool initialized = false;
-static texture_lookup textures[TEXTURES_MAX] = { 0 };
-
-void texture_man_init(void)
+void texture_man_new(texture_manager *out)
 {
-	assert(initialized == false);
-	memset(textures, 0, sizeof(textures));
-	initialized = true;
+	assert(out);
+	memset(out, 0, sizeof(*out));
 }
 
-void texture_man_cleanup(void)
+void texture_man_cleanup(texture_manager *self)
 {
 	int i;
-	assert(initialized == true);
 	for (i = 0; i < TEXTURES_MAX; i++) {
-		if (textures[i].png) {
-			UnloadTexture(textures[i].texture);
+		if (self->textures[i].png) {
+			UnloadTexture(self->textures[i].texture);
 		}
 	}
-	memset(textures, 0, sizeof(textures));
-	initialized = false;
+	memset(self->textures, 0, sizeof(self->textures));
 }
 
-Texture2D *texture_man_load(char *png)
+Texture2D *texture_man_load(texture_manager *self, char *png)
 {
 	int i;
 	Texture2D *ret = NULL;
-	assert(initialized == true);
-	for (i = 0; i < TEXTURES_MAX; i++) {
-		if (textures[i].png == NULL) {
-			textures[i].png = png;
-			textures[i].texture = LoadTexture(png);
-			ret = &textures[i].texture;
+	assert(png);
+
+	for (int i = 0; i < TEXTURES_MAX; i++) {
+		if (self->textures[i].png == NULL) {
+			self->textures[i].png = png;
+			self->textures[i].texture = LoadTexture(png);
+			ret = &self->textures[i].texture;
 			break;
 		}
-		else if (streq(textures[i].png, png)) {
-			ret = &textures[i].texture;
+		else if (streq(self->textures[i].png, png)) {
+			ret = &self->textures[i].texture;
 			break;
 		}
 	}
-	msg_assert(i < TEXTURES_MAX, "Too many textures loaded: %d", i);
+	msg_assert(i < TEXTURES_MAX, "Too many textures loaded: %d / %d", i, TEXTURES_MAX);
 	return ret;
 }
 
-Texture2D *texture_man_get(char *png)
+Texture2D *texture_man_get(texture_manager *self, char *png)
 {
 	int i;
-	assert(initialized == true);
+	assert(png);
 	for (i = 0; i < TEXTURES_MAX; i++) {
-		if (textures[i].png == NULL) {
+		if (self->textures[i].png == NULL) {
 			continue;
 		}
-		else if (streq(textures[i].png, png)) {
-			return &textures[i].texture;
+		else if (streq(self->textures[i].png, png)) {
+			return &self->textures[i].texture;
 		}
 	}
 	msg_assert(i < TEXTURES_MAX, "Texture not found: %s", png);

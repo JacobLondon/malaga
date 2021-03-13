@@ -33,7 +33,7 @@ static void update_module_func(void *mod);
 static void draw_module_func(void *mod);
 
 static Image icon;
-static char iconPath[64];
+static char iconPath[64+1];
 static bool initialized = false;
 static bool done = false;
 static module_definition *modules = NULL;

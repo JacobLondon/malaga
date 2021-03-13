@@ -1,5 +1,9 @@
 #include <rlu/rlu.h>
 
+#ifndef SetMusicLoopCount
+#define SetMusicLoopCount(...)
+#endif
+
 #define MUSIC_REPEAT_COUNT 100
 static bool initialized = false;
 static float master_volume = 50;
@@ -86,7 +90,7 @@ int music_man_load_sound(const char *name)
 		if (streq((char *)sound_definitions[i].name, (char *)name)) {
 			// don't reload
 			if (sound_definitions[i].loaded) {
-				return;
+				return i;
 			}
 			sound_definitions[i].sound = LoadSound(sound_definitions[i].filename);
 			sound_definitions[i].loaded = true;

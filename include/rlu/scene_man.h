@@ -10,6 +10,8 @@ typedef struct scene_set_tag {
 	char *scene_names[ACTIVE_SCENES_MAX];
 } scene_set;
 
+typedef struct scene_manager_tag scene_manager;
+
 /**
  * Manage groupings of scenes. Call update
  * and draw on many scenes at once for convenience.
@@ -28,25 +30,25 @@ typedef struct scene_set_tag {
  */
 
 /* Allocate anim_man for scene management */
-void scene_man_init(scene_definition *definitions, scene_set *sets);
+void scene_man_new(scene_manager *out, scene_definition *definitions, scene_set *sets);
 
 /* Deallocate anim_man */
-void scene_man_cleanup(void);
+void scene_man_del(scene_manager *self);
 
 /**
  * Load all given definitions by name. Each definition
  * statically exists inside the corresponding *.c file
  * 'names' must be NULL terminated and all names MUST
  * exist */
-void scene_man_load_set(char *name);
-void scene_man_load_idx(int idx);
-void scene_man_load_rand(void);
+void scene_man_load_set(scene_manager *self, char *name);
+void scene_man_load_idx(scene_manager *self, int idx);
+void scene_man_load_rand(scene_manager *self);
 
 /* call update on all scenes */
-void scene_man_update(void);
+void scene_man_update(scene_manager *self);
 
 /* call draw on all scenes */
-void scene_man_draw(void);
+void scene_man_draw(scene_manager *self);
 
 /**
  * Bind visibility to a local variable,
@@ -56,13 +58,13 @@ void scene_man_draw(void);
  * themselves (and scene objects for that matter) do not
  * know about visibility as that is not their job. They
  * just draw when told to. The manager can decide who is told. */
-void scene_man_tie_visibility(char *scene_name, bool *is_visible);
+void scene_man_tie_visibility(scene_manager *self, char *scene_name, bool *is_visible);
 
 /**
  * Get the anim manager if you want it to insert an animation to be
  * automatically updated and draw by the scene manager
  */
-anim_man *scene_man_get_anim_man(void);
+anim_man *scene_man_get_anim_man(scene_manager *self);
 
 /**
  * Given a png file, animation width, height, get shared so*

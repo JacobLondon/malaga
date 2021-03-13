@@ -257,7 +257,7 @@ static void param_read_helper(param *item, char *value)
 		}
 		break;
 	case PARAM_TYPE_COLOR:
-		rv = sscanf(value, "%d %d %d %d", &tmp.c.r, &tmp.c.g, &tmp.c.b, &tmp.c.a);
+		rv = sscanf(value, "%hhd %hhd %hhd %hhd", &tmp.c.r, &tmp.c.g, &tmp.c.b, &tmp.c.a);
 		if (rv != 3 || rv != 4) {
 			goto default_param;
 		}

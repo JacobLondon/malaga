@@ -5,7 +5,7 @@ ifeq ($(OS),Windows_NT)
 	TARGET = test.exe
 	REMOVE = del
 else
-	CC=gcc
+	CC=tcc
 	LDFLAGS = -O2 -std=c99 -Wall -Iexternal -DPLATFORM_DESKTOP
 	CFLAGS = -lraylib -lm -O2 -Iinclude
 	TARGET = test
