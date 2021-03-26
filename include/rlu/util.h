@@ -13,12 +13,20 @@
 		else { \
 			fprintf(stderr, "Error: " __VA_ARGS__); \
 			fprintf(stderr, "\n"); \
+			fflush(stderr); \
 			assert(Expr); \
 		} \
 	} while (0)
 #else
 	#define msg_assert(...) ((void)0)
 #endif // NDEBUG
+
+#define msg_warning(...) \
+	do { \
+		fprintf(stderr, "Warning: " __VA_ARGS__); \
+		fprintf(stderr, "\n"); \
+		fflush(stderr); \
+	} while (0)
 
 /* definitely not thread safe lol */
 void pool_init(size_t kilobytes);

@@ -5,9 +5,9 @@ ifeq ($(OS),Windows_NT)
 	TARGET = test.exe
 	REMOVE = del
 else
-	CC=tcc
-	LDFLAGS = -O2 -std=c99 -Wall -Iexternal -DPLATFORM_DESKTOP
-	CFLAGS = -lraylib -lm -O2 -Iinclude
+	CC=gcc
+	LDFLAGS = -std=c99 -Wall -Iexternal -DPLATFORM_DESKTOP
+	CFLAGS = -lraylib -lm -lpthread -ldl -Iinclude -ggdb
 	TARGET = test
 	REMOVE = rm -f
 endif

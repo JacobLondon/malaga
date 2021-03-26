@@ -204,6 +204,8 @@ void context_init(context_opt *opt, module_definition definitions[])
 			;
 		music_man_set_volume(options.volume);
 	}
+
+	SetWindowPosition(options.screen_height / 3, options.screen_width / 3);
 }
 
 void context_cleanup(void)
@@ -228,7 +230,7 @@ void context_loop(void)
 
 	while (!WindowShouldClose() && !done) {
 		module_operations();
-		svec_map(&module_vec, update_module_func);
+		update_module_func(svec_tail(&module_vec));
 		BeginDrawing();
 		ClearBackground(options.background);
 		svec_map(&module_vec, draw_module_func);

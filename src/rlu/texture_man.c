@@ -23,10 +23,18 @@ Texture2D *texture_man_load(texture_manager *self, char *png)
 	Texture2D *ret = NULL;
 	assert(png);
 
-	for (int i = 0; i < TEXTURES_MAX; i++) {
+	for (i = 0; i < TEXTURES_MAX; i++) {
 		if (self->textures[i].png == NULL) {
 			self->textures[i].png = png;
-			self->textures[i].texture = LoadTexture(png);
+			if (FileExists(png)) {
+				self->textures[i].texture = LoadTexture(png);
+			}
+			else {
+				self->textures[i].texture = LoadTextureFromImage(
+					GenImageChecked(100, 100, 2, 2, MAGENTA, BLACK)
+				);
+				msg_warning("Could not load texture '%s'", png);
+			}
 			ret = &self->textures[i].texture;
 			break;
 		}
