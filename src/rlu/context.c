@@ -46,6 +46,7 @@ static module null_module = {
 };
 static module *loaded_modules[MODULES_MAX] = {NULL};
 static module *on_deck = &null_module;
+static int popcount = 0; // count the number of pops to perform if more than 1 POP op per frame
 static svec module_vec;
 static enum {
 	XOP_NONE,
@@ -122,10 +123,17 @@ static void module_operations(void)
 	switch (operation) {
 	case XOP_PUSH:
 		svec_push(&module_vec, on_deck);
+		on_deck->init();
 		operation = XOP_NONE;
 		break;
 	case XOP_POP:
-		svec_pop(&module_vec);
+		for ( ; popcount > 0; popcount--) {
+			mod = svec_tail(&module_vec);
+			if (mod) {
+				mod->cleanup();
+			}
+			svec_pop(&module_vec);
+		}
 		operation = XOP_NONE;
 		break;
 	case XOP_SWAP:
@@ -271,4 +279,5 @@ void context_push(const char *module_name)
 void context_pop(void)
 {
 	operation = XOP_POP;
+	popcount++;
 }
