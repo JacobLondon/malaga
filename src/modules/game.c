@@ -1,6 +1,7 @@
 #include <rlu/rlu.h>
 #include "../modules.h"
 
+#define PLAYER_SPEED 650
 #define PLAYER_SIZE 25
 #define ENEMY_SIZE 15
 #define BULLET_SIZE 5
@@ -114,7 +115,7 @@ static void enemy_move_horzrightstop(struct enemy_data_tag *en);
 static void enemy_move_horzleftstop(struct enemy_data_tag *en);
 
 static player_data player = {
-	.shoot = shoot_downstraight,
+	.shoot = shoot_upstraight,
 	.hp = 30,
 };
 static enemy_data enemies[32];
@@ -172,11 +173,43 @@ void game_update(void)
 	int i;
 	int j;
 
+	screen_width = GetScreenWidth();
+	screen_height = GetScreenHeight();
 	now = GetTime();
 
 	// move player
-	player.x = GetMouseX();
-	player.y = GetMouseY();
+	if (IsKeyDown(KEY_LEFT)) {
+		if (player.x >= 0) {
+			player.x -= (GetFrameTime() * PLAYER_SPEED);
+		}
+		else {
+			player.x = 0;
+		}
+	}
+	if (IsKeyDown(KEY_RIGHT)) {
+		if ((player.x + PLAYER_SIZE <= screen_width)) {
+			player.x += (GetFrameTime() * PLAYER_SPEED);
+		}
+		else {
+			player.x = screen_width - PLAYER_SIZE;
+		}
+	}
+	if (IsKeyDown(KEY_UP)) {
+		if ((player.y >= 0)) {
+			player.y -= (GetFrameTime() * PLAYER_SPEED);
+		}
+		else {
+			player.y -= 0;
+		}
+	}
+	if (IsKeyDown(KEY_DOWN)) {
+		if ((player.y + PLAYER_SIZE <= screen_height)) {
+			player.y += (GetFrameTime() * PLAYER_SPEED);
+		}
+		else {
+			player.y = screen_height - PLAYER_SIZE;
+		}
+	}
 
 	if (encounter_done()) {
 		encounter_next();
