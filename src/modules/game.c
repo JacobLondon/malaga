@@ -172,43 +172,55 @@ void game_update(void)
 {
 	int i;
 	int j;
+	float dir;
 
 	screen_width = GetScreenWidth();
 	screen_height = GetScreenHeight();
 	now = GetTime();
 
 	// move player
-	if (IsKeyDown(KEY_LEFT)) {
+	rlu_input_prescan(0);
+	dir = rlu_input_axis(0, RLU_KEY_STICK_LEFT_X);
+	if (dir > 0) {
 		if (player.x >= 0) {
-			player.x -= (GetFrameTime() * PLAYER_SPEED);
+			player.x += (GetFrameTime() * PLAYER_SPEED * dir);
 		}
 		else {
 			player.x = 0;
 		}
 	}
-	if (IsKeyDown(KEY_RIGHT)) {
+	else if (dir < 0)
+	{
 		if ((player.x + PLAYER_SIZE <= screen_width)) {
-			player.x += (GetFrameTime() * PLAYER_SPEED);
+			player.x += (GetFrameTime() * PLAYER_SPEED * dir);
 		}
 		else {
 			player.x = screen_width - PLAYER_SIZE;
 		}
 	}
-	if (IsKeyDown(KEY_UP)) {
+
+	dir = rlu_input_axis(0, RLU_KEY_STICK_LEFT_Y);
+	if (dir > 0) {
 		if ((player.y >= 0)) {
-			player.y -= (GetFrameTime() * PLAYER_SPEED);
+			player.y += (GetFrameTime() * PLAYER_SPEED * dir);
 		}
 		else {
-			player.y -= 0;
+			player.y = 0;
 		}
 	}
-	if (IsKeyDown(KEY_DOWN)) {
+	else if (dir < 0)
+	{
 		if ((player.y + PLAYER_SIZE <= screen_height)) {
-			player.y += (GetFrameTime() * PLAYER_SPEED);
+			player.y += (GetFrameTime() * PLAYER_SPEED * dir);
 		}
 		else {
 			player.y = screen_height - PLAYER_SIZE;
 		}
+	}
+
+	dir = rlu_input_axis(0, RLU_KEY_TRIGGER_RIGHT);
+	if (dir != 0) {
+		player.shoot(player.x, player.y);
 	}
 
 	if (encounter_done()) {
@@ -308,6 +320,8 @@ static void encounter_next(void)
 	if (encounters[encounterndx + 1] == NULL) {
 		return;
 	}
+
+	// TODO: Can you shoot an enemy who isn't showing up yet?
 
 	encounterndx++;
 	for (enc = encounters[encounterndx]; enc->definition != NULL; enc++) {

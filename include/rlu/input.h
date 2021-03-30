@@ -1,16 +1,6 @@
 #ifndef RLU_INPUT_H
 #define RLU_INPUT_H
 
-#if defined(PLATFORM_RPI)
-	#define XBOX360_NAME_ID            "Microsoft X-Box 360 pad"
-	#define PS3_NAME_ID                "PLAYSTATION(R)3 Controller"
-#else
-	#define XBOX360_NAME_ID            "Xbox 360 Controller"
-	#define XBOX360_LEGACY_NAME_ID     "Xbox Controller"
-	#define PS3_NAME_ID                "PLAYSTATION(R)3 Controller"
-#endif
-
-
 typedef enum rlu_input_type {
 	RLU_INPUT_TYPE_MOUSE,
 	RLU_INPUT_TYPE_KEYBOARD,
@@ -31,7 +21,7 @@ typedef enum rlu_key_tag {
 	RLU_KEY_BUMPER_LEFT,
 	RLU_KEY_BUTTON_SELECT,
 	RLU_KEY_BUTTON_START,
-	RLU_KEY_COUNT
+	RLU_KEY_COUNT,
 
 	// TODO: More aliases
 	RLU_KEY_UP = RLU_KEY_DPAD_UP,
@@ -58,6 +48,8 @@ typedef enum rlu_axis_tag {
 	RLU_KEY_AXIS_COUNT
 } rlu_axis;
 
+// before any key reads this frame, run this per player
+void rlu_input_prescan(int player);
 bool rlu_input_key(int player, rlu_key key, rlu_key_press press);
 float rlu_input_axis(int player, rlu_axis axis);
 
