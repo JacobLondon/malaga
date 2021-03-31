@@ -218,8 +218,13 @@ void game_update(void)
 		}
 	}
 
+	/*if (IsGamepadAvailable(0)) {
+		if (GetGamepadButtonPressed() != -1) DrawText(TextFormat("DETECTED BUTTON: %i", GetGamepadButtonPressed()), 10, 430, 10, RED);
+		else DrawText("DETECTED BUTTON: NONE", 10, 430, 10, GRAY);
+	}*/
+
 	dir = rlu_input_axis(0, RLU_KEY_TRIGGER_RIGHT);
-	if (dir != 0) {
+	if (dir != -1.0f) {
 		player.shoot(player.x, player.y);
 	}
 
@@ -244,8 +249,6 @@ void game_update(void)
 				enemies[i].lastshottime = now;
 			}
 		}
-
-
 	}
 
 	for (i = 0; i < ARRAY_SIZE(bullets); i++) {
@@ -411,7 +414,7 @@ static void shoot_downright(int x, int y)
 
 static void shoot_upstraight(int x, int y)
 {
-
+	bullet_insert(x + PLAYER_SIZE / 2 - BULLET_SIZE / 2, y - PLAYER_SIZE, 10, PI / 2.0f);
 }
 
 static void shoot_upstraightdouble(int x, int y)
