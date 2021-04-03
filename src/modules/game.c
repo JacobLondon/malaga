@@ -5,7 +5,6 @@
 #define PLAYER_SPEED 650
 #define PLAYER_SIZE 25
 #define ENEMY_SIZE 15
-#define BULLET_SIZE 5
 
 struct enemy_data_tag;
 
@@ -21,6 +20,8 @@ typedef struct player_data_tag {
 	int hp;
 	// end HITTABLE_OBJECT
 	shoot_func shoot;
+	float lastshottime;
+	float shotperiod;
 } player_data;
 
 /**
@@ -95,6 +96,7 @@ static void enemy_move_horzleftstop(struct enemy_data_tag *en);
 static player_data player = {
 	.shoot = bullet_player_straight,
 	.hp = 30,
+	.shotperiod = 0.2,
 };
 static enemy_data enemies[32];
 
@@ -113,7 +115,7 @@ static enemy_definition left_drifter_def = {
 	.move=enemy_move_downleft,
 	.hp=3,
 	.speed=10,
-	.shotperiod=0.1,
+	.shotperiod=0.33,
 };
 
 static encounter encounter0[] = {
@@ -135,6 +137,8 @@ void game_init(void)
 	screen_width = GetScreenWidth();
 	now = GetTime();
 	encounterndx = -1;
+	player.x = screen_width / 2;
+	player.y = screen_height * 3 / 4;
 }
 
 void game_cleanup(void)
@@ -198,8 +202,10 @@ void game_update(void)
 	}*/
 
 	dir = rlu_input_axis(0, RLU_KEY_TRIGGER_RIGHT);
+	//if (dir != -1.0f && (now - player.lastshottime > player.shotperiod)) {
 	if (dir != -1.0f) {
 		player.shoot(player.x, player.y);
+		player.lastshottime = now;
 	}
 
 	if (encounter_done()) {

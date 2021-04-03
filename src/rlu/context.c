@@ -213,7 +213,7 @@ void context_init(context_opt *opt, module_definition definitions[])
 		music_man_set_volume(options.volume);
 	}
 
-	SetWindowPosition(options.screen_height / 3, options.screen_width / 3);
+	//SetWindowPosition(options.screen_height / 3, options.screen_width / 3);
 }
 
 void context_cleanup(void)

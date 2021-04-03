@@ -4,13 +4,15 @@
 #define ENEMY_HITTABLES 64
 
 #define PLAYER_HITTABLES 8
-#define SIZE_STRAIGHT_WIDTH 50
-#define SIZE_STRAIGHT_HEIGHT 50
+#define SIZE_STRAIGHT_WIDTH 20
+#define SIZE_STRAIGHT_HEIGHT 20
+#define VEL_STRAIGHT 800
 
 typedef void (* move_func)(bullet_data *bullet);
 
 static void move_straight(bullet_data *bullet);
 static void move_sin(bullet_data *bullet);
+static void move_sin_wide(bullet_data *bullet);
 static void move_big(bullet_data *bullet);
 static void move_beam(bullet_data *bullet);
 
@@ -55,14 +57,19 @@ void bullet_init(int nplayers)
 	players_max = nplayers;
 	memset(enemies, 0, sizeof(enemies));
 	memset(players, 0, sizeof(players));
-	memset(bullets_enemy_straight, 0, sizeof(bullets_enemy_straight));
-	memset(bullets_enemy_sin, 0, sizeof(bullets_enemy_sin));
-	memset(bullets_enemy_big, 0, sizeof(bullets_enemy_big));
-	memset(bullets_enemy_beam, 0, sizeof(bullets_enemy_beam));
-	memset(bullets_player_straight, 0, sizeof(bullets_player_straight));
-	memset(bullets_player_sin, 0, sizeof(bullets_player_sin));
-	memset(bullets_player_big, 0, sizeof(bullets_player_big));
-	memset(bullets_player_beam, 0, sizeof(bullets_player_beam));
+
+	// each byte==1, will put it offscreen somewhere
+	memset(bullets_enemy_straight, 0x3F, sizeof(bullets_enemy_straight));
+	memset(bullets_enemy_sin, 0x3F, sizeof(bullets_enemy_sin));
+	memset(bullets_enemy_sin_wide, 0x3F, sizeof(bullets_enemy_sin));
+	memset(bullets_enemy_big, 0x3F, sizeof(bullets_enemy_big));
+	memset(bullets_enemy_beam, 0x3F, sizeof(bullets_enemy_beam));
+
+	memset(bullets_player_straight, 0x3F, sizeof(bullets_player_straight));
+	memset(bullets_player_sin, 0x3F, sizeof(bullets_player_sin));
+	memset(bullets_player_sin_wide, 0x3F, sizeof(bullets_player_sin));
+	memset(bullets_player_big, 0x3F, sizeof(bullets_player_big));
+	memset(bullets_player_beam, 0x3F, sizeof(bullets_player_beam));
 }
 
 void bullet_cleanup(void)
@@ -81,48 +88,62 @@ void bullet_update(void)
 
 	do_move_and_hit(players, players_max, move_straight, bullets_enemy_straight, ARRAY_SIZE(bullets_enemy_straight), SIZE_STRAIGHT_WIDTH, SIZE_STRAIGHT_HEIGHT);
 	do_move_and_hit(players, players_max, move_sin, bullets_enemy_sin, ARRAY_SIZE(bullets_enemy_sin), 50, 50);
+	do_move_and_hit(players, players_max, move_sin_wide, bullets_enemy_sin_wide, ARRAY_SIZE(bullets_enemy_sin_wide), 50, 50);
 	do_move_and_hit(players, players_max, move_big, bullets_enemy_big, ARRAY_SIZE(bullets_enemy_big), 50, 50);
 	do_move_and_hit(players, players_max, move_beam, bullets_enemy_beam, ARRAY_SIZE(bullets_enemy_beam), 50, 50);
 
 	do_move_and_hit(enemies, ARRAY_SIZE(enemies), move_straight, bullets_player_straight, ARRAY_SIZE(bullets_player_straight), SIZE_STRAIGHT_WIDTH, SIZE_STRAIGHT_HEIGHT);
 	do_move_and_hit(enemies, ARRAY_SIZE(enemies), move_sin, bullets_player_sin, ARRAY_SIZE(bullets_player_sin), 50, 50);
+	do_move_and_hit(enemies, ARRAY_SIZE(enemies), move_sin_wide, bullets_player_sin_wide, ARRAY_SIZE(bullets_player_sin_wide), 50, 50);
 	do_move_and_hit(enemies, ARRAY_SIZE(enemies), move_big, bullets_player_big, ARRAY_SIZE(bullets_player_big), 50, 50);
 	do_move_and_hit(enemies, ARRAY_SIZE(enemies), move_beam, bullets_player_beam, ARRAY_SIZE(bullets_player_beam), 50, 50);
 }
 
 static int do_move_and_hit(HITTABLE_OBJECT *targets[], size_t targets_len, move_func move, bullet_data bullets[], size_t bullets_len, int bullet_width, int bullet_height)
 {
-	int i, j;
+	int i, j, tmp;
 	assert(targets);
 	assert(bullets);
 
 	for (i = 0; i < bullets_len; i++) {
 		// offscreen
 		if (bullets[i].y > screen_height || bullets[i].y <= -bullet_height) {
+			bullets[i].y = 0x7F7F;
 			continue;
 		}
 
 		move(&bullets[i]);
 
-		// hit? (try to get that SIMD performance, hp can be <= 0, but hittable won't matter anyway at that point)
+		// hit? hp can be <= 0, but hittable won't matter anyway at that point
 		for (j = 0; j < targets_len; j++) {
-			targets[j]->hp -=
+			if (targets[j] == NULL) {
+				continue;
+			}
+			tmp =
 			    ((targets[j]->x >= bullets[i].x - bullet_width / 2) &&
-			     (targets[i]->x <= bullets[i].x + bullet_width / 2) &&
+			     (targets[j]->x <= bullets[i].x + bullet_width / 2) &&
 			     (targets[j]->y <= bullets[i].y + bullet_height / 2) &&
-			     (targets[i]->y >= bullets[i].x - bullet_height / 2));
+			     (targets[j]->y >= bullets[i].x - bullet_height / 2));
+			targets[j]->hp -= tmp;
+
+			// consume the bullet if hit
+			if (tmp) {
+				bullets[i].y = 0x7F7F;
+				break;
+			}
 		}
 	}
 }
 
 void bullet_draw(void)
 {
-	do_draw(bullets_enemy_straight, ARRAY_SIZE(bullets_enemy_straight), 50, 50);
+	do_draw(bullets_enemy_straight, ARRAY_SIZE(bullets_enemy_straight), SIZE_STRAIGHT_WIDTH, SIZE_STRAIGHT_HEIGHT);
 	do_draw(bullets_enemy_sin, ARRAY_SIZE(bullets_enemy_sin), 50, 50);
 	do_draw(bullets_enemy_sin_wide, ARRAY_SIZE(bullets_enemy_sin_wide), 50, 50);
 	do_draw(bullets_enemy_big, ARRAY_SIZE(bullets_enemy_big), 50, 50);
 	do_draw(bullets_enemy_beam, ARRAY_SIZE(bullets_enemy_beam), 50, 50);
-	do_draw(bullets_player_straight, ARRAY_SIZE(bullets_player_straight), 50, 50);
+
+	do_draw(bullets_player_straight, ARRAY_SIZE(bullets_player_straight), SIZE_STRAIGHT_WIDTH, SIZE_STRAIGHT_HEIGHT);
 	do_draw(bullets_player_sin, ARRAY_SIZE(bullets_player_sin), 50, 50);
 	do_draw(bullets_player_sin_wide, ARRAY_SIZE(bullets_player_sin_wide), 50, 50);
 	do_draw(bullets_player_big, ARRAY_SIZE(bullets_player_big), 50, 50);
@@ -134,7 +155,7 @@ static void do_draw(bullet_data bullets[], size_t bullets_len, int bullet_width,
 	int i;
 	assert(bullets);
 	for (i = 0; i < bullets_len; i++) {
-		if (bullets[i].y > screen_height || bullets[i].y <= -bullet_height) {
+		if (bullets[i].y > screen_height || bullets[i].y < -bullet_height) {
 			continue;
 		}
 		DrawRectangle(bullets[i].x, bullets[i].y, bullet_width, bullet_height, YELLOW);
@@ -171,11 +192,16 @@ static int track_hittable(void *hittable, HITTABLE_OBJECT *array[], size_t size)
 static void move_straight(bullet_data *bullet)
 {
 	assert(bullet);
-	bullet->x += frametime * 100 * fast_fcosf(bullet->meta.direction);
-	bullet->y += frametime * 100 * -fast_fsinf(bullet->meta.direction);
+	bullet->x += frametime * VEL_STRAIGHT * fast_fcosf(bullet->meta.direction);
+	bullet->y += frametime * VEL_STRAIGHT * -fast_fsinf(bullet->meta.direction);
 }
 
 static void move_sin(bullet_data *bullet)
+{
+	assert(bullet);
+}
+
+static void move_sin_wide(bullet_data *bullet)
 {
 	assert(bullet);
 }
