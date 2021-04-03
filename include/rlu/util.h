@@ -60,8 +60,10 @@ int file_append(const char *fname, const char *str);
 int arg_check(int argc, char **argv, const char *arg);
 char *arg_get(int argc, char **argv, const char *arg);
 
-float fast_sqrtf(float number);
-float distance(float x0, float y0, float x1, float y1);
+float fast_fsqrtf(float number);
+float fast_fdistancef(float x0, float y0, float x1, float y1);
+float fast_fsinf(float x);
+float fast_fcosf(float x);
 
 #ifndef min
 int min(int, int);

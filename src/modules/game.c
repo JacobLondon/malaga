@@ -1,5 +1,6 @@
 #include <rlu/rlu.h>
 #include "../modules.h"
+#include "bullet.h"
 
 #define PLAYER_SPEED 650
 #define PLAYER_SIZE 25
@@ -8,22 +9,31 @@
 
 struct enemy_data_tag;
 
-typedef void (* shoot_new_func)(int x, int y);
 typedef void (* enemy_move_func)(struct enemy_data_tag *en);
 
+/**
+ * CONFORMING TO HITTABLE_OBJECT
+ */
 typedef struct player_data_tag {
+	// begin HITTABLE_OBJECT
 	int x;
 	int y;
 	int hp;
-	shoot_new_func shoot;
+	// end HITTABLE_OBJECT
+	shoot_func shoot;
 } player_data;
 
+/**
+ * CONFORMING TO HITTABLE_OBJECT
+ */
 typedef struct enemy_data_tag {
-	shoot_new_func shoot;
-	enemy_move_func move;
+	// begin HITTABLE_OBJECT
 	int x;
 	int y;
 	int hp;
+	// end HITTABLE_OBJECT
+	shoot_func shoot;
+	enemy_move_func move;
 	union {
 		int downstop;
 		int horzrightstop;
@@ -36,10 +46,8 @@ typedef struct enemy_data_tag {
 } enemy_data;
 
 typedef struct enemy_definition_tag {
-	shoot_new_func shoot;
+	shoot_func shoot;
 	enemy_move_func move;
-	float x; // percent -> pixels
-	float y; // percent -> pixels
 	int hp;
 	// percent -> pixels
 	union {
@@ -57,51 +65,21 @@ typedef struct enemy_definition_tag {
 typedef struct encounter_tag {
 	enemy_definition *definition;
 	float spawntime;
+	float x; // percent -> pixels
+	float y; // percent -> pixels
 } encounter;
 
-#define DEFINE_ENCOUNTER(EnemyDef, Time) \
+#define DEFINE_ENCOUNTER(EnemyDef, Time, X, Y) \
 	{ \
 		.definition=(EnemyDef), \
 		.spawntime=(Time), \
+		.x=(X), \
+		.y=(Y), \
 	}
-
-typedef struct bullet_data_tag {
-	int x;
-	int y;
-	float speed;
-	float direction;
-} bullet_data;
 
 static void encounter_clear(void);
 static void encounter_next(void);
 static bool encounter_done(void);
-
-static void bullet_insert(int x, int y, float speed, float direction);
-
-static void shoot_downstraight(int x, int y);
-static void shoot_downstraightdouble(int x, int y);
-static void shoot_downstraighttriple(int x, int y);
-static void shoot_downspread(int x, int y);
-static void shoot_downspreaddouble(int x, int y);
-static void shoot_downspreadtriple(int x, int y);
-static void shoot_downspreadquad(int x, int y);
-static void shoot_downleft(int x, int y);
-static void shoot_downright(int x, int y);
-
-static void shoot_upstraight(int x, int y);
-static void shoot_upstraightdouble(int x, int y);
-static void shoot_upstraighttriple(int x, int y);
-static void shoot_upspread(int x, int y);
-static void shoot_upspreaddouble(int x, int y);
-static void shoot_upspreadtriple(int x, int y);
-static void shoot_upspreadquad(int x, int y);
-static void shoot_upleft(int x, int y);
-static void shoot_upright(int x, int y);
-
-static void shoot_horzright(int x, int y);
-static void shoot_horzleft(int x, int y);
-static void shoot_sin(int x, int y);
-static void shoot_flower(int x, int y);
 
 static void enemy_move_down(struct enemy_data_tag *en);
 static void enemy_move_downleft(struct enemy_data_tag *en);
@@ -115,13 +93,11 @@ static void enemy_move_horzrightstop(struct enemy_data_tag *en);
 static void enemy_move_horzleftstop(struct enemy_data_tag *en);
 
 static player_data player = {
-	.shoot = shoot_upstraight,
+	.shoot = bullet_player_straight,
 	.hp = 30,
 };
 static enemy_data enemies[32];
-static bullet_data bullets[1024];
 
-static int bulletndx = 0;
 static int encounterndx = -1;
 static double encounter_starttime = 0.0;
 static int enemy_count = 0; // number of loaded enemies
@@ -133,19 +109,17 @@ static double now = 0.0;
  * Enemy Prototypes
  */
 static enemy_definition left_drifter_def = {
-	.shoot=shoot_downstraight,
+	.shoot=bullet_enemy_straight,
 	.move=enemy_move_downleft,
-	.x=1.0,
-	.y=0.0,
 	.hp=3,
 	.speed=10,
 	.shotperiod=0.1,
 };
 
 static encounter encounter0[] = {
-	DEFINE_ENCOUNTER(&left_drifter_def, 0),
-	DEFINE_ENCOUNTER(&left_drifter_def, 2),
-	DEFINE_ENCOUNTER(&left_drifter_def, 4),
+	DEFINE_ENCOUNTER(&left_drifter_def, 0, 1, 0),
+	DEFINE_ENCOUNTER(&left_drifter_def, 2, 1, 0),
+	DEFINE_ENCOUNTER(&left_drifter_def, 4, 1, 0),
 	{NULL}
 };
 
@@ -251,40 +225,15 @@ void game_update(void)
 		}
 	}
 
-	for (i = 0; i < ARRAY_SIZE(bullets); i++) {
-		// offscreen
-		if (bullets[i].y > screen_height || bullets[i].y <= -BULLET_SIZE) {
-			continue;
-		}
-
-		// move bullets
-		bullets[i].x += bullets[i].speed * cosf(bullets[i].direction);
-		bullets[i].y += bullets[i].speed * -sinf(bullets[i].direction);
-
-		// hit player?
-		if (bullets[i].x >= player.x - PLAYER_SIZE / 2 && bullets[i].x <= player.x + PLAYER_SIZE / 2 &&
-		    bullets[i].y <= player.y + PLAYER_SIZE / 2 && bullets[i].y >= player.y - PLAYER_SIZE / 2)
-		{
-			bullets[i].y = -BULLET_SIZE;
-			player.hp--;
-			continue;
-		}
-
-		// hit enemy?
-		for (j = 0; j < enemy_count; j++) {
-			if (bullets[i].x >= enemies[j].x - PLAYER_SIZE / 2 && bullets[i].x <= enemies[j].x + PLAYER_SIZE / 2 &&
-			    bullets[i].y <= enemies[j].y + PLAYER_SIZE / 2 && bullets[i].y >= enemies[j].y - PLAYER_SIZE / 2)
-			{
-				enemies[j].hp--;
-				break; // NOTE: This should skip to the next outer for loop iteration. Nothing after this inner one otherwise goto
-			}
-		}
-	}
+	bullet_update();
 }
 
 void game_draw(void)
 {
 	int i;
+
+	bullet_draw();
+
 	for (i = 0; i < enemy_count; i++) {
 		if (enemies[i].hp >= 0 && (now - encounter_starttime >= enemies[i].spawntime)) {
 			DrawRectangle(enemies[i].x, enemies[i].y, ENEMY_SIZE, ENEMY_SIZE, RED);
@@ -292,24 +241,11 @@ void game_draw(void)
 	}
 
 	DrawRectangle(player.x, player.y, PLAYER_SIZE, PLAYER_SIZE, BLUE);
-
-	for (i = 0; i < ARRAY_SIZE(bullets); i++) {
-		// offscreen
-		if (bullets[i].y > screen_height || bullets[i].y <= -BULLET_SIZE) {
-			continue;
-		}
-
-		DrawRectangle(bullets[i].x, bullets[i].y, BULLET_SIZE, BULLET_SIZE, YELLOW);
-	}
 }
 
 static void encounter_clear(void)
 {
-	int i;
-	(void)memset(enemies, 0, sizeof(enemies));
-	for (i = 0; i < ARRAY_SIZE(bullets); i++) {
-		bullets[i].y = -BULLET_SIZE;
-	}
+	;
 }
 
 static void encounter_next(void)
@@ -326,17 +262,21 @@ static void encounter_next(void)
 
 	// TODO: Can you shoot an enemy who isn't showing up yet?
 
+	bullet_init(1);
+	bullet_track_hittable_player(&player);
 	encounterndx++;
 	for (enc = encounters[encounterndx]; enc->definition != NULL; enc++) {
 		enemies[enemy_count].shoot = enc->definition->shoot;
 		enemies[enemy_count].move = enc->definition->move;
-		enemies[enemy_count].x = (int)(enc->definition->x * (float)screen_width);
-		enemies[enemy_count].y = (int)(enc->definition->y * (float)screen_height);
+		enemies[enemy_count].x = (int)(enc->x * (float)screen_width);
+		enemies[enemy_count].y = (int)(enc->y * (float)screen_height);
 		enemies[enemy_count].hp = enc->definition->hp;
 		memcpy(&enemies[enemy_count].movedat, &enc->definition->movedat, sizeof(enemies[enemy_count].movedat));
 		enemies[enemy_count].speed = enc->definition->speed;
 		enemies[enemy_count].shotperiod = enc->definition->shotperiod;
 		enemies[enemy_count].spawntime = enc->spawntime;
+
+		bullet_track_hittable_enemy(&enemies[enemy_count]);
 		enemy_count++;
 	}
 }
@@ -356,125 +296,6 @@ static bool encounter_done(void)
 		}
 	}
 	return true;
-}
-
-static void bullet_insert(int x, int y, float speed, float direction)
-{
-	bullets[bulletndx].x = x;
-	bullets[bulletndx].y = y;
-	bullets[bulletndx].speed = speed;
-	bullets[bulletndx].direction = direction;
-	bulletndx = (bulletndx + 1) % ARRAY_SIZE(bullets);
-}
-
-static void shoot_downstraight(int x, int y)
-{
-	bullet_insert(x, y + ENEMY_SIZE, 10, PI * 3 / 2);
-}
-
-static void shoot_downstraightdouble(int x, int y)
-{
-	
-}
-
-static void shoot_downstraighttriple(int x, int y)
-{
-	
-}
-
-static void shoot_downspread(int x, int y)
-{
-	
-}
-
-static void shoot_downspreaddouble(int x, int y)
-{
-	
-}
-
-static void shoot_downspreadtriple(int x, int y)
-{
-	
-}
-
-static void shoot_downspreadquad(int x, int y)
-{
-	
-}
-
-static void shoot_downleft(int x, int y)
-{
-
-}
-
-static void shoot_downright(int x, int y)
-{
-
-}
-
-static void shoot_upstraight(int x, int y)
-{
-	bullet_insert(x + PLAYER_SIZE / 2 - BULLET_SIZE / 2, y - PLAYER_SIZE, 10, PI / 2.0f);
-}
-
-static void shoot_upstraightdouble(int x, int y)
-{
-
-}
-
-static void shoot_upstraighttriple(int x, int y)
-{
-
-}
-
-static void shoot_upspread(int x, int y)
-{
-
-}
-
-static void shoot_upspreaddouble(int x, int y)
-{
-
-}
-
-static void shoot_upspreadtriple(int x, int y)
-{
-
-}
-
-static void shoot_upspreadquad(int x, int y)
-{
-
-}
-
-static void shoot_upleft(int x, int y)
-{
-
-}
-
-static void shoot_upright(int x, int y)
-{
-
-}
-
-static void shoot_horzright(int x, int y)
-{
-
-}
-
-static void shoot_horzleft(int x, int y)
-{
-
-}
-
-static void shoot_sin(int x, int y)
-{
-
-}
-
-static void shoot_flower(int x, int y)
-{
-
 }
 
 static void enemy_move_down(struct enemy_data_tag *en)

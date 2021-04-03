@@ -140,7 +140,7 @@ char *arg_get(int argc, char **argv, const char *arg)
 	return NULL;
 }
 
-float fast_sqrtf(float number)
+float fast_fsqrtf(float number)
 {
 	const float x2 = number * 0.5F;
 	const float threehalfs = 1.5F;
@@ -154,9 +154,49 @@ float fast_sqrtf(float number)
 	return 1.0f / conv.f;
 }
 
-float distance(float x0, float y0, float x1, float y1)
+float fast_distancef(float x0, float y0, float x1, float y1)
 {
-	return fast_sqrtf((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0));
+	return fast_fsqrtf((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0));
+}
+
+float fast_fsinf(float x)
+{
+	int k;
+	double y;
+	double z;
+	union {
+		double f;
+		int i;
+	} s;
+
+	z = x;
+	z *= 0.3183098861837907;
+	z += 6755399441055744.0;
+	s.f = z;
+	k = s.i;
+	z = k;
+	z *= 3.1415926535897932;
+	x -= z;
+	y = x;
+	y *= x;
+	z = 0.0073524681968701;
+	z *= y;
+	z -= 0.1652891139701474;
+	z *= y;
+	z += 0.9996919862959676;
+	x *= z;
+	k &= 1;
+	k += k;
+	z = k;
+	z *= x;
+	x -= z;
+
+	return (float)x;
+}
+
+float fast_fcosf(float x)
+{
+	return fast_fsinf(x + 3.14159265358979323846 / 2.0);
 }
 
 #ifndef min
