@@ -25,6 +25,7 @@ typedef struct wrapper_tag {
 	bullet_data bullets[256];
 	float timeout;
 	shoot_func shoot;
+	const char *name;
 	// TODO: Pointer(s) for drawing Texture2D's
 } wrapper;
 
@@ -39,6 +40,7 @@ typedef struct wrapper_tag {
 	.bullets={0}, \
 	.timeout=(TIMEOUT), \
 	.shoot=(SHOOT_FUNC), \
+	.name=#SHOOT_FUNC, \
 }
 
 static void wrapper_init(wrapper *self);
@@ -241,6 +243,18 @@ float bullet_lookup_timeout(shoot_func bullet_func)
 	}
 	msg_assert(0, "Could not look up a bullet fire timeout");
 	return 0.f;
+}
+
+shoot_func bullet_lookup_shoot(char *name)
+{
+	int i;
+	assert(name);
+	for (i = 0; wrappers[i] != NULL; i++) {
+		if (strcmp(name, wrappers[i]->name) == 0) {
+			return wrappers[i]->shoot;
+		}
+	}
+	return NULL;
 }
 
 void bullet_track_hittable_enemy(void *hittable)

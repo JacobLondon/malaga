@@ -1,100 +1,15 @@
 #include <rlu/rlu.h>
 #include "../modules.h"
-#include "bullet.h"
+#include "map.h"
 
 #define PLAYER_SPEED 650
 #define PLAYER_SIZE 25
 #define ENEMY_SIZE 15
 #define ENEMIES_MAX 32
 
-struct enemy_data_tag;
-
-typedef void (* enemy_move_func)(struct enemy_data_tag *en);
-
-/**
- * CONFORMING TO HITTABLE_OBJECT
- */
-typedef struct player_data_tag {
-	// begin HITTABLE_OBJECT
-	int x;
-	int y;
-	int hp;
-	// end HITTABLE_OBJECT
-	int level;
-	shoot_func shoot;
-	float lastshottime;
-	float shotperiod;
-} player_data;
-
-/**
- * CONFORMING TO HITTABLE_OBJECT
- */
-typedef struct enemy_data_tag {
-	// begin HITTABLE_OBJECT
-	int x;
-	int y;
-	int hp;
-	// end HITTABLE_OBJECT
-	int level;
-	shoot_func shoot;
-	enemy_move_func move;
-	union {
-		int downstop;
-		int horzrightstop;
-		int horzleftstop;
-	} movedat;
-	float speed; // units / s
-	float shotperiod; // seconds per bullet
-	float lastshottime;
-	float spawntime; // s
-} enemy_data;
-
-typedef struct enemy_definition_tag {
-	shoot_func shoot;
-	enemy_move_func move;
-	int hp;
-	int level;
-	// percent -> pixels
-	union {
-		float downstop;
-		float horzrightstop;
-		float horzleftstop;
-	} movedat;
-	float speed; // units / s
-} enemy_definition;
-
-/**
- * An encounter with a single enemy
- */
-typedef struct encounter_tag {
-	enemy_definition *definition;
-	float spawntime;
-	float x; // percent -> pixels
-	float y; // percent -> pixels
-} encounter;
-
-#define DEFINE_ENCOUNTER(EnemyDef, Time, X, Y) \
-	{ \
-		.definition=(EnemyDef), \
-		.spawntime=(Time), \
-		.x=(X), \
-		.y=(Y), \
-	}
-
 static void encounter_clear(void);
 static void encounter_next(void);
 static bool encounter_done(void);
-
-static void enemy_move_down(struct enemy_data_tag *en);
-static void enemy_move_downleft(struct enemy_data_tag *en);
-static void enemy_move_downright(struct enemy_data_tag *en);
-static void enemy_move_downsin(struct enemy_data_tag *en);
-static void enemy_move_downcos(struct enemy_data_tag *en);
-static void enemy_move_downstop(struct enemy_data_tag *en);
-static void enemy_move_horzright(struct enemy_data_tag *en);
-static void enemy_move_horzleft(struct enemy_data_tag *en);
-static void enemy_move_horzrightstop(struct enemy_data_tag *en);
-static void enemy_move_horzleftstop(struct enemy_data_tag *en);
 
 static int encounterndx = -1;
 static double encounter_starttime = 0.0;
@@ -105,9 +20,23 @@ static double now = 0.0;
 
 static enemy_data enemies[ENEMIES_MAX];
 
+static enemy_move_lookup move_lookup[] = {
+	{"down", enemy_move_down},
+	{"downleft", enemy_move_downleft},
+	{"downright", enemy_move_downright},
+	{"downsin", enemy_move_downsin},
+	{"downcos", enemy_move_downcos},
+	{"downstop", enemy_move_downstop},
+	{"horzright", enemy_move_horzright},
+	{"horzleft", enemy_move_horzleft},
+	{"horzrightstop", enemy_move_horzrightstop},
+	{"horzleftstop", enemy_move_horzleftstop},
+	{NULL, NULL}
+};
+
 static player_data player = {
-	.shoot=bullet_player_parabola,
-	//.shoot=bullet_player_sin_wide,
+	//.shoot=bullet_player_parabola,
+	.shoot=bullet_player_sin_wide,
 	.hp=30,
 	.level=2,
 };
@@ -115,25 +44,8 @@ static player_data player = {
 /**
  * Enemy Prototypes
  */
-static enemy_definition left_drifter_def = {
-	.shoot=bullet_enemy_straight,
-	.move=enemy_move_downleft,
-	.hp=3,
-	.speed=10,
-	.level=0,
-};
 
-static encounter encounter0[] = {
-	DEFINE_ENCOUNTER(&left_drifter_def, 0, 1, 0),
-	DEFINE_ENCOUNTER(&left_drifter_def, 2, 1, 0),
-	DEFINE_ENCOUNTER(&left_drifter_def, 4, 1, 0),
-	{NULL}
-};
-
-static encounter *encounters[] = {
-	encounter0,
-	NULL
-};
+static encounter **encounters;
 
 void game_init(void)
 {
@@ -145,6 +57,8 @@ void game_init(void)
 	player.x = screen_width / 2;
 	player.y = screen_height * 3 / 4;
 	player.shotperiod = bullet_lookup_timeout(player.shoot);
+
+	encounters = map_init(NULL);
 }
 
 void game_cleanup(void)
@@ -284,7 +198,7 @@ static void encounter_next(void)
 		enemies[enemy_count].y = (int)(enc->y * (float)screen_height);
 		enemies[enemy_count].hp = enc->definition->hp;
 		enemies[enemy_count].level = enc->definition->level;
-		memcpy(&enemies[enemy_count].movedat, &enc->definition->movedat, sizeof(enemies[enemy_count].movedat));
+		memcpy(&enemies[enemy_count].meta, &enc->definition->meta, sizeof(enemies[enemy_count].meta));
 		enemies[enemy_count].speed = enc->definition->speed;
 		enemies[enemy_count].shotperiod = bullet_lookup_timeout(enc->definition->shoot);
 		enemies[enemy_count].spawntime = enc->spawntime;
@@ -311,53 +225,67 @@ static bool encounter_done(void)
 	return true;
 }
 
-static void enemy_move_down(struct enemy_data_tag *en)
+enemy_move_func lookup_enemy_move(char *name)
+{
+	int i;
+	assert(name);
+	for (i = 0; move_lookup[i].name != NULL; i++) {
+		if (strcmp(name, move_lookup[i].name) == 0) {
+			return move_lookup[i].move;
+		}
+	}
+	return NULL;
+}
+
+// ENEMY MOVE FUNCS ///////////////////////////////////////////////////////////
+
+void enemy_move_down(struct enemy_data_tag *en)
 {
 	en->y += en->speed;
 }
 
-static void enemy_move_downleft(struct enemy_data_tag *en)
+void enemy_move_downleft(struct enemy_data_tag *en)
 {
 	en->y += en->speed / 2;
 	en->x -= en->speed / 2;
 }
 
-static void enemy_move_downright(struct enemy_data_tag *en)
+void enemy_move_downright(struct enemy_data_tag *en)
 {
 
 }
 
-static void enemy_move_downsin(struct enemy_data_tag *en)
+void enemy_move_downsin(struct enemy_data_tag *en)
 {
 
 }
 
-static void enemy_move_downcos(struct enemy_data_tag *en)
+void enemy_move_downcos(struct enemy_data_tag *en)
 {
 
 }
 
-static void enemy_move_downstop(struct enemy_data_tag *en)
+void enemy_move_downstop(struct enemy_data_tag *en)
 {
 
 }
 
-static void enemy_move_horzright(struct enemy_data_tag *en)
+void enemy_move_horzright(struct enemy_data_tag *en)
 {
 
 }
 
-static void enemy_move_horzleft(struct enemy_data_tag *en)
+void enemy_move_horzleft(struct enemy_data_tag *en)
 {
 
 }
 
-static void enemy_move_horzrightstop(struct enemy_data_tag *en)
+void enemy_move_horzrightstop(struct enemy_data_tag *en)
 {
 
 }
 
-static void enemy_move_horzleftstop(struct enemy_data_tag *en)
+void enemy_move_horzleftstop(struct enemy_data_tag *en)
 {
 
 }

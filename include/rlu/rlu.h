@@ -19,6 +19,7 @@
 #include "key_object.h"
 #include "key_man.h"
 #include "music_man.h"
+#include "parray.h"
 #include "scene_man.h"
 #include "texture_man.h"
 #include "ui.h"

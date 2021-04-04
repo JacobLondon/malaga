@@ -26,10 +26,13 @@ void bullet_draw(void);
 
 // all bullet_[enemy|player].* Really only do once on load then save result
 float bullet_lookup_timeout(shoot_func bullet_func);
+shoot_func bullet_lookup_shoot(char *name);
 
 // will decrement the HP, untrack automatically hit HP <= 0 or offscreen (player should never be removed)
 void bullet_track_hittable_enemy(void *hittable);
 void bullet_track_hittable_player(void *hittable);
+
+// SHOOT FUNCS ////////////////////////////////////////////////////////////////
 
 // straight bullets, shot by enemy
 void bullet_enemy_straight(int x, int y, int level);

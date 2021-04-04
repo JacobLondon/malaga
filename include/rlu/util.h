@@ -3,23 +3,20 @@
 
 #include <assert.h>
 #include <stddef.h>
+#include <stdio.h>
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
 
-#ifndef NDEBUG
-	#include <stdio.h>
-	#define msg_assert(Expr, ...) do { \
-		if (!!(Expr)) {} \
-		else { \
-			fprintf(stderr, "Error: " __VA_ARGS__); \
-			fprintf(stderr, "\n"); \
-			fflush(stderr); \
-			assert(Expr); \
-		} \
-	} while (0)
-#else
-	#define msg_assert(...) ((void)0)
-#endif // NDEBUG
+#define msg_assert(Expr, ...) do { \
+	if (!!(Expr)) {} \
+	else { \
+		fprintf(stderr, "Error: " __VA_ARGS__); \
+		fprintf(stderr, "\n"); \
+		fflush(stderr); \
+		assert(Expr); \
+		exit(1); \
+	} \
+} while (0)
 
 #define msg_warning(...) \
 	do { \
