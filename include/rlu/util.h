@@ -64,6 +64,7 @@ float fast_fsqrtf(float number);
 float fast_fdistancef(float x0, float y0, float x1, float y1);
 float fast_fsinf(float x);
 float fast_fcosf(float x);
+float fclamp(float x, float max, float min);
 
 #ifndef min
 int min(int, int);

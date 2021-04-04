@@ -199,6 +199,17 @@ float fast_fcosf(float x)
 	return fast_fsinf(x + 3.14159265358979323846 / 2.0);
 }
 
+float fclamp(float x, float max, float min)
+{
+	if (x > max) {
+		return max;
+	}
+	else if (x < min) {
+		return min;
+	}
+	return x;
+}
+
 #ifndef min
 int min(int a, int b)
 {

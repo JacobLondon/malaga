@@ -2,48 +2,120 @@
 #include "bullet.h"
 
 #define ENEMY_HITTABLES 64
-
-#define PLAYER_HITTABLES 8
+#define PLAYER_HITTABLES 4
+#define BULLET_OFFSCREEN 0x3F3F
 #define SIZE_STRAIGHT_WIDTH 20
 #define SIZE_STRAIGHT_HEIGHT 20
 #define VEL_STRAIGHT 800
 
 typedef void (* move_func)(bullet_data *bullet);
 
+typedef struct timeout_lookup_tag {
+	shoot_func move;
+	float timeout;
+} timeout_lookup;
+
+typedef struct wrapper_tag {
+	move_func move;
+	HITTABLE_OBJECT **array;
+	int arraylen;
+	int ndx;
+	int width;
+	int height;
+	bullet_data bullets[256];
+	float timeout;
+	shoot_func shoot;
+	// TODO: Pointer(s) for drawing Texture2D's
+} wrapper;
+
+#define DEFINE_WRAPPER(SHOOT_FUNC, MOVE_FUNC, HITTABLES, WIDTH, HEIGHT, TIMEOUT) \
+{ \
+	.move=(move_func)(MOVE_FUNC), \
+	.array=(HITTABLES), \
+	.arraylen=ARRAY_SIZE(HITTABLES), \
+	.ndx=0, \
+	.width=(WIDTH), \
+	.height=(HEIGHT), \
+	.bullets={0}, \
+	.timeout=(TIMEOUT), \
+	.shoot=(SHOOT_FUNC), \
+}
+
+static void wrapper_init(wrapper *self);
+static void wrapper_update(wrapper *self);
+static void wrapper_draw(wrapper *self);
+
 static void move_straight(bullet_data *bullet);
 static void move_sin(bullet_data *bullet);
 static void move_sin_wide(bullet_data *bullet);
+static void move_cos(bullet_data *bullet);
+static void move_cos_wide(bullet_data *bullet);
 static void move_big(bullet_data *bullet);
 static void move_beam(bullet_data *bullet);
+static void move_parabola(bullet_data *bullet);
 
 static int track_hittable(void *hittable, HITTABLE_OBJECT *array[], size_t size);
 static int do_move_and_hit(HITTABLE_OBJECT *targets[], size_t targets_len, move_func move, bullet_data bullets[], size_t bullets_len, int bullet_width, int bullet_height);
 static void do_draw(bullet_data bullets[], size_t bullets_len, int bullet_width, int bullet_height);
-static void insert_bullet(int x, int y, float meta, bullet_data array[], size_t len, int *ndx);
+static void insert_bullet(int x, int y, float direction, wrapper *wrap);
 
 static HITTABLE_OBJECT *enemies[ENEMY_HITTABLES];
 static HITTABLE_OBJECT *players[PLAYER_HITTABLES];
 
-static bullet_data bullets_enemy_straight[512];
-static bullet_data bullets_enemy_sin[512];
-static bullet_data bullets_enemy_sin_wide[64];
-static bullet_data bullets_enemy_big[256];
-static bullet_data bullets_enemy_beam[512];
-static bullet_data bullets_player_straight[256];
-static bullet_data bullets_player_sin[256];
-static bullet_data bullets_player_sin_wide[32];
-static bullet_data bullets_player_big[128];
-static bullet_data bullets_player_beam[256];
-static int ndx_enemy_straight = 0;
-static int ndx_enemy_sin = 0;
-static int ndx_enemy_sin_wide = 0;
-static int ndx_enemy_big = 0;
-static int ndx_enemy_beam = 0;
-static int ndx_player_straight = 0;
-static int ndx_player_sin = 0;
-static int ndx_player_sin_widt = 0;
-static int ndx_player_big = 0;
-static int ndx_player_beam = 0;
+static wrapper wrap_enemy_straight = DEFINE_WRAPPER(bullet_enemy_straight, move_straight, players, 20, 20, .33);
+static wrapper wrap_enemy_spread = DEFINE_WRAPPER(bullet_enemy_spread, move_straight, players, 20, 20, .33);
+static wrapper wrap_enemy_left = DEFINE_WRAPPER(bullet_enemy_left, move_straight, players, 20, 20, 0.2f);
+static wrapper wrap_enemy_right = DEFINE_WRAPPER(bullet_enemy_right, move_straight, players, 20, 20, 0.2f);
+static wrapper wrap_enemy_spin = DEFINE_WRAPPER(bullet_enemy_spin, move_straight, players, 20, 20, 0.2f);
+static wrapper wrap_enemy_flower = DEFINE_WRAPPER(bullet_enemy_flower, move_straight, players, 20, 20, 0.2f);
+static wrapper wrap_player_straight = DEFINE_WRAPPER(bullet_player_straight, move_straight, enemies, 20, 20, 0.15f);
+static wrapper wrap_player_spread = DEFINE_WRAPPER(bullet_player_spread, move_straight, enemies, 20, 20, 0.2f);
+static wrapper wrap_player_left = DEFINE_WRAPPER(bullet_player_left, move_straight, enemies, 20, 20, 0.2f);
+static wrapper wrap_player_right = DEFINE_WRAPPER(bullet_player_right, move_straight, enemies, 20, 20, 0.2f);
+static wrapper wrap_player_spin = DEFINE_WRAPPER(bullet_player_spin, move_straight, enemies, 20, 20, 0.2f);
+static wrapper wrap_player_flower = DEFINE_WRAPPER(bullet_player_flower, move_straight, enemies, 20, 20, 0.2f);
+static wrapper wrap_enemy_sin = DEFINE_WRAPPER(bullet_enemy_sin, move_sin, players, 20, 20, 0.2f);
+static wrapper wrap_enemy_sin_wide = DEFINE_WRAPPER(bullet_enemy_sin_wide, move_sin_wide, players, 20, 20, 0.2f);
+static wrapper wrap_enemy_cos = DEFINE_WRAPPER(bullet_enemy_sin, move_cos, players, 20, 20, 0.2f);
+static wrapper wrap_enemy_cos_wide = DEFINE_WRAPPER(bullet_enemy_sin_wide, move_cos_wide, players, 20, 20, 0.2f);
+static wrapper wrap_player_sin = DEFINE_WRAPPER(bullet_player_sin, move_sin, enemies, 20, 20, 0.2f);
+static wrapper wrap_player_sin_wide = DEFINE_WRAPPER(bullet_player_sin_wide, move_sin_wide, enemies, 20, 20, 0.2f);
+static wrapper wrap_player_cos = DEFINE_WRAPPER(bullet_player_sin, move_cos, enemies, 20, 20, 0.2f);
+static wrapper wrap_player_cos_wide = DEFINE_WRAPPER(bullet_player_sin_wide, move_cos_wide, enemies, 20, 20, 0.2f);
+static wrapper wrap_enemy_big = DEFINE_WRAPPER(bullet_enemy_big, move_big, players, 20, 20, 0.2f);
+static wrapper wrap_player_big = DEFINE_WRAPPER(bullet_player_big, move_big, enemies, 20, 20, 0.2f);
+static wrapper wrap_enemy_beam = DEFINE_WRAPPER(bullet_enemy_beam, move_beam, players, 20, 20, 0.2f);
+static wrapper wrap_player_beam = DEFINE_WRAPPER(bullet_player_beam, move_beam, enemies, 20, 20, 0.2f);
+static wrapper wrap_player_parabola = DEFINE_WRAPPER(bullet_player_parabola, move_parabola, enemies, 20, 20, 0.15f);
+
+static wrapper *wrappers[] = {
+	&wrap_enemy_straight,
+	&wrap_enemy_spread,
+	&wrap_enemy_left,
+	&wrap_enemy_right,
+	&wrap_enemy_spin,
+	&wrap_enemy_flower,
+	&wrap_player_straight,
+	&wrap_player_spread,
+	&wrap_player_left,
+	&wrap_player_right,
+	&wrap_player_spin,
+	&wrap_player_flower,
+	&wrap_enemy_sin,
+	&wrap_enemy_sin_wide,
+	&wrap_enemy_cos,
+	&wrap_enemy_cos_wide,
+	&wrap_player_sin,
+	&wrap_player_sin_wide,
+	&wrap_player_cos,
+	&wrap_player_cos_wide,
+	&wrap_enemy_big,
+	&wrap_player_big,
+	&wrap_enemy_beam,
+	&wrap_player_beam,
+	&wrap_player_parabola,
+	NULL
+};
 
 static double now;
 static float frametime;
@@ -51,25 +123,36 @@ static int players_max; // every index before this is a player in hittables
 static int screen_height;
 static int screen_width;
 
+static void wrapper_init(wrapper *self)
+{
+	assert(self);
+	// each byte==1, will put it offscreen somewhere
+	(void)memset(self->bullets, BULLET_OFFSCREEN, sizeof(self->bullets));
+}
+
+static void wrapper_update(wrapper *self)
+{
+	assert(self);
+	do_move_and_hit(self->array, self->arraylen, self->move, self->bullets, ARRAY_SIZE(self->bullets), self->width, self->height);
+}
+
+static void wrapper_draw(wrapper *self)
+{
+	assert(self);
+	do_draw(self->bullets, ARRAY_SIZE(self->bullets), self->width, self->height);
+}
+
 void bullet_init(int nplayers)
 {
+	int i;
 	assert(nplayers < PLAYER_HITTABLES);
 	players_max = nplayers;
 	memset(enemies, 0, sizeof(enemies));
 	memset(players, 0, sizeof(players));
 
-	// each byte==1, will put it offscreen somewhere
-	memset(bullets_enemy_straight, 0x3F, sizeof(bullets_enemy_straight));
-	memset(bullets_enemy_sin, 0x3F, sizeof(bullets_enemy_sin));
-	memset(bullets_enemy_sin_wide, 0x3F, sizeof(bullets_enemy_sin));
-	memset(bullets_enemy_big, 0x3F, sizeof(bullets_enemy_big));
-	memset(bullets_enemy_beam, 0x3F, sizeof(bullets_enemy_beam));
-
-	memset(bullets_player_straight, 0x3F, sizeof(bullets_player_straight));
-	memset(bullets_player_sin, 0x3F, sizeof(bullets_player_sin));
-	memset(bullets_player_sin_wide, 0x3F, sizeof(bullets_player_sin));
-	memset(bullets_player_big, 0x3F, sizeof(bullets_player_big));
-	memset(bullets_player_beam, 0x3F, sizeof(bullets_player_beam));
+	for (i = 0; wrappers[i] != NULL; i++) {
+		wrapper_init(wrappers[i]);
+	}
 }
 
 void bullet_cleanup(void)
@@ -79,24 +162,16 @@ void bullet_cleanup(void)
 
 void bullet_update(void)
 {
-	int i, j;
+	int i;
 
 	now = GetTime();
 	frametime = GetFrameTime();
 	screen_height = GetScreenHeight();
 	screen_width = GetScreenWidth();
 
-	do_move_and_hit(players, players_max, move_straight, bullets_enemy_straight, ARRAY_SIZE(bullets_enemy_straight), SIZE_STRAIGHT_WIDTH, SIZE_STRAIGHT_HEIGHT);
-	do_move_and_hit(players, players_max, move_sin, bullets_enemy_sin, ARRAY_SIZE(bullets_enemy_sin), 50, 50);
-	do_move_and_hit(players, players_max, move_sin_wide, bullets_enemy_sin_wide, ARRAY_SIZE(bullets_enemy_sin_wide), 50, 50);
-	do_move_and_hit(players, players_max, move_big, bullets_enemy_big, ARRAY_SIZE(bullets_enemy_big), 50, 50);
-	do_move_and_hit(players, players_max, move_beam, bullets_enemy_beam, ARRAY_SIZE(bullets_enemy_beam), 50, 50);
-
-	do_move_and_hit(enemies, ARRAY_SIZE(enemies), move_straight, bullets_player_straight, ARRAY_SIZE(bullets_player_straight), SIZE_STRAIGHT_WIDTH, SIZE_STRAIGHT_HEIGHT);
-	do_move_and_hit(enemies, ARRAY_SIZE(enemies), move_sin, bullets_player_sin, ARRAY_SIZE(bullets_player_sin), 50, 50);
-	do_move_and_hit(enemies, ARRAY_SIZE(enemies), move_sin_wide, bullets_player_sin_wide, ARRAY_SIZE(bullets_player_sin_wide), 50, 50);
-	do_move_and_hit(enemies, ARRAY_SIZE(enemies), move_big, bullets_player_big, ARRAY_SIZE(bullets_player_big), 50, 50);
-	do_move_and_hit(enemies, ARRAY_SIZE(enemies), move_beam, bullets_player_beam, ARRAY_SIZE(bullets_player_beam), 50, 50);
+	for (i = 0; wrappers[i] != NULL; i++) {
+		wrapper_update(wrappers[i]);
+	}
 }
 
 static int do_move_and_hit(HITTABLE_OBJECT *targets[], size_t targets_len, move_func move, bullet_data bullets[], size_t bullets_len, int bullet_width, int bullet_height)
@@ -108,7 +183,7 @@ static int do_move_and_hit(HITTABLE_OBJECT *targets[], size_t targets_len, move_
 	for (i = 0; i < bullets_len; i++) {
 		// offscreen
 		if (bullets[i].y > screen_height || bullets[i].y <= -bullet_height) {
-			bullets[i].y = 0x7F7F;
+			bullets[i].y = BULLET_OFFSCREEN;
 			continue;
 		}
 
@@ -128,7 +203,7 @@ static int do_move_and_hit(HITTABLE_OBJECT *targets[], size_t targets_len, move_
 
 			// consume the bullet if hit
 			if (tmp) {
-				bullets[i].y = 0x7F7F;
+				bullets[i].y = BULLET_OFFSCREEN;
 				break;
 			}
 		}
@@ -137,17 +212,10 @@ static int do_move_and_hit(HITTABLE_OBJECT *targets[], size_t targets_len, move_
 
 void bullet_draw(void)
 {
-	do_draw(bullets_enemy_straight, ARRAY_SIZE(bullets_enemy_straight), SIZE_STRAIGHT_WIDTH, SIZE_STRAIGHT_HEIGHT);
-	do_draw(bullets_enemy_sin, ARRAY_SIZE(bullets_enemy_sin), 50, 50);
-	do_draw(bullets_enemy_sin_wide, ARRAY_SIZE(bullets_enemy_sin_wide), 50, 50);
-	do_draw(bullets_enemy_big, ARRAY_SIZE(bullets_enemy_big), 50, 50);
-	do_draw(bullets_enemy_beam, ARRAY_SIZE(bullets_enemy_beam), 50, 50);
-
-	do_draw(bullets_player_straight, ARRAY_SIZE(bullets_player_straight), SIZE_STRAIGHT_WIDTH, SIZE_STRAIGHT_HEIGHT);
-	do_draw(bullets_player_sin, ARRAY_SIZE(bullets_player_sin), 50, 50);
-	do_draw(bullets_player_sin_wide, ARRAY_SIZE(bullets_player_sin_wide), 50, 50);
-	do_draw(bullets_player_big, ARRAY_SIZE(bullets_player_big), 50, 50);
-	do_draw(bullets_player_beam, ARRAY_SIZE(bullets_player_beam), 50, 50);
+	int i;
+	for (i = 0; wrappers[i] != NULL; i++) {
+		wrapper_draw(wrappers[i]);
+	}
 }
 
 static void do_draw(bullet_data bullets[], size_t bullets_len, int bullet_width, int bullet_height)
@@ -158,8 +226,21 @@ static void do_draw(bullet_data bullets[], size_t bullets_len, int bullet_width,
 		if (bullets[i].y > screen_height || bullets[i].y < -bullet_height) {
 			continue;
 		}
-		DrawRectangle(bullets[i].x, bullets[i].y, bullet_width, bullet_height, YELLOW);
+		DrawRectangle(bullets[i].x - bullet_width / 2, bullets[i].y - bullet_height / 2, bullet_width, bullet_height, YELLOW);
 	}
+}
+
+float bullet_lookup_timeout(shoot_func bullet_func)
+{
+	int i;
+	assert(bullet_func);
+	for (i = 0; wrappers[i] != NULL; i++) {
+		if (bullet_func == wrappers[i]->shoot) {
+			return wrappers[i]->timeout;
+		}
+	}
+	msg_assert(0, "Could not look up a bullet fire timeout");
+	return 0.f;
 }
 
 void bullet_track_hittable_enemy(void *hittable)
@@ -189,11 +270,13 @@ static int track_hittable(void *hittable, HITTABLE_OBJECT *array[], size_t size)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
 static void move_straight(bullet_data *bullet)
 {
 	assert(bullet);
-	bullet->x += frametime * VEL_STRAIGHT * fast_fcosf(bullet->meta.direction);
-	bullet->y += frametime * VEL_STRAIGHT * -fast_fsinf(bullet->meta.direction);
+	bullet->x += frametime * VEL_STRAIGHT * fast_fcosf(bullet->direction);
+	bullet->y += frametime * VEL_STRAIGHT * -fast_fsinf(bullet->direction);
 }
 
 static void move_sin(bullet_data *bullet)
@@ -204,6 +287,20 @@ static void move_sin(bullet_data *bullet)
 static void move_sin_wide(bullet_data *bullet)
 {
 	assert(bullet);
+	bullet->x += frametime * VEL_STRAIGHT * fast_fsinf((now - bullet->time) * 10);
+	bullet->y += frametime * VEL_STRAIGHT * -fast_fsinf(bullet->direction);
+}
+
+static void move_cos(bullet_data *bullet)
+{
+	assert(bullet);
+}
+
+static void move_cos_wide(bullet_data *bullet)
+{
+	assert(bullet);
+	bullet->x += frametime * VEL_STRAIGHT * fast_fcosf((now - bullet->time) * 10 + PI / 2.0);
+	bullet->y += frametime * VEL_STRAIGHT * -fast_fsinf(bullet->direction);
 }
 
 static void move_big(bullet_data *bullet)
@@ -216,170 +313,193 @@ static void move_beam(bullet_data *bullet)
 	assert(bullet);
 }
 
-static void insert_bullet(int x, int y, float meta, bullet_data array[], size_t len, int *ndx)
+static void move_parabola(bullet_data *bullet)
 {
-	assert(array);
-	assert(ndx);
+	const float a = 5;
+	const float b = -5;
+	assert(bullet);
 
-	array[*ndx].x = x;
-	array[*ndx].y = y;
-	array[*ndx].meta.time = meta;
-	*ndx = (*ndx + 1) % len;
+	/**
+	 * The parabola is like:
+	 * 0     /
+	 *  \   /
+	 *   \_/
+	 *
+	 * We start going down then go up.
+	 */
+
+	// player
+	if (bullet->direction == 1.f) {
+		// right
+		const float t = now - bullet->time;
+		const float m = 2.f * a * t + b; // derivative of parabola: ax^2 + bx + c
+		const float deltax = 1.5f; // trust me, this is correct for this.
+		const float deltay = m;
+		bullet->x += 100.f * deltax * frametime;
+		bullet->y -= 100.f * m * frametime;
+	}
+	else if (bullet->direction == 2.f) {
+		// left
+		const float t = now - bullet->time;
+		const float m = 2.f * a * t + b; // derivative of parabola: ax^2 + bx + c
+		const float deltax = -1.f; // this one too
+		const float deltay = m;
+		bullet->x += 100.f * deltax * frametime;
+		bullet->y -= 100.f * m * frametime;
+	}
+	// enemy
+	else if (bullet->direction == -1.f) {
+		// right
+		msg_assert(0, "TODO");
+	}
+	else if (bullet->direction == -2.f) {
+		// left
+		msg_assert(0, "TODO");
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void bullet_enemy_straight(int x, int y)
+static void insert_bullet(int x, int y, float direction, wrapper *wrap)
 {
-	insert_bullet(x, y + SIZE_STRAIGHT_HEIGHT, PI * 3.f / 2.f, bullets_enemy_straight, ARRAY_SIZE(bullets_enemy_straight), &ndx_enemy_straight);
+	assert(wrap);
+
+	wrap->bullets[wrap->ndx] = (bullet_data){
+		.x=x,
+		.y=y,
+		.direction=direction,
+		.time=now,
+	};
+	wrap->ndx = (wrap->ndx + 1) % ARRAY_SIZE(wrap->bullets);
 }
 
-void bullet_enemy_straightdouble(int x, int y)
-{
+///////////////////////////////////////////////////////////////////////////////
 
+void bullet_enemy_straight(int x, int y, int level)
+{
+	insert_bullet(x, y + SIZE_STRAIGHT_HEIGHT, PI * 3.f / 2.f, &wrap_enemy_straight);
 }
 
-void bullet_enemy_straighttriple(int x, int y)
-{
-
-}
-
-void bullet_enemy_spread(int x, int y)
-{
-
-}
-
-void bullet_enemy_spreaddouble(int x, int y)
-{
-
-}
-
-void bullet_enemy_spreadtriple(int x, int y)
+void bullet_enemy_spread(int x, int y, int level)
 {
 
 }
 
-void bullet_enemy_spreadquad(int x, int y)
+void bullet_enemy_left(int x, int y, int level)
 {
 
 }
 
-void bullet_enemy_left(int x, int y)
+void bullet_enemy_right(int x, int y, int level)
 {
 
 }
 
-void bullet_enemy_right(int x, int y)
+void bullet_enemy_spin(int x, int y, int level)
 {
 
 }
 
-void bullet_enemy_spin(int x, int y)
-{
-
-}
-
-void bullet_enemy_flower(int x, int y)
+void bullet_enemy_flower(int x, int y, int level)
 {
 
 }
 
 // straight bullets, shot by player
-void bullet_player_straight(int x, int y)
+void bullet_player_straight(int x, int y, int level)
 {
-	insert_bullet(x, y - SIZE_STRAIGHT_HEIGHT, PI / 2.f, bullets_player_straight, ARRAY_SIZE(bullets_player_straight), &ndx_player_straight);
+	switch (level) {
+	case 2:
+		insert_bullet(x, y - SIZE_STRAIGHT_HEIGHT, PI / 2.f, &wrap_player_straight);
+	case 1: // fallthrough
+		insert_bullet(x, y - SIZE_STRAIGHT_HEIGHT, PI / 3.f, &wrap_player_straight);
+		insert_bullet(x, y - SIZE_STRAIGHT_HEIGHT, PI * 2.f / 3.f, &wrap_player_straight);
+		break;
+	default: // fallthrough
+	case 0:
+		insert_bullet(x, y - SIZE_STRAIGHT_HEIGHT, PI / 2.f, &wrap_player_straight);
+	}
 }
 
-void bullet_player_straightdouble(int x, int y)
-{
-
-}
-
-void bullet_player_straighttriple(int x, int y)
-{
-
-}
-
-void bullet_player_spread(int x, int y)
-{
-
-}
-
-void bullet_player_spreaddouble(int x, int y)
+void bullet_player_spread(int x, int y, int level)
 {
 
 }
 
-void bullet_player_spreadtriple(int x, int y)
+void bullet_player_left(int x, int y, int level)
 {
 
 }
 
-void bullet_player_spreadquad(int x, int y)
+void bullet_player_right(int x, int y, int level)
 {
 
 }
 
-void bullet_player_left(int x, int y)
+void bullet_player_spin(int x, int y, int level)
 {
 
 }
 
-void bullet_player_right(int x, int y)
-{
-
-}
-
-void bullet_player_spin(int x, int y)
-{
-
-}
-
-void bullet_player_flower(int x, int y)
+void bullet_player_flower(int x, int y, int level)
 {
 
 }
 
 // sine / cosine bullets, shot by enemy
-void bullet_enemy_sin(int x, int y)
+void bullet_enemy_sin(int x, int y, int level)
 {
 
 }
 
-void bullet_enemy_sin_wide(int x, int y)
+void bullet_enemy_sin_wide(int x, int y, int level)
 {
 
 }
 
 // sine / cosine bullets, shot by player
-void bullet_player_sin(int x, int y)
+void bullet_player_sin(int x, int y, int level)
 {
 
 }
 
-void bullet_player_sin_wide(int x, int y)
+void bullet_player_sin_wide(int x, int y, int level)
 {
-
+	switch (level) {
+	case 2:
+		insert_bullet(x, y - SIZE_STRAIGHT_HEIGHT, PI / 2.f, &wrap_player_straight);
+	case 1: // fallthrough
+		insert_bullet(x, y - SIZE_STRAIGHT_HEIGHT, PI / 2.f, &wrap_player_cos_wide);
+	default: // fallthrough
+	case 0: // fallthrough
+		insert_bullet(x, y - SIZE_STRAIGHT_HEIGHT, PI / 2.f, &wrap_player_sin_wide);
+	}
 }
 
 // big bullets, straight
-void bullet_enemy_big(int x, int y)
+void bullet_enemy_big(int x, int y, int level)
 {
 
 }
 
-void bullet_player_big(int x, int y)
+void bullet_player_big(int x, int y, int level)
 {
 
 }
 
 // beam, (fast widish, straight)
-void bullet_enemy_beam(int x, int y)
+void bullet_enemy_beam(int x, int y, int level)
 {
 
 }
 
-void bullet_player_beam(int x, int y)
+void bullet_player_beam(int x, int y, int level)
 {
 
+}
+
+void bullet_player_parabola(int x, int y, int level)
+{
+	insert_bullet(x, y + SIZE_STRAIGHT_HEIGHT, 1.f, &wrap_player_parabola);
+	insert_bullet(x, y + SIZE_STRAIGHT_HEIGHT, 2.f, &wrap_player_parabola);
 }

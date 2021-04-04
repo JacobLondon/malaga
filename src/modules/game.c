@@ -5,6 +5,7 @@
 #define PLAYER_SPEED 650
 #define PLAYER_SIZE 25
 #define ENEMY_SIZE 15
+#define ENEMIES_MAX 32
 
 struct enemy_data_tag;
 
@@ -19,6 +20,7 @@ typedef struct player_data_tag {
 	int y;
 	int hp;
 	// end HITTABLE_OBJECT
+	int level;
 	shoot_func shoot;
 	float lastshottime;
 	float shotperiod;
@@ -33,6 +35,7 @@ typedef struct enemy_data_tag {
 	int y;
 	int hp;
 	// end HITTABLE_OBJECT
+	int level;
 	shoot_func shoot;
 	enemy_move_func move;
 	union {
@@ -50,6 +53,7 @@ typedef struct enemy_definition_tag {
 	shoot_func shoot;
 	enemy_move_func move;
 	int hp;
+	int level;
 	// percent -> pixels
 	union {
 		float downstop;
@@ -57,7 +61,6 @@ typedef struct enemy_definition_tag {
 		float horzleftstop;
 	} movedat;
 	float speed; // units / s
-	float shotperiod; // bullets / s
 } enemy_definition;
 
 /**
@@ -93,19 +96,21 @@ static void enemy_move_horzleft(struct enemy_data_tag *en);
 static void enemy_move_horzrightstop(struct enemy_data_tag *en);
 static void enemy_move_horzleftstop(struct enemy_data_tag *en);
 
-static player_data player = {
-	.shoot = bullet_player_straight,
-	.hp = 30,
-	.shotperiod = 0.2,
-};
-static enemy_data enemies[32];
-
 static int encounterndx = -1;
 static double encounter_starttime = 0.0;
 static int enemy_count = 0; // number of loaded enemies
 static int screen_height = 0;
 static int screen_width = 0;
 static double now = 0.0;
+
+static enemy_data enemies[ENEMIES_MAX];
+
+static player_data player = {
+	.shoot=bullet_player_parabola,
+	//.shoot=bullet_player_sin_wide,
+	.hp=30,
+	.level=2,
+};
 
 /**
  * Enemy Prototypes
@@ -115,7 +120,7 @@ static enemy_definition left_drifter_def = {
 	.move=enemy_move_downleft,
 	.hp=3,
 	.speed=10,
-	.shotperiod=0.33,
+	.level=0,
 };
 
 static encounter encounter0[] = {
@@ -139,6 +144,7 @@ void game_init(void)
 	encounterndx = -1;
 	player.x = screen_width / 2;
 	player.y = screen_height * 3 / 4;
+	player.shotperiod = bullet_lookup_timeout(player.shoot);
 }
 
 void game_cleanup(void)
@@ -202,9 +208,8 @@ void game_update(void)
 	}*/
 
 	dir = rlu_input_axis(0, RLU_KEY_TRIGGER_RIGHT);
-	//if (dir != -1.0f && (now - player.lastshottime > player.shotperiod)) {
-	if (dir != -1.0f) {
-		player.shoot(player.x, player.y);
+	if (dir != -1.0f && (now - player.lastshottime > player.shotperiod)) {
+		player.shoot(player.x, player.y, player.level);
 		player.lastshottime = now;
 	}
 
@@ -225,7 +230,7 @@ void game_update(void)
 
 			// shoot because loaded
 			if (now - enemies[i].lastshottime > enemies[i].shotperiod) {
-				enemies[i].shoot(enemies[i].x, enemies[i].y);
+				enemies[i].shoot(enemies[i].x, enemies[i].y, enemies[i].level);
 				enemies[i].lastshottime = now;
 			}
 		}
@@ -242,11 +247,12 @@ void game_draw(void)
 
 	for (i = 0; i < enemy_count; i++) {
 		if (enemies[i].hp >= 0 && (now - encounter_starttime >= enemies[i].spawntime)) {
-			DrawRectangle(enemies[i].x, enemies[i].y, ENEMY_SIZE, ENEMY_SIZE, RED);
+			DrawRectangle(enemies[i].x - ENEMY_SIZE / 2, enemies[i].y - ENEMY_SIZE / 2, ENEMY_SIZE, ENEMY_SIZE, RED);
 		}
 	}
 
-	DrawRectangle(player.x, player.y, PLAYER_SIZE, PLAYER_SIZE, BLUE);
+	DrawRectangle(player.x - PLAYER_SIZE / 2, player.y - PLAYER_SIZE / 2, PLAYER_SIZE, PLAYER_SIZE, BLUE);
+	DrawFPS(20, 20);
 }
 
 static void encounter_clear(void)
@@ -277,9 +283,10 @@ static void encounter_next(void)
 		enemies[enemy_count].x = (int)(enc->x * (float)screen_width);
 		enemies[enemy_count].y = (int)(enc->y * (float)screen_height);
 		enemies[enemy_count].hp = enc->definition->hp;
+		enemies[enemy_count].level = enc->definition->level;
 		memcpy(&enemies[enemy_count].movedat, &enc->definition->movedat, sizeof(enemies[enemy_count].movedat));
 		enemies[enemy_count].speed = enc->definition->speed;
-		enemies[enemy_count].shotperiod = enc->definition->shotperiod;
+		enemies[enemy_count].shotperiod = bullet_lookup_timeout(enc->definition->shoot);
 		enemies[enemy_count].spawntime = enc->spawntime;
 
 		bullet_track_hittable_enemy(&enemies[enemy_count]);
