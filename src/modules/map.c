@@ -110,12 +110,15 @@ encounter **map_init(const char *mapfilename)
 		{
 			if (strncmp(buf, ENEMIES_ID, ENEMIES_LEN) == 0) {
 				state = STATE_ENEMIES;
+				continue;
 			}
 			else if (strncmp(buf, ENCOUNTERS_ID, ENCOUNTERS_LEN) == 0) {
 				state = STATE_ENCOUNTERS;
+				continue;
 			}
 			else if (strncmp(buf, SETS_ID, SETS_LEN) == 0) {
 				state = STATE_SETS;
+				continue;
 			}
 		}
 
@@ -123,14 +126,78 @@ encounter **map_init(const char *mapfilename)
 		case STATE_BEGIN:
 			break;
 		case STATE_ENEMIES:
+			if (buf[0] == '(') {
+				(void)memset(&enemy_template, 0, sizeof(enemy_template));
+				state = STATE_IN_ENEMY;
+			}
+			else {
+				msg_assert(0, "%s:%zu Expected `(' found `%c'", mapfilename, lineno, buf[0]);
+			}
 			break;
 		case STATE_IN_ENEMY:
+			if (buf[0] == ')') {
+				msg_assert(enemy_template.name, "%s:%zu Expected `name <enemy-name>' but found none", mapfilename, lineno);
+				state = STATE_ENEMIES;
+				memset(&enemy_template, 0, sizeof(enemy_template));
+			}
+			else if (sscanf(buf, "%s %s", lhs, rhs) == 2) {
+				// name of enemy_definition to use
+				if (strcmp(lhs, "name") == 0) {
+					enemy_template.name = strdup(rhs);
+					assert(enemy_template.name);
+				}
+				else if (strcmp(lhs, "shoot") == 0) {
+					enemy_template.shoot = bullet_lookup_shoot(rhs);
+					msg_assert(enemy_template.shoot, "%s:%zu Shoot func `%s' does not exist", mapfilename, lineno, rhs);
+				}
+				else if (strcmp(lhs, "move") == 0) {
+					enemy_template.move = lookup_enemy_move(rhs);
+					msg_assert(enemy_template.move, "%s:%zu Move func `%s' does not exist", mapfilename, lineno, rhs);
+				}
+				else if (strcmp(lhs, "hp") == 0) {
+					if (sscanf(rhs, "%d", &whole) == 1) {
+						enemy_template.hp = whole;
+					}
+					else {
+						msg_assert(0, "%s:%zu Could not parse int: `%s'", mapfilename, lineno, rhs);
+					}
+				}
+				else if (strcmp(lhs, "speed") == 0) {
+					if (sscanf(rhs, "%f", &real) == 1) {
+						enemy_template.speed = real;
+					}
+					else {
+						msg_assert(0, "%s:%zu Could not parse float: `%s'", mapfilename, lineno, rhs);
+					}
+				}
+				else if (strcmp(lhs, "level") == 0) {
+					if (sscanf(rhs, "%d", &whole) == 1) {
+						enemy_template.level = whole;
+					}
+					else {
+						msg_assert(0, "%s:%zu Could not parse int: `%s'", mapfilename, lineno, rhs);
+					}
+				}
+				else if (strcmp(lhs, "meta") == 0) {
+					if (sscanf(rhs, "%f", &real) == 1) {
+						enemy_template.meta.downstop = real;
+					}
+					else {
+						msg_assert(0, "%s:%zu Could not parse float: `%s'", mapfilename, lineno, rhs);
+					}
+				}
+			}
+			else {
+				msg_assert(0, "%s:%zu Expected 2 attributes: `LHS RHS' found `%s'", mapfilename, lineno, buf);
+			}
 			break;
 		case STATE_ENCOUNTERS:
 			if (buf[0] == '[') {
 				p = strchr(buf, ']');
 				msg_assert(p, "%s:%zu Expected `]'", mapfilename, lineno);
 				(void)snprintf(id, sizeof(id), "%.*s", p - buf - 1, &buf[1]);
+				encounter_template.name = strdup(id);
+				assert(encounter_template.name);
 				state = STATE_NEW_ENCOUNTER;
 			}
 			else if (buf[0] == '(') {
@@ -152,50 +219,40 @@ encounter **map_init(const char *mapfilename)
 			break;
 		case STATE_IN_ENCOUNTER:
 			if (buf[0] == ')') {
-				msg_assert(encounter_template.name, "%s:%zu Expected `name <encounter-name>' but found none", mapfilename, lineno);
 				parray_push(encounters, make_encounter(&encounter_template));
 				state = STATE_ENCOUNTERS;
+				memset(&encounter_template, 0, sizeof(encounter_template));
 			}
 			else if (sscanf(buf, "%s %s", lhs, rhs) == 2) {
+				// name of enemy_definition to use
 				if (strcmp(lhs, "name") == 0) {
-					encounter_template.name = strdup(rhs);
-					assert(encounter_template.name);
-				}
-				else if (strcmp(lhs, "shoot") == 0) {
-					encounter_template.shoot = bullet_lookup_shoot(rhs);
-					msg_assert(encounter_template.shoot, "%s:%zu Shoot func `%s' does not exist", mapfilename, lineno, rhs);
-				}
-				else if (strcmp(lhs, "move") == 0) {
-					encounter_template.move = lookup_enemy_move(rhs);
-					msg_assert(encounter_template.move, "%s:%zu Move func `%s' does not exist", mapfilename, lineno, rhs);
-				}
-				else if (strcmp(lhs, "hp") == 0) {
-					if (sscanf(rhs, "%d", &whole) == 1) {
-						encounter_template.hp = whole;
+					for (tmp = 0; tmp < enemies->size; tmp++) {
+						if (strcmp(rhs, ((enemy_definition *)(enemies->buf[tmp]))->name) == 0) {
+							encounter_template.definition = enemies->buf[tmp];
+							break;
+						}
 					}
-					else {
-						msg_assert(0, "%s:%zu Could not parse int: `%s'", mapfilename, lineno, rhs);
-					}
+					msg_assert(tmp != enemies->size, "%s:%zu Enemy name `%s' not found", mapfilename, lineno, lhs);
 				}
-				else if (strcmp(lhs, "speed") == 0) {
+				else if (strcmp(lhs, "time") == 0) {
 					if (sscanf(rhs, "%f", &real) == 1) {
-						encounter_template.speed = real;
+						encounter_template.spawntime = real;
 					}
 					else {
 						msg_assert(0, "%s:%zu Could not parse float: `%s'", mapfilename, lineno, rhs);
 					}
 				}
-				else if (strcmp(lhs, "level") == 0) {
-					if (sscanf(rhs, "%d", &whole) == 1) {
-						encounter_template.level = whole;
+				else if (strcmp(lhs, "x") == 0) {
+					if (sscanf(rhs, "%f", &real) == 1) {
+						encounter_template.x = real;
 					}
 					else {
-						msg_assert(0, "%s:%zu Could not parse int: `%s'", mapfilename, lineno, rhs);
+						msg_assert(0, "%s:%zu Could not parse float: `%s'", mapfilename, lineno, rhs);
 					}
 				}
-				else if (strcmp(lhs, "meta") == 0) {
+				else if (strcmp(lhs, "y") == 0) {
 					if (sscanf(rhs, "%f", &real) == 1) {
-						encounter_template.meta.downstop = real;
+						encounter_template.y = real;
 					}
 					else {
 						msg_assert(0, "%s:%zu Could not parse float: `%s'", mapfilename, lineno, rhs);
@@ -210,6 +267,18 @@ encounter **map_init(const char *mapfilename)
 			}
 			break;
 		case STATE_SETS:
+			if (sscanf(buf, "%s", lhs) == 1) {
+				for (tmp = 0; tmp < encounters->size; tmp++) {
+					if (strcmp(lhs, ((encounter *)encounters->buf[tmp])->name) == 0) {
+						parray_push(sets, encounters->buf[tmp]);
+						break;
+					}
+				}
+				msg_assert(tmp != encounters->size, "%s:%zu Encounter name `%s' not found", mapfilename, lineno, lhs);
+			}
+			else {
+				msg_assert(0, "%s:%zu Could not read line `%s'", mapfilename, lineno, buf);
+			}
 			break;
 		default:
 			msg_assert(0, "%s:%zu Software failure, unknown state: %d", mapfilename, lineno, state);

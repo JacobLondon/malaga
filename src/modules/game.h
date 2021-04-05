@@ -83,7 +83,6 @@ typedef struct encounter_tag {
 		.y=(Y), \
 	}
 
-
 enemy_move_func lookup_enemy_move(char *name);
 
 void enemy_move_down(struct enemy_data_tag *en);

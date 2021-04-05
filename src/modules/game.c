@@ -58,12 +58,14 @@ void game_init(void)
 	player.y = screen_height * 3 / 4;
 	player.shotperiod = bullet_lookup_timeout(player.shoot);
 
-	encounters = map_init(NULL);
+	//encounters = map_init(NULL);
+	encounters = map_init("maps/test.mg");
 }
 
 void game_cleanup(void)
 {
 	encounter_clear();
+	map_cleanup();
 }
 
 void game_update(void)

@@ -12,13 +12,11 @@
 #
 # Bullet Types:
 # - bullet_enemy_straight
-# - bullet_enemy_spread
 # - bullet_enemy_left
 # - bullet_enemy_right
 # - bullet_enemy_spin
 # - bullet_enemy_flower
 # - bullet_player_straight
-# - bullet_player_spread
 # - bullet_player_left
 # - bullet_player_right
 # - bullet_player_spin
@@ -26,10 +24,6 @@
 # - bullet_enemy_sin
 # - bullet_enemy_sin_wide
 # - bullet_enemy_sin
-# - bullet_enemy_sin_wide
-# - bullet_player_sin
-# - bullet_player_sin_wide
-# - bullet_player_sin
 # - bullet_player_sin_wide
 # - bullet_enemy_big
 # - bullet_player_big

@@ -36,14 +36,12 @@ void bullet_track_hittable_player(void *hittable);
 
 // straight bullets, shot by enemy
 void bullet_enemy_straight(int x, int y, int level);
-void bullet_enemy_spread(int x, int y, int level);
 void bullet_enemy_left(int x, int y, int level);
 void bullet_enemy_right(int x, int y, int level);
 void bullet_enemy_spin(int x, int y, int level); // circular
 void bullet_enemy_flower(int x, int y, int level); // 8 directions
 // straight bullets, shot by player
 void bullet_player_straight(int x, int y, int level);
-void bullet_player_spread(int x, int y, int level);
 void bullet_player_left(int x, int y, int level);
 void bullet_player_right(int x, int y, int level);
 void bullet_player_spin(int x, int y, int level); // circular
