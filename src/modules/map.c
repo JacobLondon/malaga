@@ -137,6 +137,7 @@ encounter **map_init(const char *mapfilename)
 		case STATE_IN_ENEMY:
 			if (buf[0] == ')') {
 				msg_assert(enemy_template.name, "%s:%zu Expected `name <enemy-name>' but found none", mapfilename, lineno);
+				parray_push(enemies, make_enemy(&enemy_template));
 				state = STATE_ENEMIES;
 				memset(&enemy_template, 0, sizeof(enemy_template));
 			}
@@ -229,10 +230,10 @@ encounter **map_init(const char *mapfilename)
 					for (tmp = 0; tmp < enemies->size; tmp++) {
 						if (strcmp(rhs, ((enemy_definition *)(enemies->buf[tmp]))->name) == 0) {
 							encounter_template.definition = enemies->buf[tmp];
-							break;
+							goto next;
 						}
 					}
-					msg_assert(tmp != enemies->size, "%s:%zu Enemy name `%s' not found", mapfilename, lineno, lhs);
+					msg_assert(0, "%s:%zu Enemy name `%s' not found", mapfilename, lineno, rhs);
 				}
 				else if (strcmp(lhs, "time") == 0) {
 					if (sscanf(rhs, "%f", &real) == 1) {
@@ -244,7 +245,7 @@ encounter **map_init(const char *mapfilename)
 				}
 				else if (strcmp(lhs, "x") == 0) {
 					if (sscanf(rhs, "%f", &real) == 1) {
-						encounter_template.x = real;
+						encounter_template.x = real / 100.f;
 					}
 					else {
 						msg_assert(0, "%s:%zu Could not parse float: `%s'", mapfilename, lineno, rhs);
@@ -252,7 +253,7 @@ encounter **map_init(const char *mapfilename)
 				}
 				else if (strcmp(lhs, "y") == 0) {
 					if (sscanf(rhs, "%f", &real) == 1) {
-						encounter_template.y = real;
+						encounter_template.y = real / 100.f;
 					}
 					else {
 						msg_assert(0, "%s:%zu Could not parse float: `%s'", mapfilename, lineno, rhs);
@@ -271,10 +272,10 @@ encounter **map_init(const char *mapfilename)
 				for (tmp = 0; tmp < encounters->size; tmp++) {
 					if (strcmp(lhs, ((encounter *)encounters->buf[tmp])->name) == 0) {
 						parray_push(sets, encounters->buf[tmp]);
-						break;
+						goto next;
 					}
 				}
-				msg_assert(tmp != encounters->size, "%s:%zu Encounter name `%s' not found", mapfilename, lineno, lhs);
+				msg_assert(0, "%s:%zu Encounter name `%s' not found", mapfilename, lineno, lhs);
 			}
 			else {
 				msg_assert(0, "%s:%zu Could not read line `%s'", mapfilename, lineno, buf);
@@ -284,7 +285,10 @@ encounter **map_init(const char *mapfilename)
 			msg_assert(0, "%s:%zu Software failure, unknown state: %d", mapfilename, lineno, state);
 			break;
 		}
-	}
+
+	next:
+		;
+	} // for fgets
 
 	(void)fclose(fp);
 	parray_push(sets, NULL);

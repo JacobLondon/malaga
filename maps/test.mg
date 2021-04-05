@@ -58,9 +58,9 @@ $encounters
 )
 [encounter1]
 (
-    name right_drifter
+    name left_drifter
     time 2
-    x 0
+    x 100
     y 0
 )
 
