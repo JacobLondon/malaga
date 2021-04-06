@@ -2,6 +2,8 @@
 
 #include "map.h"
 
+#define ENCOUNTER_ENEMIES_MAX 15
+
 // DEFAULT ////////////////////////////////////////////////////////////////////
 static enemy_definition default_ldrifter = {
 	.shoot=bullet_enemy_straight,
@@ -51,13 +53,18 @@ typedef enum parse_state_tag {
 	STATE_IN_ENCOUNTER,
 } parse_state;
 
+typedef struct encounter_holder_tag {
+	encounter spawn[ENCOUNTER_ENEMIES_MAX];
+	encounter null;
+} encounter_holder;
+
 enemy_definition *make_enemy(enemy_definition *template);
 void del_enemy(void *self);
-encounter *make_encounter(encounter *template);
-void del_encounter(void *self);
+encounter_holder *make_encounter_holder(encounter_holder *template);
+void del_encounter_holder(void *self);
 
 static struct parray *enemies = NULL;
-static struct parray *encounters = NULL;
+static struct parray *encounters = NULL; // holds encounter_holders
 static struct parray *sets = NULL;
 static int initialized = 0;
 static int used_static_def = 0;
@@ -78,20 +85,22 @@ encounter **map_init(const char *mapfilename)
 	char lhs[256];
 	char rhs[256];
 	char *p;
-	size_t tmp;
+	size_t i, j;
 	size_t lineno;
 	parse_state state;
 	// scanf'd items...
 	enemy_definition enemy_template;
 	encounter encounter_template;
+	encounter_holder holder;
+	int holderndx = 0;
 	float real;
 	int whole;
 
 	enemies = parray_new(del_enemy);
-	assert(enemies);
-	encounters = parray_new(del_encounter);
-	assert(encounters);
+	encounters = parray_new(del_encounter_holder);
 	sets = parray_new(NULL); // points into encounters after it is built
+	assert(enemies);
+	assert(encounters);
 	assert(sets);
 
 	fp = fopen(mapfilename, "r");
@@ -196,13 +205,20 @@ encounter **map_init(const char *mapfilename)
 			if (buf[0] == '[') {
 				p = strchr(buf, ']');
 				msg_assert(p, "%s:%zu Expected `]'", mapfilename, lineno);
-				(void)snprintf(id, sizeof(id), "%.*s", p - buf - 1, &buf[1]);
-				encounter_template.name = strdup(id);
-				assert(encounter_template.name);
+				(void)snprintf(id, sizeof(id), "%.*s", (int)(p - buf - 1), &buf[1]);
+
+				// save it
+				if (holderndx != 0) {
+					parray_push(encounters, make_encounter_holder(&holder));
+				}
+				(void)memset(&holder, 0, sizeof(holder));
+				holderndx = 0;
 				state = STATE_NEW_ENCOUNTER;
 			}
 			else if (buf[0] == '(') {
 				(void)memset(&encounter_template, 0, sizeof(encounter_template));
+				encounter_template.name = strdup(id);
+				assert(encounter_template.name);
 				state = STATE_IN_ENCOUNTER;
 			}
 			else {
@@ -212,6 +228,8 @@ encounter **map_init(const char *mapfilename)
 		case STATE_NEW_ENCOUNTER:
 			if (buf[0] == '(') {
 				(void)memset(&encounter_template, 0, sizeof(encounter_template));
+				encounter_template.name = strdup(id);
+				assert(encounter_template.name);
 				state = STATE_IN_ENCOUNTER;
 			}
 			else {
@@ -220,16 +238,22 @@ encounter **map_init(const char *mapfilename)
 			break;
 		case STATE_IN_ENCOUNTER:
 			if (buf[0] == ')') {
-				parray_push(encounters, make_encounter(&encounter_template));
+				if (holderndx < ENCOUNTER_ENEMIES_MAX) {
+					holder.spawn[holderndx] = encounter_template;
+					holderndx++;
+				}
+				else {
+					msg_assert(0, "%s:%zu Too many enemies in encounter (%d/%d)", mapfilename, lineno, holderndx + 1, ENCOUNTER_ENEMIES_MAX);
+				}
 				state = STATE_ENCOUNTERS;
 				memset(&encounter_template, 0, sizeof(encounter_template));
 			}
 			else if (sscanf(buf, "%s %s", lhs, rhs) == 2) {
 				// name of enemy_definition to use
 				if (strcmp(lhs, "name") == 0) {
-					for (tmp = 0; tmp < enemies->size; tmp++) {
-						if (strcmp(rhs, ((enemy_definition *)(enemies->buf[tmp]))->name) == 0) {
-							encounter_template.definition = enemies->buf[tmp];
+					for (i = 0; i < enemies->size; i++) {
+						if (strcmp(rhs, ((enemy_definition *)(enemies->buf[i]))->name) == 0) {
+							encounter_template.definition = enemies->buf[i];
 							goto next;
 						}
 					}
@@ -268,11 +292,21 @@ encounter **map_init(const char *mapfilename)
 			}
 			break;
 		case STATE_SETS:
+			// should only ever be in this state once...
+			// so make sure to append the last encounter
+			if (holderndx > 0) {
+				parray_push(encounters, make_encounter_holder(&holder));
+				holderndx = 0;
+				(void)memset(&holder, 0, sizeof(holder));
+			}
+
 			if (sscanf(buf, "%s", lhs) == 1) {
-				for (tmp = 0; tmp < encounters->size; tmp++) {
-					if (strcmp(lhs, ((encounter *)encounters->buf[tmp])->name) == 0) {
-						parray_push(sets, encounters->buf[tmp]);
-						goto next;
+				for (i = 0; i < encounters->size; i++) {
+					for (j = 0; ((encounter_holder *)encounters->buf[i])->spawn[j].name != NULL; j++) {
+						if (strcmp(lhs, ((encounter_holder *)encounters->buf[i])->spawn[0].name) == 0) {
+							parray_push(sets, ((encounter_holder *)encounters->buf[i])->spawn);
+							goto next;
+						}
 					}
 				}
 				msg_assert(0, "%s:%zu Encounter name `%s' not found", mapfilename, lineno, lhs);
@@ -291,10 +325,11 @@ encounter **map_init(const char *mapfilename)
 	} // for fgets
 
 	(void)fclose(fp);
+	parray_push(encounters, NULL);
 	parray_push(sets, NULL);
 
 	used_static_def = 0;
-	return sets->buf;
+	return (encounter **)sets->buf;
 }
 
 void map_cleanup(void)
@@ -345,9 +380,9 @@ void del_enemy(void *self)
 	free(self);
 }
 
-encounter *make_encounter(encounter *template)
+encounter_holder *make_encounter_holder(encounter_holder *template)
 {
-	encounter *self;
+	encounter_holder *self;
 	assert(template);
 	self = malloc(sizeof(*self));
 	assert(self);
@@ -355,15 +390,17 @@ encounter *make_encounter(encounter *template)
 	return self;
 }
 
-void del_encounter(void *self)
+void del_encounter_holder(void *self)
 {
-	encounter *en = self;
+	int i;
+	encounter_holder *holder = self;
 	if (!self) {
 		return;
 	}
 
-	if (en->name) {
-		free(en->name);
+	for (i = 0; holder->spawn[i].name != NULL; i++) {
+		free(holder->spawn[i].name);
 	}
+
 	free(self);
 }

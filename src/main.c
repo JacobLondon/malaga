@@ -3,8 +3,8 @@
 
 static context_opt options = {
 	.background={0, 0, 0, 255},
-	.screen_width=1600,
-	.screen_height=900,
+	.screen_width=800,
+	.screen_height=600,
 	.fps=60,
 	.title="Matt's Game",
 	.use_audio=true,

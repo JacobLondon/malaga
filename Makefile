@@ -7,7 +7,7 @@ ifeq ($(OS),Windows_NT)
 else
 	CC=gcc
 	LDFLAGS = -std=c99 -Wall -Iexternal -DPLATFORM_DESKTOP
-	CFLAGS = -lraylib -lm -lpthread -ldl -Iinclude -ggdb
+	CFLAGS = -lraylib -lm -lpthread -ldl -Iinclude -Wall -ggdb
 	TARGET = test
 	REMOVE = rm -f
 endif

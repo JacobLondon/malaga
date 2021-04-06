@@ -46,20 +46,26 @@ $encounters
 [encounter0]
 (
     name left_drifter
-    time 2
+    time 1
     x 100
     y 0
 )
 (
     name left_drifter
-    time 4
+    time 2
     x 100
     y 0
 )
 [encounter1]
 (
     name left_drifter
-    time 2
+    time 0
+    x 100
+    y 0
+)
+(
+    name left_drifter
+    time 1
     x 100
     y 0
 )

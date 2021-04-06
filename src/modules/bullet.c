@@ -57,7 +57,7 @@ static void move_beam(bullet_data *bullet);
 static void move_parabola(bullet_data *bullet);
 
 static int track_hittable(void *hittable, HITTABLE_OBJECT *array[], size_t size);
-static int do_move_and_hit(HITTABLE_OBJECT *targets[], size_t targets_len, move_func move, bullet_data bullets[], size_t bullets_len, int bullet_width, int bullet_height);
+static void do_move_and_hit(HITTABLE_OBJECT *targets[], size_t targets_len, move_func move, bullet_data bullets[], size_t bullets_len, int bullet_width, int bullet_height);
 static void do_draw(bullet_data bullets[], size_t bullets_len, int bullet_width, int bullet_height);
 static void insert_bullet(int x, int y, float direction, wrapper *wrap);
 
@@ -172,7 +172,7 @@ void bullet_update(void)
 	}
 }
 
-static int do_move_and_hit(HITTABLE_OBJECT *targets[], size_t targets_len, move_func move, bullet_data bullets[], size_t bullets_len, int bullet_width, int bullet_height)
+static void do_move_and_hit(HITTABLE_OBJECT *targets[], size_t targets_len, move_func move, bullet_data bullets[], size_t bullets_len, int bullet_width, int bullet_height)
 {
 	int i, j, tmp;
 	assert(targets);
@@ -354,7 +354,7 @@ static void move_parabola(bullet_data *bullet)
 		const float deltax = 1.5f; // trust me, this is correct for this.
 		const float deltay = m;
 		bullet->x += 100.f * deltax * frametime;
-		bullet->y -= 100.f * m * frametime;
+		bullet->y -= 100.f * deltay * frametime;
 	}
 	else if (bullet->direction == 2.f) {
 		// left
@@ -363,7 +363,7 @@ static void move_parabola(bullet_data *bullet)
 		const float deltax = -1.f; // this one too
 		const float deltay = m;
 		bullet->x += 100.f * deltax * frametime;
-		bullet->y -= 100.f * m * frametime;
+		bullet->y -= 100.f * deltay * frametime;
 	}
 	// enemy
 	else if (bullet->direction == -1.f) {

@@ -227,72 +227,72 @@ float rlu_input_axis(int player, rlu_axis axis)
 
 bool gamepad_dpad_up(int player, rlu_key_press press)
 {
-	return gamepad_func[press](player, gamepad_key_map[RLU_KEY_DPAD_UP]);
+	return gamepad_press_lookup[press](player, gamepad_key_map[RLU_KEY_DPAD_UP]);
 }
 
 bool gamepad_dpad_right(int player, rlu_key_press press)
 {
-	return gamepad_func[press](player, gamepad_key_map[RLU_KEY_DPAD_RIGHT]);
+	return gamepad_press_lookup[press](player, gamepad_key_map[RLU_KEY_DPAD_RIGHT]);
 }
 
 bool gamepad_dpad_down(int player, rlu_key_press press)
 {
-	return gamepad_func[press](player, gamepad_key_map[RLU_KEY_DPAD_DOWN]);
+	return gamepad_press_lookup[press](player, gamepad_key_map[RLU_KEY_DPAD_DOWN]);
 }
 
 bool gamepad_dpad_left(int player, rlu_key_press press)
 {
-	return gamepad_func[press](player, gamepad_key_map[RLU_KEY_DPAD_LEFT]);
+	return gamepad_press_lookup[press](player, gamepad_key_map[RLU_KEY_DPAD_LEFT]);
 }
 
 bool gamepad_button_up(int player, rlu_key_press press)
 {
-	return gamepad_func[press](player, gamepad_key_map[RLU_KEY_BUTTON_UP]);
+	return gamepad_press_lookup[press](player, gamepad_key_map[RLU_KEY_BUTTON_UP]);
 }
 
 bool gamepad_button_right(int player, rlu_key_press press)
 {
-	return gamepad_func[press](player, gamepad_key_map[RLU_KEY_BUTTON_RIGHT]);
+	return gamepad_press_lookup[press](player, gamepad_key_map[RLU_KEY_BUTTON_RIGHT]);
 }
 
 bool gamepad_button_down(int player, rlu_key_press press)
 {
-	return gamepad_func[press](player, gamepad_key_map[RLU_KEY_BUTTON_DOWN]);
+	return gamepad_press_lookup[press](player, gamepad_key_map[RLU_KEY_BUTTON_DOWN]);
 }
 
 bool gamepad_button_left(int player, rlu_key_press press)
 {
-	return gamepad_func[press](player, gamepad_key_map[RLU_KEY_BUTTON_LEFT]);
+	return gamepad_press_lookup[press](player, gamepad_key_map[RLU_KEY_BUTTON_LEFT]);
 }
 
 bool gamepad_bumper_right(int player, rlu_key_press press)
 {
-	return gamepad_func[press](player, gamepad_key_map[RLU_KEY_BUMPER_RIGHT]);
+	return gamepad_press_lookup[press](player, gamepad_key_map[RLU_KEY_BUMPER_RIGHT]);
 }
 
 bool gamepad_bumper_left(int player, rlu_key_press press)
 {
-	return gamepad_func[press](player, gamepad_key_map[RLU_KEY_BUMPER_LEFT]);
+	return gamepad_press_lookup[press](player, gamepad_key_map[RLU_KEY_BUMPER_LEFT]);
 }
 
 bool gamepad_button_select(int player, rlu_key_press press)
 {
-	return gamepad_func[press](player, gamepad_key_map[RLU_KEY_BUTTON_SELECT]);
+	return gamepad_press_lookup[press](player, gamepad_key_map[RLU_KEY_BUTTON_SELECT]);
 }
 
 bool gamepad_button_start(int player, rlu_key_press press)
 {
-	return gamepad_func[press](player, gamepad_key_map[RLU_KEY_BUTTON_START]);
+	return gamepad_press_lookup[press](player, gamepad_key_map[RLU_KEY_BUTTON_START]);
 }
 
 bool gamepad_button_thumb_right(int player, rlu_key_press press)
 {
-	return gamepad_func[press](player, gamepad_key_map[RLU_KEY_BUTTON_THUMB_RIGHT]);
+	return gamepad_press_lookup[press](player, gamepad_key_map[RLU_KEY_BUTTON_THUMB_RIGHT]);
 }
 
 bool gamepad_button_thumb_left(int player, rlu_key_press press)
 {
-	return gamepad_func[press](player, gamepad_key_map[RLU_KEY_BUTTON_THUMB_LEFT]);
+	return gamepad_press_lookup[press](player, gamepad_key_map[RLU_KEY_BUTTON_THUMB_LEFT]);
 }
 
 bool keyboard_dpad_up(int player, rlu_key_press press)

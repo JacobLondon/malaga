@@ -64,4 +64,4 @@ void bullet_player_beam(int x, int y, int level);
 
 void bullet_player_parabola(int x, int y, int level);
 
-#endif MG_BULLET_H
+#endif // MG_BULLET_H
