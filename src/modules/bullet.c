@@ -1,5 +1,6 @@
 #include <rlu/rlu.h>
 #include "bullet.h"
+#include "score.h"
 
 #define ENEMY_HITTABLES 64
 #define PLAYER_HITTABLES 4
@@ -174,6 +175,8 @@ void bullet_update(void)
 
 static void do_move_and_hit(HITTABLE_OBJECT *targets[], size_t targets_len, move_func move, bullet_data bullets[], size_t bullets_len, int bullet_width, int bullet_height)
 {
+	Rectangle bullet_rec;
+	Rectangle entity_rec;
 	int i, j, tmp;
 	assert(targets);
 	assert(bullets);
@@ -186,21 +189,27 @@ static void do_move_and_hit(HITTABLE_OBJECT *targets[], size_t targets_len, move
 		}
 
 		move(&bullets[i]);
+		bullet_rec = (Rectangle){
+			bullets[i].x, bullets[i].y, bullet_width, bullet_height
+		};
 
 		// hit? hp can be <= 0, but hittable won't matter anyway at that point
 		for (j = 0; j < targets_len; j++) {
 			if (targets[j] == NULL) {
 				continue;
 			}
-			tmp =
-			    ((targets[j]->x >= bullets[i].x - bullet_width / 2) &&
-			     (targets[j]->x <= bullets[i].x + bullet_width / 2) &&
-			     (targets[j]->y <= bullets[i].y + bullet_height / 2) &&
-			     (targets[j]->y >= bullets[i].x - bullet_height / 2));
-			targets[j]->hp -= tmp;
+
+			entity_rec = (Rectangle){
+				targets[j]->x, targets[j]->y, targets[j]->width, targets[j]->height
+			};
+			tmp = CheckCollisionRecs(bullet_rec, entity_rec);
 
 			// consume the bullet if hit
 			if (tmp) {
+				if (targets[j]->hp > 0) {
+					targets[j]->hp -= tmp;
+					score_increase_points();
+				}
 				bullets[i].y = BULLET_OFFSCREEN;
 				break;
 			}

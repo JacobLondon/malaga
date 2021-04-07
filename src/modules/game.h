@@ -18,6 +18,8 @@ typedef struct player_data_tag {
 	// begin HITTABLE_OBJECT
 	int x;
 	int y;
+	int width;
+	int height;
 	int hp;
 	// end HITTABLE_OBJECT
 	int level;
@@ -33,25 +35,30 @@ typedef struct enemy_data_tag {
 	// begin HITTABLE_OBJECT
 	int x;
 	int y;
+	int width;
+	int height;
 	int hp;
 	// end HITTABLE_OBJECT
 	int level;
 	shoot_func shoot;
 	enemy_move_func move;
 	union {
-		int downstop;
-		int horzrightstop;
-		int horzleftstop;
+		float downstop;
+		float horzrightstop;
+		float horzleftstop;
 	} meta;
 	float speed; // units / s
 	float shotperiod; // seconds per bullet
 	float lastshottime;
 	float spawntime; // s
+	float _timestamp;
 } enemy_data;
 
 typedef struct enemy_definition_tag {
 	shoot_func shoot;
 	enemy_move_func move;
+	int width;
+	int height;
 	int hp;
 	int level;
 	// percent -> pixels
@@ -72,7 +79,6 @@ typedef struct encounter_tag {
 	float spawntime;
 	float x; // percent -> pixels
 	float y; // percent -> pixels
-	char *name;
 } encounter;
 
 #define DEFINE_ENCOUNTER(EnemyDef, Time, X, Y) \

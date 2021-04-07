@@ -54,6 +54,7 @@ typedef enum parse_state_tag {
 } parse_state;
 
 typedef struct encounter_holder_tag {
+	char *name;
 	encounter spawn[ENCOUNTER_ENEMIES_MAX];
 	encounter null;
 } encounter_holder;
@@ -146,6 +147,12 @@ encounter **map_init(const char *mapfilename)
 		case STATE_IN_ENEMY:
 			if (buf[0] == ')') {
 				msg_assert(enemy_template.name, "%s:%zu Expected `name <enemy-name>' but found none", mapfilename, lineno);
+				if (enemy_template.width == 0) {
+					enemy_template.width = 30;
+				}
+				if (enemy_template.height == 0) {
+					enemy_template.height = 30;
+				}
 				parray_push(enemies, make_enemy(&enemy_template));
 				state = STATE_ENEMIES;
 				memset(&enemy_template, 0, sizeof(enemy_template));
@@ -196,6 +203,22 @@ encounter **map_init(const char *mapfilename)
 						msg_assert(0, "%s:%zu Could not parse float: `%s'", mapfilename, lineno, rhs);
 					}
 				}
+				else if (strcmp(lhs, "width") == 0) {
+					if (sscanf(rhs, "%d", &whole) == 1) {
+						enemy_template.width = whole;
+					}
+					else {
+						msg_assert(0, "%s:%zu Could not parse int: `%s'", mapfilename, lineno, rhs);
+					}
+				}
+				else if (strcmp(lhs, "height") == 0) {
+					if (sscanf(rhs, "%d", &whole) == 1) {
+						enemy_template.height = whole;
+					}
+					else {
+						msg_assert(0, "%s:%zu Could not parse int: `%s'", mapfilename, lineno, rhs);
+					}
+				}
 			}
 			else {
 				msg_assert(0, "%s:%zu Expected 2 attributes: `LHS RHS' found `%s'", mapfilename, lineno, buf);
@@ -212,13 +235,13 @@ encounter **map_init(const char *mapfilename)
 					parray_push(encounters, make_encounter_holder(&holder));
 				}
 				(void)memset(&holder, 0, sizeof(holder));
+				holder.name = strdup(id);
+				assert(holder.name);
 				holderndx = 0;
 				state = STATE_NEW_ENCOUNTER;
 			}
 			else if (buf[0] == '(') {
 				(void)memset(&encounter_template, 0, sizeof(encounter_template));
-				encounter_template.name = strdup(id);
-				assert(encounter_template.name);
 				state = STATE_IN_ENCOUNTER;
 			}
 			else {
@@ -228,8 +251,6 @@ encounter **map_init(const char *mapfilename)
 		case STATE_NEW_ENCOUNTER:
 			if (buf[0] == '(') {
 				(void)memset(&encounter_template, 0, sizeof(encounter_template));
-				encounter_template.name = strdup(id);
-				assert(encounter_template.name);
 				state = STATE_IN_ENCOUNTER;
 			}
 			else {
@@ -302,12 +323,17 @@ encounter **map_init(const char *mapfilename)
 
 			if (sscanf(buf, "%s", lhs) == 1) {
 				for (i = 0; i < encounters->size; i++) {
-					for (j = 0; ((encounter_holder *)encounters->buf[i])->spawn[j].name != NULL; j++) {
-						if (strcmp(lhs, ((encounter_holder *)encounters->buf[i])->spawn[0].name) == 0) {
+					encounter_holder *p = encounters->buf[i];
+					if (strcmp(lhs, p->name) == 0) {
+						parray_push(sets, ((encounter_holder *)encounters->buf[i])->spawn);
+						goto next;
+					}
+					/*for (j = 0; ((encounter_holder *)encounters->buf[i])->spawn[j].name != NULL; j++) {
+						if (strcmp(lhs, ((encounter_holder *)encounters->buf[i])->name) == 0) {
 							parray_push(sets, ((encounter_holder *)encounters->buf[i])->spawn);
 							goto next;
 						}
-					}
+					}*/
 				}
 				msg_assert(0, "%s:%zu Encounter name `%s' not found", mapfilename, lineno, lhs);
 			}
@@ -398,8 +424,8 @@ void del_encounter_holder(void *self)
 		return;
 	}
 
-	for (i = 0; holder->spawn[i].name != NULL; i++) {
-		free(holder->spawn[i].name);
+	if (holder->name) {
+		free(holder->name);
 	}
 
 	free(self);

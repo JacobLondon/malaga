@@ -38,25 +38,47 @@ $enemies
     shoot bullet_enemy_straight
     move downleft
     hp 3
-    speed 10
+    speed 5
     level 0
+)
+(
+    name right_drifter
+    shoot bullet_enemy_straight
+    move downright
+    hp 3
+    speed 5
+    level 0
+)
+(
+    name topstop
+    shoot bullet_enemy_spin
+    move downstop
+    hp 8
+    speed 5
+    meta 1
+    level 2
+)
+(
+    name rightstop
+    shoot bullet_enemy_spin
+    move horzrightstop
+    hp 8
+    speed 3
+    meta 1
+    level 2
+)
+(
+    name leftstop
+    shoot bullet_enemy_spin
+    move horzleftstop
+    hp 8
+    speed 3
+    meta 1
+    level 2
 )
 
 $encounters
 [encounter0]
-(
-    name left_drifter
-    time 1
-    x 100
-    y 0
-)
-(
-    name left_drifter
-    time 2
-    x 100
-    y 0
-)
-[encounter1]
 (
     name left_drifter
     time 0
@@ -68,6 +90,49 @@ $encounters
     time 1
     x 100
     y 0
+)
+(
+    name right_drifter
+    time 0
+    x 0
+    y 0
+)
+(
+    name right_drifter
+    time 1
+    x 0
+    y 0
+)
+[encounter1]
+(
+    name topstop
+    time 0
+    x 50
+    y 0
+)
+(
+    name rightstop
+    time 1
+    x 0
+    y 30
+)
+(
+    name rightstop
+    time 1
+    x 0
+    y 60
+)
+(
+    name leftstop
+    time 1
+    x 100
+    y 30
+)
+(
+    name leftstop
+    time 1
+    x 100
+    y 60
 )
 
 $sets

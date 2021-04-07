@@ -24,7 +24,6 @@
 #include "ui.h"
 #include "util.h"
 
-#include "farray.h"
 #include "parray.h"
 
 #endif // RLU_RLU_H_

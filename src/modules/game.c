@@ -1,10 +1,11 @@
 #include <rlu/rlu.h>
 #include "../modules.h"
 #include "map.h"
+#include "score.h"
 
 #define PLAYER_SPEED 650
 #define PLAYER_SIZE 25
-#define ENEMY_SIZE 15
+#define ENEMY_SIZE 35
 #define ENEMIES_MAX 32
 
 static void encounter_clear(void);
@@ -39,6 +40,8 @@ static player_data player = {
 	.shoot=bullet_player_sin_wide,
 	.hp=30,
 	.level=2,
+	.width=20,
+	.height=20,
 };
 
 /**
@@ -60,6 +63,7 @@ void game_init(void)
 
 	//encounters = map_init(NULL);
 	encounters = map_init("maps/test.mg");
+	score_init();
 }
 
 void game_cleanup(void)
@@ -117,6 +121,19 @@ void game_update(void)
 		}
 	}
 
+	if (player.y + PLAYER_SIZE > screen_height) {
+		player.y = screen_height - PLAYER_SIZE / 2;
+	}
+	else if (player.y < PLAYER_SIZE / 2) {
+		player.y = PLAYER_SIZE / 2;
+	}
+	if (player.x + PLAYER_SIZE > screen_width) {
+		player.x = screen_width - PLAYER_SIZE / 2;
+	}
+	else if (player.x < PLAYER_SIZE / 2) {
+		player.x = PLAYER_SIZE / 2;
+	}
+
 	/*if (IsGamepadAvailable(0)) {
 		if (GetGamepadButtonPressed() != -1) DrawText(TextFormat("DETECTED BUTTON: %i", GetGamepadButtonPressed()), 10, 430, 10, RED);
 		else DrawText("DETECTED BUTTON: NONE", 10, 430, 10, GRAY);
@@ -135,9 +152,10 @@ void game_update(void)
 	// move enemies
 	for (i = 0; i < ARRAY_SIZE(enemies); i++) {
 		if (enemies[i].hp <= 0) {
+			enemies[i].y = 20000;
 			continue;
 		}
-		else if (enemies[i].y > screen_height) {
+		else if (enemies[i].y > screen_height + ENEMY_SIZE) {
 			enemies[i].hp = 0;
 		}
 		else if (now - encounter_starttime > enemies[i].spawntime) {
@@ -156,6 +174,7 @@ void game_update(void)
 
 void game_draw(void)
 {
+	static char health[128];
 	int i;
 
 	bullet_draw();
@@ -167,7 +186,11 @@ void game_draw(void)
 	}
 
 	DrawRectangle(player.x - PLAYER_SIZE / 2, player.y - PLAYER_SIZE / 2, PLAYER_SIZE, PLAYER_SIZE, BLUE);
-	DrawFPS(20, 20);
+
+	snprintf(health, sizeof(health), "HP %d", player.hp);
+	DrawText(health, 5, 5, 24, WHITE);
+	DrawText(score_get_string(), screen_width - 5 - MeasureText(score_get_string(), 24), 5, 24, WHITE);
+	//DrawFPS(20, 20);
 }
 
 static void encounter_clear(void)
@@ -181,14 +204,15 @@ static void encounter_next(void)
 
 	encounter_starttime = now;
 	enemy_count = 0;
+	(void)memset(enemies, 0, sizeof(enemies));
 
 	// we done
 	if (encounters[encounterndx + 1] == NULL) {
 		return;
 	}
 
-	// TODO: Can you shoot an enemy who isn't showing up yet?
-
+	// TODO: Can you shoot an enemy who isn't showing up yet? Sort of, they are just not moving
+	score_increase_multiplier();
 	bullet_init(1);
 	bullet_track_hittable_player(&player);
 	encounterndx++;
@@ -197,6 +221,8 @@ static void encounter_next(void)
 		enemies[enemy_count].move = enc->definition->move;
 		enemies[enemy_count].x = (int)(enc->x * (float)screen_width);
 		enemies[enemy_count].y = (int)(enc->y * (float)screen_height);
+		enemies[enemy_count].width = enc->definition->width;
+		enemies[enemy_count].height = enc->definition->height;
 		enemies[enemy_count].hp = enc->definition->hp;
 		enemies[enemy_count].level = enc->definition->level;
 		memcpy(&enemies[enemy_count].meta, &enc->definition->meta, sizeof(enemies[enemy_count].meta));
@@ -253,40 +279,61 @@ void enemy_move_downleft(struct enemy_data_tag *en)
 
 void enemy_move_downright(struct enemy_data_tag *en)
 {
-
+	en->y += en->speed / 2;
+	en->x += en->speed / 2;
 }
 
 void enemy_move_downsin(struct enemy_data_tag *en)
 {
-
+	en->y += en->speed;
+	en->x += fast_fsinf(now);
 }
 
 void enemy_move_downcos(struct enemy_data_tag *en)
 {
-
+	en->y += en->speed;
+	en->x += fast_fcosf(now);
 }
 
 void enemy_move_downstop(struct enemy_data_tag *en)
 {
+	if (en->_timestamp == 0.f) {
+		en->_timestamp = now;
+	}
 
+	if (now - en->_timestamp < en->meta.downstop) {
+		en->y += en->speed;
+	}
 }
 
 void enemy_move_horzright(struct enemy_data_tag *en)
 {
-
+	en->x += en->speed;
 }
 
 void enemy_move_horzleft(struct enemy_data_tag *en)
 {
-
+	en->x -= en->speed;
 }
 
 void enemy_move_horzrightstop(struct enemy_data_tag *en)
 {
+	if (en->_timestamp == 0.f) {
+		en->_timestamp = now;
+	}
 
+	if (now - en->_timestamp < en->meta.horzrightstop) {
+		en->x += en->speed;
+	}
 }
 
 void enemy_move_horzleftstop(struct enemy_data_tag *en)
 {
+	if (en->_timestamp == 0.f) {
+		en->_timestamp = now;
+	}
 
+	if (now - en->_timestamp < en->meta.horzleftstop) {
+		en->x -= en->speed;
+	}
 }
