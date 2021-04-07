@@ -208,6 +208,8 @@ static void do_move_and_hit(HITTABLE_OBJECT *targets[], size_t targets_len, move
 			if (tmp) {
 				if (targets[j]->hp > 0) {
 					targets[j]->hp -= tmp;
+
+					// player did damage!
 					score_increase_points();
 				}
 				bullets[i].y = BULLET_OFFSCREEN;

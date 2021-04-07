@@ -39,6 +39,7 @@ static player_data player = {
 	//.shoot=bullet_player_parabola,
 	.shoot=bullet_player_sin_wide,
 	.hp=30,
+	.lasthp=30,
 	.level=2,
 	.width=20,
 	.height=20,
@@ -152,7 +153,7 @@ void game_update(void)
 	// move enemies
 	for (i = 0; i < ARRAY_SIZE(enemies); i++) {
 		if (enemies[i].hp <= 0) {
-			enemies[i].y = 20000;
+			enemies[i].y = 20000; // wayyyyy off screen, probably
 			continue;
 		}
 		else if (enemies[i].y > screen_height + ENEMY_SIZE) {
@@ -170,6 +171,11 @@ void game_update(void)
 	}
 
 	bullet_update();
+
+	if (player.lasthp != player.hp) {
+		score_decrease_multiplier();
+	}
+	player.lasthp = player.hp;
 }
 
 void game_draw(void)
@@ -188,8 +194,8 @@ void game_draw(void)
 	DrawRectangle(player.x - PLAYER_SIZE / 2, player.y - PLAYER_SIZE / 2, PLAYER_SIZE, PLAYER_SIZE, BLUE);
 
 	snprintf(health, sizeof(health), "HP %d", player.hp);
-	DrawText(health, 5, 5, 24, WHITE);
-	DrawText(score_get_string(), screen_width - 5 - MeasureText(score_get_string(), 24), 5, 24, WHITE);
+	DrawText(health, 5, 5, 30, WHITE);
+	DrawText(score_get_string(), screen_width - 5 - MeasureText(score_get_string(), 30), 5, 30, WHITE);
 	//DrawFPS(20, 20);
 }
 
