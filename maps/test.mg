@@ -65,7 +65,7 @@ $enemies
     hp 8
     speed 3
     meta 1
-    level 2
+    level 1
 )
 (
     name leftstop
@@ -74,11 +74,26 @@ $enemies
     hp 8
     speed 3
     meta 1
+    level 0
+)
+(
+    name superdood
+    shoot bullet_enemy_straight
+    move downcos
+    hp 10
+    speed 1
+    meta 1
     level 2
 )
 
 $encounters
 [encounter0]
+(
+    name superdood
+    time 0
+    x 50
+    y 0
+)
 (
     name left_drifter
     time 0

@@ -65,6 +65,10 @@ void game_init(void)
 	//encounters = map_init(NULL);
 	encounters = map_init("maps/test.mg");
 	score_init();
+
+	// TODO: This is a hack
+	player.hp = 30;
+	player.lasthp = 30;
 }
 
 void game_cleanup(void)
@@ -133,6 +137,10 @@ void game_update(void)
 	}
 	else if (player.x < PLAYER_SIZE / 2) {
 		player.x = PLAYER_SIZE / 2;
+	}
+
+	if (IsKeyPressed(KEY_R)) {
+		context_switch("GAME");
 	}
 
 	/*if (IsGamepadAvailable(0)) {

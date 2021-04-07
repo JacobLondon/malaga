@@ -121,6 +121,7 @@ static float frametime;
 static int players_max; // every index before this is a player in hittables
 static int screen_height;
 static int screen_width;
+static Color bullet_color = YELLOW;
 
 static void wrapper_init(wrapper *self)
 {
@@ -138,6 +139,12 @@ static void wrapper_update(wrapper *self)
 static void wrapper_draw(wrapper *self)
 {
 	assert(self);
+	if (self->array == players) {
+		bullet_color = YELLOW;
+	}
+	else {
+		bullet_color = GREEN;
+	}
 	do_draw(self->bullets, ARRAY_SIZE(self->bullets), self->width, self->height);
 }
 
@@ -235,7 +242,7 @@ static void do_draw(bullet_data bullets[], size_t bullets_len, int bullet_width,
 		if (bullets[i].y > screen_height || bullets[i].y < -bullet_height) {
 			continue;
 		}
-		DrawRectangle(bullets[i].x - bullet_width / 2, bullets[i].y - bullet_height / 2, bullet_width, bullet_height, YELLOW);
+		DrawRectangle(bullets[i].x - bullet_width / 2, bullets[i].y - bullet_height / 2, bullet_width, bullet_height, bullet_color);
 	}
 }
 
@@ -421,7 +428,15 @@ void bullet_enemy_right(int x, int y, int level)
 
 void bullet_enemy_spin(int x, int y, int level)
 {
-	float angle = fmod(now, 2 * PI);
+	float angle;
+	switch (level) {
+	case 1:
+		angle = fmod(now, PI);
+	default:
+	case 0:
+		angle = fmod(now, 2 * PI);
+	}
+
 	insert_bullet(x, y, angle, &wrap_enemy_spin);
 }
 
@@ -479,6 +494,7 @@ void bullet_player_right(int x, int y, int level)
 void bullet_player_spin(int x, int y, int level)
 {
 	float angle = fmod(now, 2 * PI);
+
 	insert_bullet(x, y, angle, &wrap_player_spin);
 }
 
