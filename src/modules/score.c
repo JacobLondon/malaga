@@ -18,7 +18,7 @@ unsigned long long score_get(void)
 char *score_get_string(void)
 {
 	static char buf[256];
-	static unsigned long long points_last = 0;
+	static unsigned long long points_last = 1;
 	if (points_last != points) {
 		(void)snprintf(buf, sizeof(buf), "%llu", points);
 		points_last = points;
