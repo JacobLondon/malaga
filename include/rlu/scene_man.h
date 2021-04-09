@@ -10,6 +10,23 @@ typedef struct scene_set_tag {
 	char *scene_names[ACTIVE_SCENES_MAX];
 } scene_set;
 
+// all members are private
+struct scene_manager_tag {
+	scene_definition *defs;
+
+	/**
+	 * Map a set name to a grouping of scenes, ordered from back to front, left to right
+	 * NULL term the initializer list
+	 */
+	scene_set *set_definitions;
+
+	size_t set_count;
+	int set_loaded_idx;
+	anim_man *animation_man;
+	scene *active_scenes[ACTIVE_SCENES_MAX];
+	bool *active_visibility[ACTIVE_SCENES_MAX];
+};
+
 typedef struct scene_manager_tag scene_manager;
 
 /**
@@ -69,7 +86,7 @@ anim_man *scene_man_get_anim_man(scene_manager *self);
 /**
  * Given a png file, animation width, height, get shared so*
  */
-#define SCENE_MAN_LOAD_SO(path, width, height) \
-	(so_new(anim_man_load(scene_man_get_anim_man(), texture_man_load(path), (width), (height))))
+#define SCENE_MAN_LOAD_SO(man, texman, path, x, y, width, height, color) \
+	(so_new(anim_man_load(scene_man_get_anim_man(man), texture_man_load_or_default((texman), (path), TEXTURE_GEN((width), (height), (color))), (x), (y))))
 
 #endif // RLU_SCENE_MAN_H

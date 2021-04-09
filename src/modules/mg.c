@@ -1,108 +1,48 @@
 #include <rlu/rlu.h>
+#include "atmos.h"
 #include "../modules.h"
 
-struct thing {
-	int x;
-	int y;
-	int size;
-	void (*draw)(struct thing *);
-	void (*update)(struct thing *);
-};
+#define MENU_TEXT "SPACE GAME"
 
-static void player_draw(struct thing *self);
-static void player_update(struct thing *self);
-static void pbull_draw(struct thing *self);
-static void pbull_update(struct thing *self);
-static void ebull_draw(struct thing *self);
-static void ebull_update(struct thing *self);
+static button *play_button;
 
-static struct thing player = {
-	.size=50,
-	.draw=player_draw,
-	.update=player_update,
-};
-static struct thing pbulls[1000];
-static int pbullndx = 0;
+static void play_func(void *client);
+static Image icon;
 
 void mg_init(void)
 {
-	for (int i = 0; i < ARRAY_SIZE(pbulls); i++) {
-		pbulls[i].size = 20;
-		pbulls[i].draw = pbull_draw;
-		pbulls[i].update = pbull_update;
-		pbulls[i].x = -40;
-	}
+	play_button = button_new("PLAY", play_func, NULL);
+	component_set_pos(play_button, GetScreenWidth() / 2 - 150, GetScreenHeight() / 2 - 50);
+	component_set_size(play_button, 24, 300, 100);
+	component_set_color(play_button, BLACK, WHITE);
+	atmos_init("assets");
+	icon = texture_man_img_load_or_default("icon.png", 30, 30, BLUE);
+	SetWindowIcon(icon);
 }
 
 void mg_cleanup(void)
 {
-
+	atmos_cleanup();
+	component_del(play_button);
+	UnloadImage(icon);
 }
 
 void mg_update(void)
 {
-	player_update(&player);
-	for (int i = 0; i < ARRAY_SIZE(pbulls); i++) {
-		pbull_update(&pbulls[i]);
-	}
+	atmos_update();
+	component_update(play_button);
 }
 
 void mg_draw(void)
 {
-	DrawFPS(0, 0);
-
-	player_draw(&player);
-	for (int i = 0; i < ARRAY_SIZE(pbulls); i++) {
-		pbull_draw(&pbulls[i]);
-	}
+	atmos_draw();
+	component_draw(play_button);
+	DrawText(MENU_TEXT, GetScreenWidth() / 2 - MeasureText(MENU_TEXT, 40) / 2, GetScreenHeight() / 4, 40, WHITE);
 }
 
-static void player_draw(struct thing *self)
+////////////////////////////////////////////////////////////////////////////////
+
+static void play_func(void *client)
 {
-	DrawCircle(self->x + self->size / 2, self->y + self->size / 2, self->size, RED);
+	context_switch("GAME");
 }
-
-static void player_update(struct thing *self)
-{
-	self->x = GetMouseX();
-	self->y = GetMouseY();
-
-	if (IsKeyDown(KEY_SPACE)) {
-		pbulls[pbullndx].x = player.x;
-		pbulls[pbullndx].y = player.y;
-		pbullndx = (pbullndx + 1) % ARRAY_SIZE(pbulls);
-	}
-}
-
-static void pbull_draw(struct thing *self)
-{
-	if (self->x < -pbulls[0].size || self->x > GetScreenWidth() || self->y < -pbulls[0].size || self->y > GetScreenHeight()) {
-		return;
-	}
-
-	DrawCircle(self->x, self->y, self->size, BLUE);
-}
-
-static void pbull_update(struct thing *self)
-{
-	if (self->x == 0 && self->y == 0) {
-		return;
-	}
-
-	if (self->x < 0 || self->x > GetScreenWidth() || self->y < 0 || self->y > GetScreenHeight()) {
-		return;
-	}
-
-	self->y += 30;
-}
-
-static void ebull_draw(struct thing *self)
-{
-
-}
-
-static void ebull_update(struct thing *self)
-{
-
-}
-

@@ -14,13 +14,14 @@ static context_opt options = {
 static module_definition definitions[] = {
 	DEFINE_MODULE("MG", mg_init, mg_cleanup, mg_update, mg_draw),
 	DEFINE_MODULE("GAME", game_init, game_cleanup, game_update, game_draw),
+	DEFINE_MODULE("PAUSE", pause_init, pause_cleanup, pause_update, pause_draw),
 	{NULL}
 };
 
 int main(void)
 {
 	context_init(&options, definitions);
-	context_switch("GAME");
+	context_switch("MG");
 	context_loop();
 	context_cleanup();
 

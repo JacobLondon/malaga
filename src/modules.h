@@ -11,4 +11,9 @@ void game_cleanup(void);
 void game_update(void);
 void game_draw(void);
 
+void pause_init(void);
+void pause_cleanup(void);
+void pause_update(void);
+void pause_draw(void);
+
 #endif // MG_MODULES_H

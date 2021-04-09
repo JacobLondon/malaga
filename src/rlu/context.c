@@ -51,7 +51,6 @@ static svec module_vec;
 static enum {
 	XOP_NONE,
 	XOP_PUSH,
-	XOP_POP,
 	XOP_SWAP,
 } operation = XOP_NONE;
 
@@ -115,18 +114,10 @@ static module *lookup_module(const char *name)
  */
 static void module_operations(void)
 {
-	if (operation == XOP_NONE) {
-		return;
-	}
-
 	module *mod;
-	switch (operation) {
-	case XOP_PUSH:
-		svec_push(&module_vec, on_deck);
-		on_deck->init();
-		operation = XOP_NONE;
-		break;
-	case XOP_POP:
+
+	// pop is special operation, may always occur regardless of op
+	if (popcount > 0) {
 		for ( ; popcount > 0; popcount--) {
 			mod = svec_tail(&module_vec);
 			if (mod) {
@@ -134,6 +125,16 @@ static void module_operations(void)
 			}
 			svec_pop(&module_vec);
 		}
+	}
+
+	if (operation == XOP_NONE) {
+		return;
+	}
+
+	switch (operation) {
+	case XOP_PUSH:
+		svec_push(&module_vec, on_deck);
+		on_deck->init();
 		operation = XOP_NONE;
 		break;
 	case XOP_SWAP:
@@ -278,6 +279,5 @@ void context_push(const char *module_name)
 
 void context_pop(void)
 {
-	operation = XOP_POP;
 	popcount++;
 }

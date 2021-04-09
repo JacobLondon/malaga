@@ -154,7 +154,7 @@ void component_draw(component *comp)
 			tmp.b = min(255, tmp.b * 1.2);
 		}
 		DrawRectangle(comp->x, comp->y, comp->w, comp->h, tmp);
-		DrawText(comp->data.button.text, comp->x, comp->y, comp->size, comp->fg);
+		DrawText(comp->data.button.text, comp->x + comp->w / 2 - MeasureText(comp->data.button.text, comp->size) / 2, comp->y + comp->h / 2 - comp->size / 2, comp->size, comp->fg);
 		break;
 	default:
 		break;

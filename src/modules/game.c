@@ -2,7 +2,10 @@
 #include "../modules.h"
 #include "map.h"
 #include "score.h"
+#include "atmos.h"
 
+#define WIN_TEXT "- WINNER -"
+#define LOSE_TEXT "- LOSER -"
 #define PLAYER_SPEED 650
 #define PLAYER_SIZE 25
 #define ENEMY_SIZE 35
@@ -18,6 +21,8 @@ static int enemy_count = 0; // number of loaded enemies
 static int screen_height = 0;
 static int screen_width = 0;
 static double now = 0.0;
+static bool gamewon = false;
+static bool gamelost = false;
 
 static enemy_data enemies[ENEMIES_MAX];
 
@@ -50,6 +55,7 @@ static player_data player = {
  */
 
 static encounter **encounters;
+static Image icon;
 
 void game_init(void)
 {
@@ -65,6 +71,10 @@ void game_init(void)
 	//encounters = map_init(NULL);
 	encounters = map_init("maps/test.mg");
 	score_init();
+	atmos_init("assets");
+
+	icon = texture_man_img_load_or_default("icon.png", 30, 30, BLUE);
+	SetWindowIcon(icon);
 
 	// TODO: This is a hack
 	player.hp = 30;
@@ -75,6 +85,8 @@ void game_cleanup(void)
 {
 	encounter_clear();
 	map_cleanup();
+	atmos_cleanup();
+	UnloadImage(icon);
 }
 
 void game_update(void)
@@ -142,16 +154,21 @@ void game_update(void)
 	if (IsKeyPressed(KEY_R)) {
 		context_switch("GAME");
 	}
+	if (IsKeyPressed(KEY_ENTER)) {
+		context_push("PAUSE");
+	}
 
 	/*if (IsGamepadAvailable(0)) {
 		if (GetGamepadButtonPressed() != -1) DrawText(TextFormat("DETECTED BUTTON: %i", GetGamepadButtonPressed()), 10, 430, 10, RED);
 		else DrawText("DETECTED BUTTON: NONE", 10, 430, 10, GRAY);
 	}*/
 
-	dir = rlu_input_axis(0, RLU_KEY_TRIGGER_RIGHT);
-	if (dir != -1.0f && (now - player.lastshottime > player.shotperiod)) {
-		player.shoot(player.x, player.y, player.level);
-		player.lastshottime = now;
+	if (gamelost == false) {
+		dir = rlu_input_axis(0, RLU_KEY_TRIGGER_RIGHT);
+		if (dir != -1.0f && (now - player.lastshottime > player.shotperiod)) {
+			player.shoot(player.x, player.y, player.level);
+			player.lastshottime = now;
+		}
 	}
 
 	if (encounter_done()) {
@@ -164,7 +181,13 @@ void game_update(void)
 			enemies[i].y = 20000; // wayyyyy off screen, probably
 			continue;
 		}
-		else if (enemies[i].y > screen_height + ENEMY_SIZE) {
+		else if (
+			(enemies[i].y > screen_height + 5 * ENEMY_SIZE) ||
+			(enemies[i].y < -5 * ENEMY_SIZE) ||
+			(enemies[i].x > screen_width + 5 * ENEMY_SIZE) ||
+			(enemies[i].x < -5 * ENEMY_SIZE)
+		)
+		{
 			enemies[i].hp = 0;
 		}
 		else if (now - encounter_starttime > enemies[i].spawntime) {
@@ -179,11 +202,16 @@ void game_update(void)
 	}
 
 	bullet_update();
+	atmos_update();
 
 	if (player.lasthp != player.hp) {
 		score_decrease_multiplier();
 	}
 	player.lasthp = player.hp;
+
+	if (player.hp <= 0) {
+		gamelost = true;
+	}
 }
 
 void game_draw(void)
@@ -191,6 +219,7 @@ void game_draw(void)
 	static char health[128];
 	int i;
 
+	atmos_draw();
 	bullet_draw();
 
 	for (i = 0; i < enemy_count; i++) {
@@ -199,12 +228,21 @@ void game_draw(void)
 		}
 	}
 
-	DrawRectangle(player.x - PLAYER_SIZE / 2, player.y - PLAYER_SIZE / 2, PLAYER_SIZE, PLAYER_SIZE, BLUE);
+	if (gamelost == false) {
+		DrawRectangle(player.x - PLAYER_SIZE / 2, player.y - PLAYER_SIZE / 2, PLAYER_SIZE, PLAYER_SIZE, BLUE);
+	}
 
 	snprintf(health, sizeof(health), "HP %d", player.hp);
 	DrawText(health, 5, 5, 30, WHITE);
 	DrawText(score_get_string(), screen_width - 5 - MeasureText(score_get_string(), 30), 5, 30, WHITE);
+	DrawText(score_get_multiplier(), screen_width - 5 - MeasureText(score_get_multiplier(), 30), 40, 30, WHITE);
 	//DrawFPS(20, 20);
+	if (gamewon) {
+		DrawText(WIN_TEXT, GetScreenWidth() / 2 - MeasureText(WIN_TEXT, 40) / 2, GetScreenHeight() / 4, 40, WHITE);
+	}
+	else if (gamelost) {
+		DrawText(LOSE_TEXT, GetScreenWidth() / 2 - MeasureText(LOSE_TEXT, 40) / 2, GetScreenHeight() / 4, 40, WHITE);
+	}
 }
 
 static void encounter_clear(void)
@@ -222,6 +260,7 @@ static void encounter_next(void)
 
 	// we done
 	if (encounters[encounterndx + 1] == NULL) {
+		gamewon = true;
 		return;
 	}
 

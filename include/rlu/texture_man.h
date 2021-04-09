@@ -5,6 +5,9 @@
 
 #define TEXTURES_MAX 32
 
+#define TEXTURE_GEN(WIDTH, HEIGHT, COLOR) \
+	LoadTextureFromImage(GenImageColor((WIDTH), (HEIGHT), (COLOR)))
+
 typedef struct texture_lookup_tag {
 	char *png;
 	Texture2D texture;
@@ -22,6 +25,7 @@ void texture_man_del(texture_manager *self);
  * ignore the loading if the texture already exists
  */
 Texture2D *texture_man_load(texture_manager *self, char *png);
+Texture2D *texture_man_load_or_default(texture_manager *self, char *png, Texture2D def);
 
 /* Extract a texture. If it's not there, assertion */
 Texture2D *texture_man_get(texture_manager *self, char *png);
@@ -32,5 +36,6 @@ Texture2D *texture_man_get(texture_manager *self, char *png);
  * be necessary.
 */
 void texture_man_test_draw(Texture2D *texture, int x, int y);
+Image texture_man_img_load_or_default(char *png, int width, int height, Color color);
 
 #endif // RLU_TEXTURE_MAN_H

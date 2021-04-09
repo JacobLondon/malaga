@@ -2,22 +2,6 @@
 
 #define ANIMATION_RATE 10.0f /* animation updates per second, > 0.0 */
 
-struct scene_manager_tag {
-	scene_definition *defs;
-
-	/**
-	 * Map a set name to a grouping of scenes, ordered from back to front, left to right
-	 * NULL term the initializer list
-	 */
-	scene_set *set_definitions;
-
-	size_t set_count;
-	int set_loaded_idx;
-	anim_man *animation_man;
-	scene *active_scenes[ACTIVE_SCENES_MAX];
-	bool *active_visibility[ACTIVE_SCENES_MAX];
-};
-
 /**
  * Take ownership of scene. Remove scene on unload, draw on man_draw,
  * update on man_update, etc... Set visible to true by default
@@ -67,7 +51,7 @@ void scene_man_new(struct scene_manager_tag *out, scene_definition *definitions,
 	for (i = 0, out->set_count = 0; sets[i].name != NULL; i++, out->set_count++);
 }
 
-void scene_man_cleanup(struct scene_manager_tag *self)
+void scene_man_del(struct scene_manager_tag *self)
 {
 	int i;
 	assert(self);
@@ -298,6 +282,7 @@ static scene_set set_definitions[] = {
 	{ "Paragon", { "Star3", "Paragon", NULL } },
 	{ "Altaira", { "Star2", "Altaira", NULL } },
 	{ "Black Hole", { "B-Hole", "Astronauts" } },
+	{ NULL }
 };
 
 scene_man_init(defs, set_definitions);

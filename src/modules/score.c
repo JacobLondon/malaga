@@ -18,7 +18,22 @@ unsigned long long score_get(void)
 char *score_get_string(void)
 {
 	static char buf[256];
-	(void)snprintf(buf, sizeof(buf), "%llu", points);
+	static unsigned long long points_last = 0;
+	if (points_last != points) {
+		(void)snprintf(buf, sizeof(buf), "%llu", points);
+		points_last = points;
+	}
+	return buf;
+}
+
+char *score_get_multiplier(void)
+{
+	static char buf[256];
+	static unsigned long long mult_last = 0;
+	if (mult_last != multiplier) {
+		(void)snprintf(buf, sizeof(buf), "x%.2f", (float)multiplier / 100.f);
+		mult_last = multiplier;
+	}
 	return buf;
 }
 

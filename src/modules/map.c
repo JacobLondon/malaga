@@ -2,7 +2,7 @@
 
 #include "map.h"
 
-#define ENCOUNTER_ENEMIES_MAX 15
+#define ENCOUNTER_ENEMIES_MAX 32
 
 // DEFAULT ////////////////////////////////////////////////////////////////////
 static enemy_definition default_ldrifter = {
