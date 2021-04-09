@@ -3,6 +3,7 @@
 
 #define ASSET_MUSIC "music.mp3"
 
+static void init_cb_background(scene *self);
 static void init_cb_starfield(scene *self);
 static void init_cb_planetfield(scene *self);
 
@@ -10,13 +11,14 @@ static texture_manager textureman;
 static scene_manager manager;
 
 static scene_definition scenes[] = {
+	{"Background", 1, init_cb_background},
 	{"Starfield", 90, init_cb_starfield},
 	{"Planetfield", 10, init_cb_planetfield},
 	{NULL}
 };
 
 static scene_set sets[] = {
-	{"Default", {"Planetfield", "Starfield", NULL}},
+	{"Default", {"Background", "Planetfield", "Starfield", NULL}},
 	{NULL}
 };
 
@@ -52,6 +54,21 @@ void atmos_draw(void)
 /**
  * Static Functions
  */
+
+static void init_cb_background(scene *self)
+{
+	char path[128];
+	Texture2D *t;
+	anim *a;
+	so *s;
+
+	snprintf(path, sizeof(path), "%s/background.png", asset_directory);
+	t = texture_man_load_or_default(&textureman, path, TEXTURE_GEN(1000, 1000, BLACK));
+	a = anim_man_load(scene_man_get_anim_man(&manager), t, 1, 1);
+	s = so_new(a);
+	so_set_pos(s, 0, 0);
+	scene_load_object(self, s);
+}
 
 static void init_cb_starfield(scene *self)
 {

@@ -466,7 +466,7 @@ $encounters
 
 $sets
 encounter-down
-#encounter_flyby
-#encounter-across-stream
-#encounter1
-#encounter2
+encounter_flyby
+encounter-across-stream
+encounter1
+encounter2

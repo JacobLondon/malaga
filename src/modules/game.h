@@ -27,6 +27,7 @@ typedef struct player_data_tag {
 	shoot_func shoot;
 	float lastshottime;
 	float shotperiod;
+	float lasttouchtime; // last time player touched enemy
 } player_data;
 
 /**

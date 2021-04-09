@@ -31,6 +31,11 @@ void mg_update(void)
 {
 	atmos_update();
 	component_update(play_button);
+
+	rlu_input_prescan(0);
+	if (rlu_input_key(0, RLU_KEY_BUTTON_DOWN, RLU_PRESS_DOWN)) {
+		play_func(NULL);
+	}
 }
 
 void mg_draw(void)

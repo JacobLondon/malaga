@@ -66,6 +66,8 @@ void game_init(void)
 	encounterndx = -1;
 	player.x = screen_width / 2;
 	player.y = screen_height * 3 / 4;
+	gamewon = false;
+	gamelost = false;
 	player.shotperiod = bullet_lookup_timeout(player.shoot);
 
 	//encounters = map_init(NULL);
@@ -91,7 +93,7 @@ void game_cleanup(void)
 
 void game_update(void)
 {
-	int i;
+	int i, j;
 	float dir;
 
 	screen_width = GetScreenWidth();
@@ -199,6 +201,13 @@ void game_update(void)
 				enemies[i].lastshottime = now;
 			}
 		}
+
+		if (CheckCollisionRecs(*(Rectangle *)&enemies[i], *(Rectangle *)&player)) {
+			if (now - player.lasttouchtime > 1.f) {
+				player.lasttouchtime = now;
+				player.hp--;
+			}
+		}
 	}
 
 	bullet_update();
@@ -237,10 +246,12 @@ void game_draw(void)
 	DrawText(score_get_string(), screen_width - 5 - MeasureText(score_get_string(), 30), 5, 30, WHITE);
 	DrawText(score_get_multiplier(), screen_width - 5 - MeasureText(score_get_multiplier(), 30), 40, 30, WHITE);
 	//DrawFPS(20, 20);
-	if (gamewon) {
+	if (gamewon && !gamelost) {
+		DrawRectangle(GetScreenWidth() / 2 - MeasureText(WIN_TEXT, 40) / 2, GetScreenHeight() / 4, MeasureText(WIN_TEXT, 40), 40, BLACK);
 		DrawText(WIN_TEXT, GetScreenWidth() / 2 - MeasureText(WIN_TEXT, 40) / 2, GetScreenHeight() / 4, 40, WHITE);
 	}
-	else if (gamelost) {
+	else if (gamelost && !gamewon) {
+		DrawRectangle(GetScreenWidth() / 2 - MeasureText(WIN_TEXT, 40) / 2, GetScreenHeight() / 4, MeasureText(WIN_TEXT, 40), 40, BLACK);
 		DrawText(LOSE_TEXT, GetScreenWidth() / 2 - MeasureText(LOSE_TEXT, 40) / 2, GetScreenHeight() / 4, 40, WHITE);
 	}
 }

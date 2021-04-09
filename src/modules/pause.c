@@ -44,6 +44,7 @@ void pause_update(void)
 
 void pause_draw(void)
 {
+	DrawRectangle(GetScreenWidth() / 2 - MeasureText(PAUSE_TEXT, 40) / 2, GetScreenHeight() / 4, MeasureText(PAUSE_TEXT, 40), 40, BLACK);
 	DrawText(PAUSE_TEXT, GetScreenWidth() / 2 - MeasureText(PAUSE_TEXT, 40) / 2, GetScreenHeight() / 4, 40, WHITE);
 	component_draw(resume_button);
 	component_draw(menu_button);
