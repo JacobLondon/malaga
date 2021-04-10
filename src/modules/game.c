@@ -15,6 +15,11 @@ static void encounter_clear(void);
 static void encounter_next(void);
 static bool encounter_done(void);
 
+static void player_new(player_data *self);
+static void player_del(player_data *self);
+static void enemy_new(enemy_data *self, encounter *enc);
+static void enemy_del(enemy_data *self);
+
 static int encounterndx = -1;
 static double encounter_starttime = 0.0;
 static int enemy_count = 0; // number of loaded enemies
@@ -40,15 +45,9 @@ static enemy_move_lookup move_lookup[] = {
 	{NULL, NULL}
 };
 
-static player_data player = {
-	//.shoot=bullet_player_parabola,
-	.shoot=bullet_player_sin_wide,
-	.hp=30,
-	.lasthp=30,
-	.level=2,
-	.width=20,
-	.height=20,
-};
+static player_data player;
+static texture_manager texman;
+static anim_man *animan;
 
 /**
  * Enemy Prototypes
@@ -64,11 +63,12 @@ void game_init(void)
 	screen_width = GetScreenWidth();
 	now = GetTime();
 	encounterndx = -1;
-	player.x = screen_width / 2;
-	player.y = screen_height * 3 / 4;
 	gamewon = false;
 	gamelost = false;
-	player.shotperiod = bullet_lookup_timeout(player.shoot);
+
+	texture_man_new(&texman);
+	animan = anim_man_new();
+	player_new(&player);
 
 	//encounters = map_init(NULL);
 	encounters = map_init("maps/test.mg");
@@ -77,14 +77,18 @@ void game_init(void)
 
 	icon = texture_man_img_load_or_default("icon.png", 30, 30, BLUE);
 	SetWindowIcon(icon);
-
-	// TODO: This is a hack
-	player.hp = 30;
-	player.lasthp = 30;
 }
 
 void game_cleanup(void)
 {
+	int i;
+	player_del(&player);
+	for (i = 0; i < enemy_count; i++) {
+		enemy_del(&enemies[i]);
+	}
+	anim_man_del(animan);
+	texture_man_del(&texman);
+
 	encounter_clear();
 	map_cleanup();
 	atmos_cleanup();
@@ -93,7 +97,7 @@ void game_cleanup(void)
 
 void game_update(void)
 {
-	int i, j;
+	int i;
 	float dir;
 
 	screen_width = GetScreenWidth();
@@ -233,12 +237,16 @@ void game_draw(void)
 
 	for (i = 0; i < enemy_count; i++) {
 		if (enemies[i].hp >= 0 && (now - encounter_starttime >= enemies[i].spawntime)) {
-			DrawRectangle(enemies[i].x - ENEMY_SIZE / 2, enemies[i].y - ENEMY_SIZE / 2, ENEMY_SIZE, ENEMY_SIZE, RED);
+			//DrawRectangle(enemies[i].x - ENEMY_SIZE / 2, enemies[i].y - ENEMY_SIZE / 2, ENEMY_SIZE, ENEMY_SIZE, RED);
+			so_set_pos(enemies[i].object, enemies[i].x - enemies[i].width / 2, enemies[i].y - enemies[i].height / 2);
+			so_draw(enemies[i].object);
 		}
 	}
 
 	if (gamelost == false) {
-		DrawRectangle(player.x - PLAYER_SIZE / 2, player.y - PLAYER_SIZE / 2, PLAYER_SIZE, PLAYER_SIZE, BLUE);
+		so_set_pos(player.object, player.x - PLAYER_SIZE / 2, player.y - PLAYER_SIZE / 2);
+		//DrawRectangle(player.x - PLAYER_SIZE / 2, player.y - PLAYER_SIZE / 2, PLAYER_SIZE, PLAYER_SIZE, BLUE);
+		so_draw(player.object);
 	}
 
 	snprintf(health, sizeof(health), "HP %d", player.hp);
@@ -281,19 +289,10 @@ static void encounter_next(void)
 	bullet_track_hittable_player(&player);
 	encounterndx++;
 	for (enc = encounters[encounterndx]; enc->definition != NULL; enc++) {
-		enemies[enemy_count].shoot = enc->definition->shoot;
-		enemies[enemy_count].move = enc->definition->move;
-		enemies[enemy_count].x = (int)(enc->x * (float)screen_width);
-		enemies[enemy_count].y = (int)(enc->y * (float)screen_height);
-		enemies[enemy_count].width = enc->definition->width;
-		enemies[enemy_count].height = enc->definition->height;
-		enemies[enemy_count].hp = enc->definition->hp;
-		enemies[enemy_count].level = enc->definition->level;
-		memcpy(&enemies[enemy_count].meta, &enc->definition->meta, sizeof(enemies[enemy_count].meta));
-		enemies[enemy_count].speed = enc->definition->speed;
-		enemies[enemy_count].shotperiod = bullet_lookup_timeout(enc->definition->shoot);
-		enemies[enemy_count].spawntime = enc->spawntime;
-
+		if (enemies[enemy_count].object) {
+			enemy_del(&enemies[enemy_count]);
+		}
+		enemy_new(&enemies[enemy_count], enc);
 		bullet_track_hittable_enemy(&enemies[enemy_count]);
 		enemy_count++;
 	}
@@ -326,6 +325,74 @@ enemy_move_func lookup_enemy_move(char *name)
 		}
 	}
 	return NULL;
+}
+
+static void player_new(player_data *self)
+{
+	assert(self);
+	self->x = screen_width / 2;
+	self->y = screen_height * 3 / 4;
+	self->shoot = bullet_player_sin_wide;
+	self->shotperiod = bullet_lookup_timeout(self->shoot);
+	self->hp = self->lasthp = 30;
+	self->level = 2;
+	self->width = 20;
+	self->height = 20;
+	self->object = so_new(
+		anim_man_load(
+			animan,
+			texture_man_load_or_default(&texman, "default_player.png", TEXTURE_GEN(self->width, self->height, BLUE)),
+			1,
+			1
+		)
+	);
+}
+
+static void player_del(player_data *self)
+{
+	assert(self);
+	if (self->object) {
+		so_del(self->object);
+		self->object = NULL;
+	}
+}
+
+static void enemy_new(enemy_data *self, encounter *enc)
+{
+	assert(self);
+	assert(enc);
+
+	self->shoot = enc->definition->shoot;
+	self->move = enc->definition->move;
+	self->x = (int)(enc->x * (float)screen_width);
+	self->y = (int)(enc->y * (float)screen_width);
+	self->width = enc->definition->width;
+	self->height = enc->definition->height;
+	self->hp = enc->definition->hp;
+	self->level = enc->definition->level;
+	memcpy(&self->meta, &enc->definition->meta, sizeof(self->meta));
+	self->speed = enc->definition->speed;
+	self->shotperiod = bullet_lookup_timeout(enc->definition->shoot);
+	self->spawntime = enc->spawntime;
+
+	assert(enc->definition->pngname);
+	self->object = so_new(
+		anim_man_load(
+			animan,
+			texture_man_load_or_default(&texman, enc->definition->pngname, TEXTURE_GEN(self->width, self->height, RED)),
+			1,
+			1
+		)
+	);
+}
+
+static void enemy_del(enemy_data *self)
+{
+	assert(self);
+	if (self->object) {
+		so_del(self->object);
+		self->object = NULL;
+	}
 }
 
 // ENEMY MOVE FUNCS ///////////////////////////////////////////////////////////

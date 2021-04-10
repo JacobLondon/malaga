@@ -28,6 +28,7 @@ typedef struct player_data_tag {
 	float lastshottime;
 	float shotperiod;
 	float lasttouchtime; // last time player touched enemy
+	so *object;
 } player_data;
 
 /**
@@ -54,6 +55,7 @@ typedef struct enemy_data_tag {
 	float lastshottime;
 	float spawntime; // s
 	float _timestamp;
+	so *object;
 } enemy_data;
 
 typedef struct enemy_definition_tag {
@@ -71,6 +73,7 @@ typedef struct enemy_definition_tag {
 	} meta;
 	float speed; // units / s
 	char *name;
+	char *pngname;
 } enemy_definition;
 
 /**

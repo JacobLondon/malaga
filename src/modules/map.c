@@ -86,7 +86,7 @@ encounter **map_init(const char *mapfilename)
 	char lhs[256];
 	char rhs[256];
 	char *p;
-	size_t i, j;
+	size_t i;
 	size_t lineno;
 	parse_state state;
 	// scanf'd items...
@@ -153,6 +153,10 @@ encounter **map_init(const char *mapfilename)
 				if (enemy_template.height == 0) {
 					enemy_template.height = 30;
 				}
+				if (enemy_template.pngname == NULL) {
+					enemy_template.pngname = strdup("default_enemy.png");
+					assert(enemy_template.pngname);
+				}
 				parray_push(enemies, make_enemy(&enemy_template));
 				state = STATE_ENEMIES;
 				memset(&enemy_template, 0, sizeof(enemy_template));
@@ -162,6 +166,10 @@ encounter **map_init(const char *mapfilename)
 				if (strcmp(lhs, "name") == 0) {
 					enemy_template.name = strdup(rhs);
 					assert(enemy_template.name);
+				}
+				else if (strcmp(lhs, "png") == 0) {
+					enemy_template.pngname = strdup(rhs);
+					assert(enemy_template.pngname);
 				}
 				else if (strcmp(lhs, "shoot") == 0) {
 					enemy_template.shoot = bullet_lookup_shoot(rhs);
@@ -403,6 +411,9 @@ void del_enemy(void *self)
 	if (en->name) {
 		free(en->name);
 	}
+	if (en->pngname) {
+		free(en->pngname);
+	}
 	free(self);
 }
 
@@ -418,7 +429,6 @@ encounter_holder *make_encounter_holder(encounter_holder *template)
 
 void del_encounter_holder(void *self)
 {
-	int i;
 	encounter_holder *holder = self;
 	if (!self) {
 		return;
