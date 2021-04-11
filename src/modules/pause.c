@@ -21,7 +21,7 @@ void pause_init(void)
 	component_set_size(menu_button, 24, 300, 100);
 	component_set_color(resume_button, BLACK, WHITE);
 	component_set_color(menu_button, BLACK, WHITE);
-	icon = texture_man_img_load_or_default("icon.png", 30, 30, BLUE);
+	icon = texture_man_img_load_or_default("assets/icon.png", 30, 30, BLUE);
 	SetWindowIcon(icon);
 }
 

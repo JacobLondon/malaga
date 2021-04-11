@@ -154,7 +154,7 @@ encounter **map_init(const char *mapfilename)
 					enemy_template.height = 30;
 				}
 				if (enemy_template.pngname == NULL) {
-					enemy_template.pngname = strdup("default_enemy.png");
+					enemy_template.pngname = strdup("assets/default_enemy.png");
 					assert(enemy_template.pngname);
 				}
 				parray_push(enemies, make_enemy(&enemy_template));

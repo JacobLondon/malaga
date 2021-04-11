@@ -69,7 +69,7 @@ Texture2D *texture_man_get(texture_manager *self, char *png)
 	return NULL;
 }
 
-void texture_man_test_draw(Texture2D *texture, int x, int y)
+void texture_man_draw_tex(Texture2D *texture, int x, int y)
 {
 	assert(texture);
 	DrawTexture(*texture, x, y, WHITE);

@@ -75,7 +75,7 @@ void game_init(void)
 	score_init();
 	atmos_init("assets");
 
-	icon = texture_man_img_load_or_default("icon.png", 30, 30, BLUE);
+	icon = texture_man_img_load_or_default("assets/icon.png", 30, 30, BLUE);
 	SetWindowIcon(icon);
 }
 
@@ -117,11 +117,11 @@ void game_update(void)
 	}
 	else if (dir < 0)
 	{
-		if ((player.x + PLAYER_SIZE <= screen_width)) {
+		if ((player.x + player.width <= screen_width)) {
 			player.x += (GetFrameTime() * PLAYER_SPEED * dir);
 		}
 		else {
-			player.x = screen_width - PLAYER_SIZE;
+			player.x = screen_width - player.width;
 		}
 	}
 
@@ -136,25 +136,25 @@ void game_update(void)
 	}
 	else if (dir < 0)
 	{
-		if ((player.y + PLAYER_SIZE <= screen_height)) {
+		if ((player.y + player.height <= screen_height)) {
 			player.y += (GetFrameTime() * PLAYER_SPEED * dir);
 		}
 		else {
-			player.y = screen_height - PLAYER_SIZE;
+			player.y = screen_height - player.height;
 		}
 	}
 
-	if (player.y + PLAYER_SIZE > screen_height) {
-		player.y = screen_height - PLAYER_SIZE / 2;
+	if (player.y + player.height > screen_height) {
+		player.y = screen_height - player.height / 2;
 	}
-	else if (player.y < PLAYER_SIZE / 2) {
-		player.y = PLAYER_SIZE / 2;
+	else if (player.y < player.height / 2) {
+		player.y = player.height / 2;
 	}
-	if (player.x + PLAYER_SIZE > screen_width) {
-		player.x = screen_width - PLAYER_SIZE / 2;
+	if (player.x + player.width > screen_width) {
+		player.x = screen_width - player.width / 2;
 	}
-	else if (player.x < PLAYER_SIZE / 2) {
-		player.x = PLAYER_SIZE / 2;
+	else if (player.x < player.width / 2) {
+		player.x = player.width / 2;
 	}
 
 	if (IsKeyPressed(KEY_R)) {
@@ -244,7 +244,7 @@ void game_draw(void)
 	}
 
 	if (gamelost == false) {
-		so_set_pos(player.object, player.x - PLAYER_SIZE / 2, player.y - PLAYER_SIZE / 2);
+		so_set_pos(player.object, player.x - player.width / 2, player.y - player.height / 2);
 		//DrawRectangle(player.x - PLAYER_SIZE / 2, player.y - PLAYER_SIZE / 2, PLAYER_SIZE, PLAYER_SIZE, BLUE);
 		so_draw(player.object);
 	}
@@ -329,6 +329,7 @@ enemy_move_func lookup_enemy_move(char *name)
 
 static void player_new(player_data *self)
 {
+	Texture2D *tex;
 	assert(self);
 	self->x = screen_width / 2;
 	self->y = screen_height * 3 / 4;
@@ -336,12 +337,13 @@ static void player_new(player_data *self)
 	self->shotperiod = bullet_lookup_timeout(self->shoot);
 	self->hp = self->lasthp = 30;
 	self->level = 2;
-	self->width = 20;
-	self->height = 20;
+	tex = texture_man_load_or_default(&texman, "assets/default_player.png", TEXTURE_GEN(self->width, self->height, BLUE));
+	self->width = tex->width;
+	self->height = tex->height;
 	self->object = so_new(
 		anim_man_load(
 			animan,
-			texture_man_load_or_default(&texman, "default_player.png", TEXTURE_GEN(self->width, self->height, BLUE)),
+			tex,
 			1,
 			1
 		)
@@ -359,6 +361,7 @@ static void player_del(player_data *self)
 
 static void enemy_new(enemy_data *self, encounter *enc)
 {
+	Texture2D *tex;
 	assert(self);
 	assert(enc);
 
@@ -375,11 +378,15 @@ static void enemy_new(enemy_data *self, encounter *enc)
 	self->shotperiod = bullet_lookup_timeout(enc->definition->shoot);
 	self->spawntime = enc->spawntime;
 
+	tex = texture_man_load_or_default(&texman, enc->definition->pngname, TEXTURE_GEN(self->width, self->height, RED));
+	self->width = tex->width;
+	self->height = tex->height;
+
 	assert(enc->definition->pngname);
 	self->object = so_new(
 		anim_man_load(
 			animan,
-			texture_man_load_or_default(&texman, enc->definition->pngname, TEXTURE_GEN(self->width, self->height, RED)),
+			tex,
 			1,
 			1
 		)

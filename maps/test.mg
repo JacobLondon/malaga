@@ -23,8 +23,6 @@
 # - bullet_player_flower
 # - bullet_enemy_sin
 # - bullet_enemy_sin_wide
-# - bullet_enemy_sin
-# - bullet_player_sin_wide
 # - bullet_enemy_big
 # - bullet_player_big
 # - bullet_enemy_beam

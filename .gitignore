@@ -3,3 +3,4 @@ test
 .vscode
 *.swp
 *.o
+assets/

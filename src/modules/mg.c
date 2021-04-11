@@ -16,7 +16,7 @@ void mg_init(void)
 	component_set_size(play_button, 24, 300, 100);
 	component_set_color(play_button, BLACK, WHITE);
 	atmos_init("assets");
-	icon = texture_man_img_load_or_default("icon.png", 30, 30, BLUE);
+	icon = texture_man_img_load_or_default("assets/icon.png", 30, 30, BLUE);
 	SetWindowIcon(icon);
 }
 

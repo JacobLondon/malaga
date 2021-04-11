@@ -27,7 +27,7 @@ typedef struct wrapper_tag {
 	float timeout;
 	shoot_func shoot;
 	const char *name;
-	// TODO: Pointer(s) for drawing Texture2D's
+	Texture2D *tex;
 } wrapper;
 
 #define DEFINE_WRAPPER(SHOOT_FUNC, MOVE_FUNC, HITTABLES, WIDTH, HEIGHT, TIMEOUT) \
@@ -59,7 +59,7 @@ static void move_parabola(bullet_data *bullet);
 
 static int track_hittable(void *hittable, HITTABLE_OBJECT *array[], size_t size);
 static void do_move_and_hit(HITTABLE_OBJECT *targets[], size_t targets_len, move_func move, bullet_data bullets[], size_t bullets_len, int bullet_width, int bullet_height);
-static void do_draw(bullet_data bullets[], size_t bullets_len, int bullet_width, int bullet_height);
+static void do_draw(bullet_data bullets[], size_t bullets_len, Texture2D *tex);
 static void insert_bullet(int x, int y, float direction, wrapper *wrap);
 
 static HITTABLE_OBJECT *enemies[ENEMY_HITTABLES];
@@ -121,13 +121,24 @@ static float frametime;
 static int players_max; // every index before this is a player in hittables
 static int screen_height;
 static int screen_width;
-static Color bullet_color = YELLOW;
+static texture_manager texman;
 
 static void wrapper_init(wrapper *self)
 {
+	Color bullet_color = YELLOW;
+	char buf[128];
 	assert(self);
 	// each byte==1, will put it offscreen somewhere
 	(void)memset(self->bullets, BULLET_OFFSCREEN, sizeof(self->bullets));
+
+	(void)snprintf(buf, sizeof(buf), "assets/%s.png", self->name);
+	if (self->array == players) {
+		bullet_color = YELLOW;
+	}
+	else {
+		bullet_color = GREEN;
+	}
+	self->tex = texture_man_load_or_default(&texman, buf, TEXTURE_GEN(self->width, self->height, bullet_color));
 }
 
 static void wrapper_update(wrapper *self)
@@ -139,13 +150,7 @@ static void wrapper_update(wrapper *self)
 static void wrapper_draw(wrapper *self)
 {
 	assert(self);
-	if (self->array == players) {
-		bullet_color = YELLOW;
-	}
-	else {
-		bullet_color = GREEN;
-	}
-	do_draw(self->bullets, ARRAY_SIZE(self->bullets), self->width, self->height);
+	do_draw(self->bullets, ARRAY_SIZE(self->bullets), self->tex);
 }
 
 void bullet_init(int nplayers)
@@ -156,6 +161,7 @@ void bullet_init(int nplayers)
 	memset(enemies, 0, sizeof(enemies));
 	memset(players, 0, sizeof(players));
 
+	texture_man_new(&texman);
 	for (i = 0; wrappers[i] != NULL; i++) {
 		wrapper_init(wrappers[i]);
 	}
@@ -163,7 +169,7 @@ void bullet_init(int nplayers)
 
 void bullet_cleanup(void)
 {
-	;
+	texture_man_del(&texman);
 }
 
 void bullet_update(void)
@@ -234,15 +240,15 @@ void bullet_draw(void)
 	}
 }
 
-static void do_draw(bullet_data bullets[], size_t bullets_len, int bullet_width, int bullet_height)
+static void do_draw(bullet_data bullets[], size_t bullets_len, Texture2D *tex)
 {
 	int i;
 	assert(bullets);
 	for (i = 0; i < bullets_len; i++) {
-		if (bullets[i].y > screen_height || bullets[i].y < -bullet_height) {
+		if (bullets[i].y > screen_height || bullets[i].y < -tex->height) {
 			continue;
 		}
-		DrawRectangle(bullets[i].x - bullet_width / 2, bullets[i].y - bullet_height / 2, bullet_width, bullet_height, bullet_color);
+		texture_man_draw_tex(tex, bullets[i].x - tex->width / 2, bullets[i].y - tex->height / 2);
 	}
 }
 

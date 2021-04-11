@@ -35,7 +35,7 @@ Texture2D *texture_man_get(texture_manager *self, char *png);
  * Only use for test drawing or if animation will not
  * be necessary.
 */
-void texture_man_test_draw(Texture2D *texture, int x, int y);
+void texture_man_draw_tex(Texture2D *texture, int x, int y);
 Image texture_man_img_load_or_default(char *png, int width, int height, Color color);
 
 #endif // RLU_TEXTURE_MAN_H
