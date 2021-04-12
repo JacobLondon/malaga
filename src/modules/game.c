@@ -276,6 +276,7 @@ static void encounter_next(void)
 	encounter_starttime = now;
 	enemy_count = 0;
 	(void)memset(enemies, 0, sizeof(enemies));
+	bullet_init(1);
 
 	// we done
 	if (encounters[encounterndx + 1] == NULL) {
@@ -285,7 +286,6 @@ static void encounter_next(void)
 
 	// TODO: Can you shoot an enemy who isn't showing up yet? Sort of, they are just not moving
 	score_increase_multiplier();
-	bullet_init(1);
 	bullet_track_hittable_player(&player);
 	encounterndx++;
 	for (enc = encounters[encounterndx]; enc->definition != NULL; enc++) {
