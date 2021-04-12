@@ -161,9 +161,11 @@ void bullet_init(int nplayers)
 	memset(enemies, 0, sizeof(enemies));
 	memset(players, 0, sizeof(players));
 
-	texture_man_new(&texman);
-	for (i = 0; wrappers[i] != NULL; i++) {
-		wrapper_init(wrappers[i]);
+	if (nplayers > 0) {
+		texture_man_new(&texman);
+		for (i = 0; wrappers[i] != NULL; i++) {
+			wrapper_init(wrappers[i]);
+		}
 	}
 }
 
