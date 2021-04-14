@@ -7,7 +7,12 @@
 #define BULLET_OFFSCREEN 0x3F3F
 #define SIZE_STRAIGHT_WIDTH 20
 #define SIZE_STRAIGHT_HEIGHT 20
-#define VEL_STRAIGHT 800
+#define VEL_STRAIGHT 500
+
+#define SHOOT_FAST .15f
+#define SHOOT_MED .33f
+#define SHOOT_INT .4f
+#define SHOOT_SLOW .5f
 
 typedef void (* move_func)(bullet_data *bullet);
 
@@ -65,29 +70,29 @@ static void insert_bullet(int x, int y, float direction, wrapper *wrap);
 static HITTABLE_OBJECT *enemies[ENEMY_HITTABLES];
 static HITTABLE_OBJECT *players[PLAYER_HITTABLES];
 
-static wrapper wrap_enemy_straight = DEFINE_WRAPPER(bullet_enemy_straight, move_straight, players, 20, 20, .33);
-static wrapper wrap_enemy_left = DEFINE_WRAPPER(bullet_enemy_left, move_straight, players, 20, 20, 0.33f);
-static wrapper wrap_enemy_right = DEFINE_WRAPPER(bullet_enemy_right, move_straight, players, 20, 20, 0.33f);
-static wrapper wrap_enemy_spin = DEFINE_WRAPPER(bullet_enemy_spin, move_straight, players, 20, 20, 0.15f);
-static wrapper wrap_enemy_flower = DEFINE_WRAPPER(bullet_enemy_flower, move_straight, players, 20, 20, 0.2f);
-static wrapper wrap_player_straight = DEFINE_WRAPPER(bullet_player_straight, move_straight, enemies, 20, 20, 0.15f);
-static wrapper wrap_player_left = DEFINE_WRAPPER(bullet_player_left, move_straight, enemies, 20, 20, 0.15f);
-static wrapper wrap_player_right = DEFINE_WRAPPER(bullet_player_right, move_straight, enemies, 20, 20, 0.15f);
-static wrapper wrap_player_spin = DEFINE_WRAPPER(bullet_player_spin, move_straight, enemies, 20, 20, 0.15f);
-static wrapper wrap_player_flower = DEFINE_WRAPPER(bullet_player_flower, move_straight, enemies, 20, 20, 0.15f);
-static wrapper wrap_enemy_sin = DEFINE_WRAPPER(bullet_enemy_sin, move_sin, players, 20, 20, 0.33f);
-static wrapper wrap_enemy_sin_wide = DEFINE_WRAPPER(bullet_enemy_sin_wide, move_sin_wide, players, 20, 20, 0.33f);
-static wrapper wrap_enemy_cos = DEFINE_WRAPPER(bullet_enemy_sin, move_cos, players, 20, 20, 0.33f);
-static wrapper wrap_enemy_cos_wide = DEFINE_WRAPPER(bullet_enemy_sin_wide, move_cos_wide, players, 20, 20, 0.33f);
-static wrapper wrap_player_sin = DEFINE_WRAPPER(bullet_player_sin, move_sin, enemies, 20, 20, 0.15f);
-static wrapper wrap_player_sin_wide = DEFINE_WRAPPER(bullet_player_sin_wide, move_sin_wide, enemies, 20, 20, 0.15f);
-static wrapper wrap_player_cos = DEFINE_WRAPPER(bullet_player_sin, move_cos, enemies, 20, 20, 0.15f);
-static wrapper wrap_player_cos_wide = DEFINE_WRAPPER(bullet_player_sin_wide, move_cos_wide, enemies, 20, 20, 0.15f);
-static wrapper wrap_enemy_big = DEFINE_WRAPPER(bullet_enemy_big, move_big, players, 20, 20, 0.4f);
-static wrapper wrap_player_big = DEFINE_WRAPPER(bullet_player_big, move_big, enemies, 20, 20, 0.5f);
-static wrapper wrap_enemy_beam = DEFINE_WRAPPER(bullet_enemy_beam, move_beam, players, 20, 20, 0.1f);
-static wrapper wrap_player_beam = DEFINE_WRAPPER(bullet_player_beam, move_beam, enemies, 20, 20, 0.05f);
-static wrapper wrap_player_parabola = DEFINE_WRAPPER(bullet_player_parabola, move_parabola, enemies, 20, 20, 0.15f);
+static wrapper wrap_enemy_straight = DEFINE_WRAPPER(bullet_enemy_straight, move_straight, players, 20, 20, SHOOT_INT);
+static wrapper wrap_enemy_left = DEFINE_WRAPPER(bullet_enemy_left, move_straight, players, 20, 20, SHOOT_INT);
+static wrapper wrap_enemy_right = DEFINE_WRAPPER(bullet_enemy_right, move_straight, players, 20, 20,SHOOT_INT);
+static wrapper wrap_enemy_spin = DEFINE_WRAPPER(bullet_enemy_spin, move_straight, players, 20, 20, SHOOT_SLOW);
+static wrapper wrap_enemy_flower = DEFINE_WRAPPER(bullet_enemy_flower, move_straight, players, 20, 20, SHOOT_INT);
+static wrapper wrap_enemy_sin = DEFINE_WRAPPER(bullet_enemy_sin, move_sin, players, 20, 20, SHOOT_INT);
+static wrapper wrap_enemy_sin_wide = DEFINE_WRAPPER(bullet_enemy_sin_wide, move_sin_wide, players, 20, 20, SHOOT_INT);
+static wrapper wrap_enemy_cos = DEFINE_WRAPPER(bullet_enemy_sin, move_cos, players, 20, 20, SHOOT_INT);
+static wrapper wrap_enemy_cos_wide = DEFINE_WRAPPER(bullet_enemy_sin_wide, move_cos_wide, players, 20, 20, SHOOT_INT);
+static wrapper wrap_enemy_big = DEFINE_WRAPPER(bullet_enemy_big, move_big, players, 20, 20, SHOOT_SLOW);
+static wrapper wrap_enemy_beam = DEFINE_WRAPPER(bullet_enemy_beam, move_beam, players, 20, 20, SHOOT_FAST);
+static wrapper wrap_player_straight = DEFINE_WRAPPER(bullet_player_straight, move_straight, enemies, 20, 20, SHOOT_FAST);
+static wrapper wrap_player_left = DEFINE_WRAPPER(bullet_player_left, move_straight, enemies, 20, 20, SHOOT_FAST);
+static wrapper wrap_player_right = DEFINE_WRAPPER(bullet_player_right, move_straight, enemies, 20, 20, SHOOT_FAST);
+static wrapper wrap_player_spin = DEFINE_WRAPPER(bullet_player_spin, move_straight, enemies, 20, 20, SHOOT_FAST);
+static wrapper wrap_player_flower = DEFINE_WRAPPER(bullet_player_flower, move_straight, enemies, 20, 20, SHOOT_FAST);
+static wrapper wrap_player_sin = DEFINE_WRAPPER(bullet_player_sin, move_sin, enemies, 20, 20, SHOOT_FAST);
+static wrapper wrap_player_sin_wide = DEFINE_WRAPPER(bullet_player_sin_wide, move_sin_wide, enemies, 20, 20, SHOOT_FAST);
+static wrapper wrap_player_cos = DEFINE_WRAPPER(bullet_player_sin, move_cos, enemies, 20, 20, SHOOT_FAST);
+static wrapper wrap_player_cos_wide = DEFINE_WRAPPER(bullet_player_sin_wide, move_cos_wide, enemies, 20, 20, SHOOT_FAST);
+static wrapper wrap_player_big = DEFINE_WRAPPER(bullet_player_big, move_big, enemies, 20, 20, SHOOT_FAST);
+static wrapper wrap_player_beam = DEFINE_WRAPPER(bullet_player_beam, move_beam, enemies, 20, 20, SHOOT_FAST);
+static wrapper wrap_player_parabola = DEFINE_WRAPPER(bullet_player_parabola, move_parabola, enemies, 20, 20, SHOOT_FAST);
 
 static wrapper *wrappers[] = {
 	&wrap_enemy_straight,
