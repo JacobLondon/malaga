@@ -20,6 +20,9 @@ static void player_del(player_data *self);
 static void enemy_new(enemy_data *self, encounter *enc);
 static void enemy_del(enemy_data *self);
 
+// extern
+char game_mapdir[128] = {0};
+
 static int encounterndx = -1;
 static double encounter_starttime = 0.0;
 static int enemy_count = 0; // number of loaded enemies
@@ -70,8 +73,13 @@ void game_init(void)
 	animan = anim_man_new();
 	player_new(&player);
 
-	//encounters = map_init(NULL);
-	encounters = map_init("maps/test.mg");
+	if (game_mapdir[0] == 0) {
+		encounters = map_init("maps/test.mg");
+	}
+	else {
+		encounters = map_init(game_mapdir);
+	}
+
 	score_init();
 	atmos_init("assets");
 
@@ -104,57 +112,67 @@ void game_update(void)
 	screen_height = GetScreenHeight();
 	now = GetTime();
 
+	anim_man_update(animan);
+
 	// move player
-	rlu_input_prescan(0);
-	dir = rlu_input_axis(0, RLU_KEY_STICK_LEFT_X);
-	if (dir > 0) {
-		if (player.x >= 0) {
-			player.x += (GetFrameTime() * PLAYER_SPEED * dir);
+	if (!gamelost) {
+		rlu_input_prescan(0);
+		dir = rlu_input_axis(0, RLU_KEY_STICK_LEFT_X);
+		if (dir < 0) {
+			if ((player.x >= player.width / 2)) {
+				player.x += (GetFrameTime() * PLAYER_SPEED * dir);
+				if (player.x < player.width / 2) {
+					player.x = player.width / 2;
+				}
+			}
+			else {
+				player.x = player.width / 2;
+			}
 		}
-		else {
-			player.x = 0;
+		else if (dir > 0)
+		{
+			if (player.x + player.width / 2 <= screen_width) {
+				player.x += (GetFrameTime() * PLAYER_SPEED * dir);
+				if (player.x + player.width / 2 > screen_width) {
+					player.x = screen_width - player.width / 2;
+				}
+			}
+			else {
+				player.x = screen_width - player.width / 2;
+			}
 		}
-	}
-	else if (dir < 0)
-	{
-		if ((player.x + player.width <= screen_width)) {
-			player.x += (GetFrameTime() * PLAYER_SPEED * dir);
-		}
-		else {
-			player.x = screen_width - player.width;
-		}
-	}
 
-	dir = rlu_input_axis(0, RLU_KEY_STICK_LEFT_Y);
-	if (dir > 0) {
-		if ((player.y >= 0)) {
-			player.y += (GetFrameTime() * PLAYER_SPEED * dir);
+		dir = rlu_input_axis(0, RLU_KEY_STICK_LEFT_Y);
+		if (dir < 0) {
+			if ((player.y >= player.height / 2)) {
+				player.y += (GetFrameTime() * PLAYER_SPEED * dir);
+				if (player.y < player.height / 2) {
+					player.y = player.height / 2;
+				}
+			}
+			else {
+				player.y = player.height / 2;
+			}
 		}
-		else {
-			player.y = 0;
+		else if (dir > 0)
+		{
+			if (player.y + player.height / 2 <= screen_height) {
+				player.y += (GetFrameTime() * PLAYER_SPEED * dir);
+				if (player.y + player.height / 2 > screen_height) {
+					player.y = screen_height - player.height / 2;
+				}
+			}
+			else {
+				player.y = screen_height - player.height / 2;
+			}
 		}
-	}
-	else if (dir < 0)
-	{
-		if ((player.y + player.height <= screen_height)) {
-			player.y += (GetFrameTime() * PLAYER_SPEED * dir);
-		}
-		else {
-			player.y = screen_height - player.height;
-		}
-	}
 
-	if (player.y + player.height > screen_height) {
-		player.y = screen_height - player.height / 2;
-	}
-	else if (player.y < player.height / 2) {
-		player.y = player.height / 2;
-	}
-	if (player.x + player.width > screen_width) {
-		player.x = screen_width - player.width / 2;
-	}
-	else if (player.x < player.width / 2) {
-		player.x = player.width / 2;
+		if (player.x + player.width > screen_width + player.width / 2) {
+			player.x = screen_width - player.width / 2;
+		}
+		else if (player.x < player.width / 2) {
+			player.x = player.width / 2;
+		}
 	}
 
 	if (IsKeyPressed(KEY_R)) {
@@ -188,10 +206,10 @@ void game_update(void)
 			continue;
 		}
 		else if (
-			(enemies[i].y > screen_height + 5 * ENEMY_SIZE) ||
-			(enemies[i].y < -5 * ENEMY_SIZE) ||
-			(enemies[i].x > screen_width + 5 * ENEMY_SIZE) ||
-			(enemies[i].x < -5 * ENEMY_SIZE)
+			(enemies[i].y > screen_height + 5 * enemies[i].height) ||
+			(enemies[i].y < -5 * enemies[i].height) ||
+			(enemies[i].x > screen_width + 5 * enemies[i].width) ||
+			(enemies[i].x < -5 * enemies[i].width)
 		)
 		{
 			enemies[i].hp = 0;
@@ -224,6 +242,7 @@ void game_update(void)
 
 	if (player.hp <= 0) {
 		gamelost = true;
+		player.y = 10000;
 	}
 }
 
@@ -237,7 +256,6 @@ void game_draw(void)
 
 	for (i = 0; i < enemy_count; i++) {
 		if (enemies[i].hp >= 0 && (now - encounter_starttime >= enemies[i].spawntime)) {
-			//DrawRectangle(enemies[i].x - ENEMY_SIZE / 2, enemies[i].y - ENEMY_SIZE / 2, ENEMY_SIZE, ENEMY_SIZE, RED);
 			so_set_pos(enemies[i].object, enemies[i].x - enemies[i].width / 2, enemies[i].y - enemies[i].height / 2);
 			so_draw(enemies[i].object);
 		}
@@ -245,7 +263,6 @@ void game_draw(void)
 
 	if (gamelost == false) {
 		so_set_pos(player.object, player.x - player.width / 2, player.y - player.height / 2);
-		//DrawRectangle(player.x - PLAYER_SIZE / 2, player.y - PLAYER_SIZE / 2, PLAYER_SIZE, PLAYER_SIZE, BLUE);
 		so_draw(player.object);
 	}
 
@@ -279,6 +296,10 @@ static void encounter_next(void)
 
 	// we done
 	if (encounters[encounterndx + 1] == NULL) {
+		// clear bullets on win, remove those enemy bullets!
+		if (gamewon == false) {
+			bullet_clear();
+		}
 		gamewon = true;
 		return;
 	}

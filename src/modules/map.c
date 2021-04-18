@@ -76,6 +76,7 @@ encounter **map_init(const char *mapfilename)
 	initialized = 1;
 
 	if (mapfilename == NULL) {
+	static_def:
 		used_static_def = 1;
 		return default_encounters;
 	}
@@ -105,7 +106,10 @@ encounter **map_init(const char *mapfilename)
 	assert(sets);
 
 	fp = fopen(mapfilename, "r");
-	msg_assert(fp, "Could not open %s", mapfilename);
+	if (!fp) {
+		msg_warning("Could not open %s. Defaulting to static encounters.", mapfilename);
+		goto static_def;
+	}
 
 	state = STATE_BEGIN;
 	for (lineno = 1; fgets(buf, sizeof(buf), fp); lineno++) {
@@ -333,15 +337,9 @@ encounter **map_init(const char *mapfilename)
 				for (i = 0; i < encounters->size; i++) {
 					encounter_holder *p = encounters->buf[i];
 					if (strcmp(lhs, p->name) == 0) {
-						parray_push(sets, ((encounter_holder *)encounters->buf[i])->spawn);
+						parray_push(sets, p->spawn);
 						goto next;
 					}
-					/*for (j = 0; ((encounter_holder *)encounters->buf[i])->spawn[j].name != NULL; j++) {
-						if (strcmp(lhs, ((encounter_holder *)encounters->buf[i])->name) == 0) {
-							parray_push(sets, ((encounter_holder *)encounters->buf[i])->spawn);
-							goto next;
-						}
-					}*/
 				}
 				msg_assert(0, "%s:%zu Encounter name `%s' not found", mapfilename, lineno, lhs);
 			}
@@ -376,7 +374,6 @@ void map_cleanup(void)
 		return;
 	}
 
-	// name is only used for memory allocated and not static items, so we need to free it
 	if (enemies) {
 		parray_free(enemies);
 		enemies = NULL;

@@ -34,7 +34,7 @@ void mg_update(void)
 
 	rlu_input_prescan(0);
 	if (rlu_input_key(0, RLU_KEY_BUTTON_DOWN, RLU_PRESS_DOWN)) {
-		play_func(NULL);
+		context_switch("GAME");
 	}
 }
 
@@ -49,5 +49,5 @@ void mg_draw(void)
 
 static void play_func(void *client)
 {
-	context_switch("GAME");
+	context_switch("SELECT");
 }

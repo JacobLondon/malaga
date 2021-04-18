@@ -1,2 +1,4 @@
 # TODO
-* Encounters complete after dudes offscreen or timeout
+* Better level selector
+* Make more levels
+* Powerups and drops

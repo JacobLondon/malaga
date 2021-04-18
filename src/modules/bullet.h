@@ -24,6 +24,7 @@ typedef void (* shoot_func)(int x, int y, int level);
 
 void bullet_init(int nplayers);
 void bullet_cleanup(void);
+void bullet_clear(void);
 void bullet_update(void);
 void bullet_draw(void);
 

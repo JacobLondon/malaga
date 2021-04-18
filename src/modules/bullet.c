@@ -179,6 +179,14 @@ void bullet_cleanup(void)
 	texture_man_del(&texman);
 }
 
+void bullet_clear(void)
+{
+	int i;
+	for (i = 0; i < ARRAY_SIZE(wrappers); i++) {
+		(void)memset(wrappers[i]->bullets, BULLET_OFFSCREEN, sizeof(wrappers[i]->bullets));
+	}
+}
+
 void bullet_update(void)
 {
 	int i;
@@ -210,7 +218,7 @@ static void do_move_and_hit(HITTABLE_OBJECT *targets[], size_t targets_len, move
 
 		move(&bullets[i]);
 		bullet_rec = (Rectangle){
-			bullets[i].x, bullets[i].y, bullet_width, bullet_height
+			bullets[i].x - bullet_width / 2, bullets[i].y - bullet_height / 2, bullet_width, bullet_height
 		};
 
 		// hit? hp can be <= 0, but hittable won't matter anyway at that point
@@ -220,7 +228,10 @@ static void do_move_and_hit(HITTABLE_OBJECT *targets[], size_t targets_len, move
 			}
 
 			entity_rec = (Rectangle){
-				targets[j]->x, targets[j]->y, targets[j]->width, targets[j]->height
+				targets[j]->x - targets[j]->width / 2,
+				targets[j]->y - targets[j]->height / 2,
+				targets[j]->width,
+				targets[j]->height
 			};
 			tmp = CheckCollisionRecs(bullet_rec, entity_rec);
 

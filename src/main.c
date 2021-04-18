@@ -6,7 +6,7 @@ static context_opt options = {
 	.screen_width=800,
 	.screen_height=600,
 	.fps=60,
-	.title="Matt's Game",
+	.title="Space Game",
 	.use_audio=true,
 	.volume=50,
 };
@@ -15,6 +15,7 @@ static module_definition definitions[] = {
 	DEFINE_MODULE("MG", mg_init, mg_cleanup, mg_update, mg_draw),
 	DEFINE_MODULE("GAME", game_init, game_cleanup, game_update, game_draw),
 	DEFINE_MODULE("PAUSE", pause_init, pause_cleanup, pause_update, pause_draw),
+	DEFINE_MODULE("SELECT", levelselect_init, levelselect_cleanup, levelselect_update, levelselect_draw),
 	{NULL}
 };
 

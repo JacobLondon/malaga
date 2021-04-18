@@ -5,3 +5,4 @@ test
 *.o
 assets/
 maps/*.mg
+__pycache__/
