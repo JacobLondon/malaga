@@ -3,28 +3,32 @@
 #include "map.h"
 #include "data.h"
 
+#define DEFAULT_ENEMY_WIDTH 30
+#define DEFAULT_ENEMY_HEIGHT 30
 #define ENCOUNTER_ENEMIES_MAX 32
 
 // DEFAULT ////////////////////////////////////////////////////////////////////
-static enemy_definition default_ldrifter = {
+static enemy_definition default_enemy = {
 	.shoot=bullet_enemy_straight,
-	.move=enemy_move_downleft,
+	.move=enemy_move_downstop,
 	.hp=3,
 	.speed=10,
 	.level=0,
+	.meta={2},
 };
 
 static encounter default_encounter0[] = {
-	DEFINE_ENCOUNTER(&default_ldrifter, 0, 1, 0),
-	DEFINE_ENCOUNTER(&default_ldrifter, 2, 1, 0),
-	DEFINE_ENCOUNTER(&default_ldrifter, 4, 1, 0),
+	DEFINE_ENCOUNTER(&default_enemy, 0, .3, 0),
+	DEFINE_ENCOUNTER(&default_enemy, 2, .5, 0),
+	DEFINE_ENCOUNTER(&default_enemy, 4, .7, 0),
 	{NULL}
 };
 
 static encounter default_encounter1[] = {
-	DEFINE_ENCOUNTER(&default_ldrifter, 0, 1, 0),
-	DEFINE_ENCOUNTER(&default_ldrifter, 2, 1, 0),
-	DEFINE_ENCOUNTER(&default_ldrifter, 4, 1, 0),
+	DEFINE_ENCOUNTER(&default_enemy, 0, .4, 0),
+	DEFINE_ENCOUNTER(&default_enemy, 0, .4, 0),
+	DEFINE_ENCOUNTER(&default_enemy, 3, .8, 0),
+	DEFINE_ENCOUNTER(&default_enemy, 3, .8, 0),
 	{NULL}
 };
 
@@ -149,17 +153,21 @@ encounter **map_init(const char *mapfilename)
 				state = STATE_IN_ENEMY;
 			}
 			else {
-				msg_assert(0, "%s:%zu Expected `(' found `%c'", mapfilename, lineno, buf[0]);
+				msg_warning("%s:%zu Expected `(' found `%c'", mapfilename, lineno, buf[0]);
+				goto fail;
 			}
 			break;
 		case STATE_IN_ENEMY:
 			if (buf[0] == ')') {
-				msg_assert(enemy_template.name, "%s:%zu Expected `name <enemy-name>' but found none", mapfilename, lineno);
+				if (!enemy_template.name) {
+					msg_warning("%s:%zu Expected `name <enemy-name>' but found none", mapfilename, lineno);
+					goto fail;
+				}
 				if (enemy_template.width == 0) {
-					enemy_template.width = 30;
+					enemy_template.width = DEFAULT_ENEMY_WIDTH;
 				}
 				if (enemy_template.height == 0) {
-					enemy_template.height = 30;
+					enemy_template.height = DEFAULT_ENEMY_HEIGHT;
 				}
 				if (enemy_template.pngname == NULL) {
 					enemy_template.pngname = strdup(defenemyasset);
@@ -181,18 +189,25 @@ encounter **map_init(const char *mapfilename)
 				}
 				else if (strcmp(lhs, "shoot") == 0) {
 					enemy_template.shoot = bullet_lookup_shoot(rhs);
-					msg_assert(enemy_template.shoot, "%s:%zu Shoot func `%s' does not exist", mapfilename, lineno, rhs);
+					if (!enemy_template.shoot) {
+						msg_warning("%s:%zu Shoot func `%s' does not exist", mapfilename, lineno, rhs);
+						goto fail;
+					}
 				}
 				else if (strcmp(lhs, "move") == 0) {
 					enemy_template.move = lookup_enemy_move(rhs);
-					msg_assert(enemy_template.move, "%s:%zu Move func `%s' does not exist", mapfilename, lineno, rhs);
+					if (!enemy_template.move) {
+						msg_warning("%s:%zu Move func `%s' does not exist", mapfilename, lineno, rhs);
+						goto fail;
+					}
 				}
 				else if (strcmp(lhs, "hp") == 0) {
 					if (sscanf(rhs, "%d", &whole) == 1) {
 						enemy_template.hp = whole;
 					}
 					else {
-						msg_assert(0, "%s:%zu Could not parse int: `%s'", mapfilename, lineno, rhs);
+						msg_warning("%s:%zu Could not parse int: `%s'", mapfilename, lineno, rhs);
+						goto fail;
 					}
 				}
 				else if (strcmp(lhs, "speed") == 0) {
@@ -200,7 +215,8 @@ encounter **map_init(const char *mapfilename)
 						enemy_template.speed = real;
 					}
 					else {
-						msg_assert(0, "%s:%zu Could not parse float: `%s'", mapfilename, lineno, rhs);
+						msg_warning("%s:%zu Could not parse float: `%s'", mapfilename, lineno, rhs);
+						goto fail;
 					}
 				}
 				else if (strcmp(lhs, "level") == 0) {
@@ -208,7 +224,8 @@ encounter **map_init(const char *mapfilename)
 						enemy_template.level = whole;
 					}
 					else {
-						msg_assert(0, "%s:%zu Could not parse int: `%s'", mapfilename, lineno, rhs);
+						msg_warning("%s:%zu Could not parse int: `%s'", mapfilename, lineno, rhs);
+						goto fail;
 					}
 				}
 				else if (strcmp(lhs, "meta") == 0) {
@@ -216,7 +233,8 @@ encounter **map_init(const char *mapfilename)
 						enemy_template.meta.downstop = real;
 					}
 					else {
-						msg_assert(0, "%s:%zu Could not parse float: `%s'", mapfilename, lineno, rhs);
+						msg_warning("%s:%zu Could not parse float: `%s'", mapfilename, lineno, rhs);
+						goto fail;
 					}
 				}
 				else if (strcmp(lhs, "width") == 0) {
@@ -224,7 +242,8 @@ encounter **map_init(const char *mapfilename)
 						enemy_template.width = whole;
 					}
 					else {
-						msg_assert(0, "%s:%zu Could not parse int: `%s'", mapfilename, lineno, rhs);
+						msg_warning("%s:%zu Could not parse int: `%s'", mapfilename, lineno, rhs);
+						goto fail;
 					}
 				}
 				else if (strcmp(lhs, "height") == 0) {
@@ -232,18 +251,23 @@ encounter **map_init(const char *mapfilename)
 						enemy_template.height = whole;
 					}
 					else {
-						msg_assert(0, "%s:%zu Could not parse int: `%s'", mapfilename, lineno, rhs);
+						msg_warning("%s:%zu Could not parse int: `%s'", mapfilename, lineno, rhs);
+						goto fail;
 					}
 				}
 			}
 			else {
-				msg_assert(0, "%s:%zu Expected 2 attributes: `LHS RHS' found `%s'", mapfilename, lineno, buf);
+				msg_warning("%s:%zu Expected 2 attributes: `LHS RHS' found `%s'", mapfilename, lineno, buf);
+				goto fail;
 			}
 			break;
 		case STATE_ENCOUNTERS:
 			if (buf[0] == '[') {
 				p = strchr(buf, ']');
-				msg_assert(p, "%s:%zu Expected `]'", mapfilename, lineno);
+				if (!p) {
+					msg_warning("%s:%zu Expected `]'", mapfilename, lineno);
+					goto fail;
+				}
 				(void)snprintf(id, sizeof(id), "%.*s", (int)(p - buf - 1), &buf[1]);
 
 				// save it
@@ -261,7 +285,8 @@ encounter **map_init(const char *mapfilename)
 				state = STATE_IN_ENCOUNTER;
 			}
 			else {
-				msg_assert(0, "%s:%zu Expected `[<encounter-name>]' or `(' found `%c'", mapfilename, lineno, buf[0]);
+				msg_warning("%s:%zu Expected `[<encounter-name>]' or `(' found `%c'", mapfilename, lineno, buf[0]);
+				goto fail;
 			}
 			break;
 		case STATE_NEW_ENCOUNTER:
@@ -270,7 +295,8 @@ encounter **map_init(const char *mapfilename)
 				state = STATE_IN_ENCOUNTER;
 			}
 			else {
-				msg_assert(0, "%s:%zu Expected `(' found `%c'", mapfilename, lineno, buf[0]);
+				msg_warning("%s:%zu Expected `(' found `%c'", mapfilename, lineno, buf[0]);
+				goto fail;
 			}
 			break;
 		case STATE_IN_ENCOUNTER:
@@ -280,7 +306,8 @@ encounter **map_init(const char *mapfilename)
 					holderndx++;
 				}
 				else {
-					msg_assert(0, "%s:%zu Too many enemies in encounter (%d/%d)", mapfilename, lineno, holderndx + 1, ENCOUNTER_ENEMIES_MAX);
+					msg_warning("%s:%zu Too many enemies in encounter (%d/%d)", mapfilename, lineno, holderndx + 1, ENCOUNTER_ENEMIES_MAX);
+					goto fail;
 				}
 				state = STATE_ENCOUNTERS;
 				memset(&encounter_template, 0, sizeof(encounter_template));
@@ -294,14 +321,16 @@ encounter **map_init(const char *mapfilename)
 							goto next;
 						}
 					}
-					msg_assert(0, "%s:%zu Enemy name `%s' not found", mapfilename, lineno, rhs);
+					msg_warning("%s:%zu Enemy name `%s' not found", mapfilename, lineno, rhs);
+					goto fail;
 				}
 				else if (strcmp(lhs, "time") == 0) {
 					if (sscanf(rhs, "%f", &real) == 1) {
 						encounter_template.spawntime = real;
 					}
 					else {
-						msg_assert(0, "%s:%zu Could not parse float: `%s'", mapfilename, lineno, rhs);
+						msg_warning("%s:%zu Could not parse float: `%s'", mapfilename, lineno, rhs);
+						goto fail;
 					}
 				}
 				else if (strcmp(lhs, "x") == 0) {
@@ -309,7 +338,8 @@ encounter **map_init(const char *mapfilename)
 						encounter_template.x = real / 100.f;
 					}
 					else {
-						msg_assert(0, "%s:%zu Could not parse float: `%s'", mapfilename, lineno, rhs);
+						msg_warning("%s:%zu Could not parse float: `%s'", mapfilename, lineno, rhs);
+						goto fail;
 					}
 				}
 				else if (strcmp(lhs, "y") == 0) {
@@ -317,15 +347,18 @@ encounter **map_init(const char *mapfilename)
 						encounter_template.y = real / 100.f;
 					}
 					else {
-						msg_assert(0, "%s:%zu Could not parse float: `%s'", mapfilename, lineno, rhs);
+						msg_warning("%s:%zu Could not parse float: `%s'", mapfilename, lineno, rhs);
+						goto fail;
 					}
 				}
 				else {
-					msg_assert(0, "%s:%zu Expected an enemy attribute, found `%s'", mapfilename, lineno, lhs);
+					msg_warning("%s:%zu Expected an enemy attribute, found `%s'", mapfilename, lineno, lhs);
+					goto fail;
 				}
 			}
 			else {
-				msg_assert(0, "%s:%zu Expected 2 attributes: `LHS RHS' found `%s'", mapfilename, lineno, buf);
+				msg_warning("%s:%zu Expected 2 attributes: `LHS RHS' found `%s'", mapfilename, lineno, buf);
+				goto fail;
 			}
 			break;
 		case STATE_SETS:
@@ -345,14 +378,14 @@ encounter **map_init(const char *mapfilename)
 						goto next;
 					}
 				}
-				msg_assert(0, "%s:%zu Encounter name `%s' not found", mapfilename, lineno, lhs);
+				msg_warning("%s:%zu Encounter name `%s' not found", mapfilename, lineno, lhs);
 			}
 			else {
-				msg_assert(0, "%s:%zu Could not read line `%s'", mapfilename, lineno, buf);
+				msg_warning("%s:%zu Could not read line `%s'", mapfilename, lineno, buf);
 			}
 			break;
 		default:
-			msg_assert(0, "%s:%zu Software failure, unknown state: %d", mapfilename, lineno, state);
+			msg_warning("%s:%zu Software failure, unknown state: %d", mapfilename, lineno, state);
 			break;
 		}
 
@@ -365,7 +398,15 @@ encounter **map_init(const char *mapfilename)
 	parray_push(sets, NULL);
 
 	used_static_def = 0;
+	msg_default("Map %s loaded", mapfilename);
 	return (encounter **)sets->buf;
+
+fail:
+	(void)fclose(fp);
+	parray_free(enemies);
+	parray_free(encounters);
+	parray_free(sets);
+	goto static_def;
 }
 
 void map_cleanup(void)

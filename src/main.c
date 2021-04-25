@@ -3,8 +3,8 @@
 
 static context_opt options = {
 	.background={0, 0, 0, 255},
-	.screen_width=400,
-	.screen_height=600,
+	.screen_width=500,
+	.screen_height=850,
 	.fps=60,
 	.title="Space Game",
 	.use_audio=true,

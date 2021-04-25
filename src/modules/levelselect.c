@@ -12,16 +12,19 @@ static char *find_prev(void);
 
 static button *select_button;
 static button *menu_button;
-static char *mapdir = NULL;
+static char *mapdir = "";
 static char **dirfiles = NULL;
 static int dircount = -1;
 static int dirndx = 0;
-static char map_display[128];
+static struct parray *maplist; // point into dir files with the correct files
+static bool mapdirexists = false;
 
 void levelselect_init(void)
 {
 	select_button = button_new("SELECT", lselect, NULL);
 	menu_button = button_new("MENU", menu, NULL);
+	maplist = parray_new(NULL);
+	assert(maplist);
 
 	component_set_pos(select_button, GetScreenWidth() * 3 / 4 - 150, GetScreenHeight() - 150);
 	component_set_pos(menu_button, GetScreenWidth() / 4 - 150, GetScreenHeight() - 150);
@@ -39,6 +42,7 @@ void levelselect_cleanup(void)
 	atmos_cleanup();
 	component_del(select_button);
 	component_del(menu_button);
+	parray_free(maplist);
 }
 
 void levelselect_update(void)
@@ -51,45 +55,90 @@ void levelselect_update(void)
 		clear_maps();
 		index_maps();
 	}
-	if (rlu_input_key(0, RLU_KEY_BUTTON_DOWN, RLU_PRESS_RELEASED)) {
-		lselect(NULL);
-	}
 
-	if (rlu_input_key(0, RLU_KEY_DPAD_DOWN, RLU_PRESS_RELEASED)) {
-		mapdir = find_prev();
-	}
-	else if (rlu_input_key(0, RLU_KEY_DPAD_UP, RLU_PRESS_RELEASED)) {
-		mapdir = find_next();
-	}
+	if (mapdirexists) {
+		if (rlu_input_key(0, RLU_KEY_BUTTON_DOWN, RLU_PRESS_RELEASED)) {
+			if (strlen(mapdir) > 0) {
+				lselect(NULL);
+			}
+		}
 
-	if (mapdir) {
-		(void)snprintf(map_display, sizeof(map_display), "%s", mapdir);
-	}
-	else {
-		(void)snprintf(map_display, sizeof(map_display), "NULL");
+		if (rlu_input_key(0, RLU_KEY_DPAD_DOWN, RLU_PRESS_RELEASED)) {
+			mapdir = find_next();
+		}
+		else if (rlu_input_key(0, RLU_KEY_DPAD_UP, RLU_PRESS_RELEASED)) {
+			mapdir = find_prev();
+		}
 	}
 }
 
 void levelselect_draw(void)
 {
+	const int fontsize = 70;
+	const int AB = 6;
+	int i;
+	char *p;
+
 	atmos_draw();
 	component_draw(select_button);
 	component_draw(menu_button);
 
-	DrawText(
-		map_display,
-		GetScreenWidth() / 2 - MeasureText(map_display, 70) / 2,
-		GetScreenHeight() / 3,
-		70,
-		WHITE);
+	// draw around
+	if (dirndx != -1 && mapdirexists) {
+		for (i = dirndx - AB; i < dirndx; i++) {
+			if (i < 0) {
+				continue;
+			}
+			p = maplist->buf[i];
+			DrawText(
+				p,
+				GetScreenWidth() / 10,
+				GetScreenHeight() / (AB * 6) * i,
+				20,
+				WHITE);
+		}
+
+		DrawRectangle(
+			0,
+			GetScreenHeight() / (AB * 6) * i,
+			GetScreenWidth(),
+			20,
+			WHITE
+		);
+		DrawText(
+			mapdir,
+			GetScreenWidth() / 10,
+			GetScreenHeight() / (AB * 6) * i,
+			20,
+			BLACK);
+
+		for (i = dirndx + 1; i < maplist->size; i++) {
+			p = maplist->buf[i];
+			DrawText(
+				p,
+				GetScreenWidth() / 10,
+				GetScreenHeight() / (AB * 6) * i,
+				20,
+				WHITE);
+		}
+
+		DrawText(
+			mapdir,
+			GetScreenWidth() / 2 - MeasureText(mapdir, fontsize) / 2,
+			GetScreenHeight() / 3,
+			fontsize,
+			WHITE);
+	}
 }
 
 static void lselect(void *client)
 {
-	if (mapdir) {
-		(void)snprintf(game_mapdir, sizeof(game_mapdir), "%s/%s", DATA_MAPS_DIR, mapdir);
+	if (mapdirexists) {
+		if (strlen(mapdir) > 0) {
+			(void)snprintf(game_mapdir, sizeof(game_mapdir), "%s/%s", DATA_MAPS_DIR, mapdir);
+		}
+		context_switch("GAME");
 	}
-	context_switch("GAME");
 }
 
 static void menu(void *client)
@@ -99,9 +148,18 @@ static void menu(void *client)
 
 static void index_maps(void)
 {
-	if (DirectoryExists(DATA_MAPS_DIR)) {
+	int i;
+
+	mapdirexists = DirectoryExists(DATA_MAPS_DIR);
+	if (mapdirexists) {
 		dirfiles = GetDirectoryFiles(DATA_MAPS_DIR, &dircount);
-		dirndx = 0;
+
+		for (i = 0; i < dircount; i++) {
+			if (strstr(dirfiles[i], DATA_MAPS_EXT)) {
+				parray_push(maplist, dirfiles[i]);
+			}
+		}
+		qsort(maplist->buf, maplist->size, sizeof(char *), (int (*)(const void *, const void *))strcmp);
 		mapdir = find_next();
 	}
 }
@@ -114,45 +172,61 @@ static void clear_maps(void)
 		dircount = -1;
 		mapdir = NULL;
 	}
+
+	while (maplist->size > 0) {
+		parray_pop(maplist);
+	}
 }
 
 static char *find_next(void)
 {
 	int i;
-	for (i = dirndx + 1; i < dircount; i++) {
-		if (strstr(dirfiles[i], DATA_MAPS_EXT)) {
+	char *p;
+	for (i = dirndx + 1; i < maplist->size; i++) {
+		p = maplist->buf[i];
+		if (strstr(p, DATA_MAPS_EXT)) {
 			dirndx = i;
-			return dirfiles[i];
+			return p;
 		}
 	}
 
 	// didn't find it yet
 	for (i = 0; i < dirndx; i++) {
-		if (strstr(dirfiles[i], DATA_MAPS_EXT)) {
+		p = maplist->buf[i];
+		if (strstr(p, DATA_MAPS_EXT)) {
 			dirndx = i;
-			return dirfiles[i];
+			return p;
 		}
 	}
 
-	return dirfiles[dirndx];
+	if (dirndx == -1) {
+		return "";
+	}
+	return maplist->buf[dirndx];
 }
 
 static char *find_prev(void)
 {
 	int i;
+	char *p;
 	for (i = dirndx - 1; i >= 0; i--) {
-		if (strstr(dirfiles[i], DATA_MAPS_EXT)) {
+		p = maplist->buf[i];
+		if (strstr(p, DATA_MAPS_EXT)) {
 			dirndx = i;
-			return dirfiles[i];
+			return p;
 		}
 	}
 
-	for (i = dirndx + 1; i < dircount; i++) {
-		if (strstr(dirfiles[i], DATA_MAPS_EXT)) {
+	for (i = maplist->size - 1; i > dirndx; i--) {
+		p = maplist->buf[i];
+		if (strstr(p, DATA_MAPS_EXT)) {
 			dirndx = i;
-			return dirfiles[i];
+			return p;
 		}
 	}
 
-	return dirfiles[dirndx];
+	if (dirndx == -1) {
+		return "";
+	}
+	return maplist->buf[dirndx];
 }

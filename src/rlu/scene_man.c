@@ -75,7 +75,7 @@ void scene_man_load_set(struct scene_manager_tag *self, char *name)
 
 	for (i = 0; i < self->set_count; i++) {
 		if (streq((char *)self->set_definitions[i].name, name)) {
-			(void)printf("Default: Scene set %s loaded\n", name);
+			msg_default("Scene set %s loaded", name);
 			load_names(self, self->set_definitions[i].scene_names);
 			self->set_loaded_idx = i;
 			return;
@@ -88,7 +88,7 @@ void scene_man_load_idx(struct scene_manager_tag *self, int idx)
 {
 	assert(0 <= idx && idx < self->set_count);
 	load_names(self, self->set_definitions[idx].scene_names);
-	(void)printf("Default: Scene set %s loaded\n", self->set_definitions[idx].name);
+	msg_default("Scene set %s loaded", self->set_definitions[idx].name);
 	self->set_loaded_idx = idx;
 }
 
@@ -98,7 +98,7 @@ void scene_man_load_rand(struct scene_manager_tag *self)
 	assert(self);
 
 	load_names(self, self->set_definitions[idx].scene_names);
-	(void)printf("Default: Scene set %s loaded\n", self->set_definitions[idx].name);
+	msg_default("Scene set %s loaded", self->set_definitions[idx].name);
 	self->set_loaded_idx = idx;
 }
 

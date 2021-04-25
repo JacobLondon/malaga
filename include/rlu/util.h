@@ -10,7 +10,7 @@
 #define msg_assert(Expr, ...) do { \
 	if (!!(Expr)) {} \
 	else { \
-		fprintf(stderr, "Error: " __VA_ARGS__); \
+		fprintf(stderr, "ERROR: " __VA_ARGS__); \
 		fprintf(stderr, "\n"); \
 		fflush(stderr); \
 		assert(Expr); \
@@ -20,9 +20,16 @@
 
 #define msg_warning(...) \
 	do { \
-		fprintf(stderr, "Warning: " __VA_ARGS__); \
-		fprintf(stderr, "\n"); \
-		fflush(stderr); \
+		(void)fprintf(stderr, "WARNING: " __VA_ARGS__); \
+		(void)fprintf(stderr, "\n"); \
+		(void)fflush(stderr); \
+	} while (0)
+
+#define msg_default(...) \
+	do { \
+		(void)fprintf(stderr, "INFO: " __VA_ARGS__); \
+		(void)fprintf(stderr, "\n"); \
+		(void)fflush(stderr); \
 	} while (0)
 
 /* definitely not thread safe lol */
