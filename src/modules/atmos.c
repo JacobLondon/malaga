@@ -1,7 +1,6 @@
 #include <rlu/rlu.h>
 #include "atmos.h"
-
-#define ASSET_MUSIC "music.mp3"
+#include "data.h"
 
 static void init_cb_background(scene *self);
 static void init_cb_starfield(scene *self);
@@ -22,13 +21,8 @@ static scene_set sets[] = {
 	{NULL}
 };
 
-static char asset_directory[128];
-
-void atmos_init(char *assetdir)
+void atmos_init()
 {
-	assert(assetdir);
-	snprintf(asset_directory, sizeof(asset_directory), "%s", assetdir);
-
 	scene_man_new(&manager, scenes, sets);
 	texture_man_new(&textureman);
 
@@ -62,7 +56,7 @@ static void init_cb_background(scene *self)
 	anim *a;
 	so *s;
 
-	snprintf(path, sizeof(path), "%s/background.png", asset_directory);
+	snprintf(path, sizeof(path), "%s/%s", context_get_assetdir(), "background.png");
 	t = texture_man_load_or_default(&textureman, path, TEXTURE_GEN(1000, 1000, BLACK));
 	a = anim_man_load(scene_man_get_anim_man(&manager), t, 1, 1);
 	s = so_new(a);
@@ -80,7 +74,7 @@ static void init_cb_starfield(scene *self)
 
 	// 90 items max...
 
-	snprintf(path, sizeof(path), "%s/starfar.png", asset_directory);
+	snprintf(path, sizeof(path), "%s/%s", context_get_assetdir(), "starfar.png");
 	t = texture_man_load_or_default(&textureman, path, TEXTURE_GEN(1, 1, WHITE));
 	a = anim_man_load(scene_man_get_anim_man(&manager), t, 1, 1);
 	for (i = 0; i < 30; i++) {
@@ -90,7 +84,7 @@ static void init_cb_starfield(scene *self)
 		scene_load_object(self, s);
 	}
 
-	snprintf(path, sizeof(path), "%s/starmed.png", asset_directory);
+	snprintf(path, sizeof(path), "%s/%s", context_get_assetdir(), "starmed.png");
 	t = texture_man_load_or_default(&textureman, path, TEXTURE_GEN(2, 2, WHITE));
 	a = anim_man_load(scene_man_get_anim_man(&manager), t, 1, 1);
 	for (i = 0; i < 30; i++) {
@@ -100,7 +94,7 @@ static void init_cb_starfield(scene *self)
 		scene_load_object(self, s);
 	}
 
-	snprintf(path, sizeof(path), "%s/starnear.png", asset_directory);
+	snprintf(path, sizeof(path), "%s/%s", context_get_assetdir(), "starnear.png");
 	t = texture_man_load_or_default(&textureman, path, TEXTURE_GEN(4, 4, WHITE));
 	a = anim_man_load(scene_man_get_anim_man(&manager), t, 1, 1);
 	for (i = 0; i < 30; i++) {
@@ -118,7 +112,7 @@ static void init_cb_planetfield(scene *self)
 	anim *a;
 	so *s;
 
-	snprintf(path, sizeof(path), "%s/planet.png", asset_directory);
+	snprintf(path, sizeof(path), "%s/%s", context_get_assetdir(), "planet.png");
 	t = texture_man_load_or_default(&textureman, path, TEXTURE_GEN(35, 35, GRAY));
 	a = anim_man_load(scene_man_get_anim_man(&manager), t, 1, 1);
 	s = so_new(a);

@@ -1,6 +1,7 @@
 #include <rlu/rlu.h>
 
 #include "map.h"
+#include "data.h"
 
 #define ENCOUNTER_ENEMIES_MAX 32
 
@@ -82,6 +83,7 @@ encounter **map_init(const char *mapfilename)
 	}
 
 	FILE *fp;
+	char defenemyasset[256];
 	char buf[256];
 	char id[256];
 	char lhs[256];
@@ -97,6 +99,8 @@ encounter **map_init(const char *mapfilename)
 	int holderndx = 0;
 	float real;
 	int whole;
+
+	snprintf(defenemyasset, sizeof(defenemyasset), "%s/%s", context_get_assetdir(), DATA_ASSET_ENEMY);
 
 	enemies = parray_new(del_enemy);
 	encounters = parray_new(del_encounter_holder);
@@ -158,7 +162,7 @@ encounter **map_init(const char *mapfilename)
 					enemy_template.height = 30;
 				}
 				if (enemy_template.pngname == NULL) {
-					enemy_template.pngname = strdup("assets/default_enemy.png");
+					enemy_template.pngname = strdup(defenemyasset);
 					assert(enemy_template.pngname);
 				}
 				parray_push(enemies, make_enemy(&enemy_template));

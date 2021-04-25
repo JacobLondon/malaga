@@ -1,5 +1,6 @@
 #include <rlu/rlu.h>
 #include "../modules.h"
+#include "data.h"
 #include "map.h"
 #include "score.h"
 #include "atmos.h"
@@ -57,7 +58,6 @@ static anim_man *animan;
  */
 
 static encounter **encounters;
-static Image icon;
 
 void game_init(void)
 {
@@ -74,17 +74,16 @@ void game_init(void)
 	player_new(&player);
 
 	if (game_mapdir[0] == 0) {
-		encounters = map_init("maps/test.mg");
+		char file[256];
+		snprintf(file, sizeof(file), "%s/%s", DATA_MAPS_DIR, DATA_ASSET_MAP);
+		encounters = map_init(file);
 	}
 	else {
 		encounters = map_init(game_mapdir);
 	}
 
 	score_init();
-	atmos_init("assets");
-
-	icon = texture_man_img_load_or_default("assets/icon.png", 30, 30, BLUE);
-	SetWindowIcon(icon);
+	atmos_init();
 }
 
 void game_cleanup(void)
@@ -100,7 +99,6 @@ void game_cleanup(void)
 	encounter_clear();
 	map_cleanup();
 	atmos_cleanup();
-	UnloadImage(icon);
 }
 
 void game_update(void)
@@ -350,15 +348,17 @@ enemy_move_func lookup_enemy_move(char *name)
 
 static void player_new(player_data *self)
 {
+	char buf[256];
 	Texture2D *tex;
 	assert(self);
+	snprintf(buf, sizeof(buf), "%s/%s", context_get_assetdir(), DATA_ASSET_PLAYER);
 	self->x = screen_width / 2;
 	self->y = screen_height * 3 / 4;
 	self->shoot = bullet_player_sin_wide;
 	self->shotperiod = bullet_lookup_timeout(self->shoot);
 	self->hp = self->lasthp = 30;
 	self->level = 2;
-	tex = texture_man_load_or_default(&texman, "assets/default_player.png", TEXTURE_GEN(self->width, self->height, BLUE));
+	tex = texture_man_load_or_default(&texman, buf, TEXTURE_GEN(PLAYER_SIZE, PLAYER_SIZE, BLUE));
 	self->width = tex->width;
 	self->height = tex->height;
 	self->object = so_new(

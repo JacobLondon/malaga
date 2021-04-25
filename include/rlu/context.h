@@ -60,4 +60,6 @@ void context_push(const char *module_name);
 /** remove the top module from the buffer */
 void context_pop(void);
 
+char *context_get_assetdir(void);
+
 #endif // RLU_CONTEXT_H

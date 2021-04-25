@@ -185,9 +185,9 @@ void context_init(context_opt *opt, module_definition definitions[])
 	assert(initialized == false);
 
 	// make the user specified the default options if no config file is there
-	if (opt) {
-		(void)memcpy(&defaultOptions, opt, sizeof(defaultOptions));
-	}
+	(void)memcpy(&defaultOptions, opt ? opt : &defaultOptions, sizeof(defaultOptions));
+
+	// this reads config and/or copied defaultOptions to options
 	param_read(PARAMETER_FILE, paramList);
 
 	// load the default empty module so there is always 1 in there. The first module must be swapped in
@@ -202,7 +202,7 @@ void context_init(context_opt *opt, module_definition definitions[])
 	SetTargetFPS(options.fps);
 
 	if (options.icon[0] != 0) {
-		(void)snprintf(iconPath, sizeof(iconPath), "./%s%s", options.assetdir, options.icon);
+		(void)snprintf(iconPath, sizeof(iconPath), "./%s/%s", options.assetdir, options.icon);
 		icon = LoadImage(iconPath);
 		SetWindowIcon(icon);
 	}
@@ -280,4 +280,11 @@ void context_push(const char *module_name)
 void context_pop(void)
 {
 	popcount++;
+}
+
+
+char *context_get_assetdir(void)
+{
+	assert(initialized);
+	return options.assetdir;
 }

@@ -8,7 +8,6 @@ static void menu(void *client);
 
 static button *resume_button;
 static button *menu_button;
-static Image icon;
 
 void pause_init(void)
 {
@@ -21,15 +20,12 @@ void pause_init(void)
 	component_set_size(menu_button, 24, 300, 100);
 	component_set_color(resume_button, BLACK, WHITE);
 	component_set_color(menu_button, BLACK, WHITE);
-	icon = texture_man_img_load_or_default("assets/icon.png", 30, 30, BLUE);
-	SetWindowIcon(icon);
 }
 
 void pause_cleanup(void)
 {
 	component_del(resume_button);
 	component_del(menu_button);
-	UnloadImage(icon);
 }
 
 void pause_update(void)

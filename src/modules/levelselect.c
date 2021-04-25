@@ -1,6 +1,7 @@
 #include <rlu/rlu.h>
 #include "../modules.h"
 #include "atmos.h"
+#include "data.h"
 
 static void lselect(void *client);
 static void menu(void *client);
@@ -11,7 +12,6 @@ static char *find_prev(void);
 
 static button *select_button;
 static button *menu_button;
-static Image icon;
 static char *mapdir = NULL;
 static char **dirfiles = NULL;
 static int dircount = -1;
@@ -29,11 +29,8 @@ void levelselect_init(void)
 	component_set_size(menu_button, 24, 300, 100);
 	component_set_color(select_button, BLACK, WHITE);
 	component_set_color(menu_button, BLACK, WHITE);
-	atmos_init("assets");
+	atmos_init();
 	index_maps();
-
-	icon = texture_man_img_load_or_default("assets/icon.png", 30, 30, BLUE);
-	SetWindowIcon(icon);
 }
 
 void levelselect_cleanup(void)
@@ -42,7 +39,6 @@ void levelselect_cleanup(void)
 	atmos_cleanup();
 	component_del(select_button);
 	component_del(menu_button);
-	UnloadImage(icon);
 }
 
 void levelselect_update(void)
@@ -91,7 +87,7 @@ void levelselect_draw(void)
 static void lselect(void *client)
 {
 	if (mapdir) {
-		(void)snprintf(game_mapdir, sizeof(game_mapdir), "maps/%s", mapdir);
+		(void)snprintf(game_mapdir, sizeof(game_mapdir), "%s/%s", DATA_MAPS_DIR, mapdir);
 	}
 	context_switch("GAME");
 }
@@ -103,8 +99,8 @@ static void menu(void *client)
 
 static void index_maps(void)
 {
-	if (DirectoryExists("maps")) {
-		dirfiles = GetDirectoryFiles("maps", &dircount);
+	if (DirectoryExists(DATA_MAPS_DIR)) {
+		dirfiles = GetDirectoryFiles(DATA_MAPS_DIR, &dircount);
 		dirndx = 0;
 		mapdir = find_next();
 	}
@@ -124,7 +120,7 @@ static char *find_next(void)
 {
 	int i;
 	for (i = dirndx + 1; i < dircount; i++) {
-		if (strstr(dirfiles[i], ".mg")) {
+		if (strstr(dirfiles[i], DATA_MAPS_EXT)) {
 			dirndx = i;
 			return dirfiles[i];
 		}
@@ -132,7 +128,7 @@ static char *find_next(void)
 
 	// didn't find it yet
 	for (i = 0; i < dirndx; i++) {
-		if (strstr(dirfiles[i], ".mg")) {
+		if (strstr(dirfiles[i], DATA_MAPS_EXT)) {
 			dirndx = i;
 			return dirfiles[i];
 		}
@@ -145,14 +141,14 @@ static char *find_prev(void)
 {
 	int i;
 	for (i = dirndx - 1; i >= 0; i--) {
-		if (strstr(dirfiles[i], ".mg")) {
+		if (strstr(dirfiles[i], DATA_MAPS_EXT)) {
 			dirndx = i;
 			return dirfiles[i];
 		}
 	}
 
 	for (i = dirndx + 1; i < dircount; i++) {
-		if (strstr(dirfiles[i], ".mg")) {
+		if (strstr(dirfiles[i], DATA_MAPS_EXT)) {
 			dirndx = i;
 			return dirfiles[i];
 		}

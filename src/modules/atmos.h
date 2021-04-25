@@ -9,7 +9,7 @@
  * in between different atmosphere sessions.
  */
 
-void atmos_init(char *assetdir);
+void atmos_init();
 void atmos_cleanup(void);
 void atmos_update(void);
 void atmos_draw(void);

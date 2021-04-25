@@ -7,7 +7,6 @@
 static button *play_button;
 
 static void play_func(void *client);
-static Image icon;
 
 void mg_init(void)
 {
@@ -15,16 +14,13 @@ void mg_init(void)
 	component_set_pos(play_button, GetScreenWidth() / 2 - 150, GetScreenHeight() / 2 - 50);
 	component_set_size(play_button, 24, 300, 100);
 	component_set_color(play_button, BLACK, WHITE);
-	atmos_init("assets");
-	icon = texture_man_img_load_or_default("assets/icon.png", 30, 30, BLUE);
-	SetWindowIcon(icon);
+	atmos_init();
 }
 
 void mg_cleanup(void)
 {
 	atmos_cleanup();
 	component_del(play_button);
-	UnloadImage(icon);
 }
 
 void mg_update(void)

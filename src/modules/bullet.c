@@ -136,7 +136,7 @@ static void wrapper_init(wrapper *self)
 	// each byte==1, will put it offscreen somewhere
 	(void)memset(self->bullets, BULLET_OFFSCREEN, sizeof(self->bullets));
 
-	(void)snprintf(buf, sizeof(buf), "assets/%s.png", self->name);
+	(void)snprintf(buf, sizeof(buf), "%s/%s.png", context_get_assetdir(), self->name);
 	if (self->array == players) {
 		bullet_color = YELLOW;
 	}
@@ -182,7 +182,7 @@ void bullet_cleanup(void)
 void bullet_clear(void)
 {
 	int i;
-	for (i = 0; i < ARRAY_SIZE(wrappers); i++) {
+	for (i = 0; wrappers[i] != NULL; i++) {
 		(void)memset(wrappers[i]->bullets, BULLET_OFFSCREEN, sizeof(wrappers[i]->bullets));
 	}
 }

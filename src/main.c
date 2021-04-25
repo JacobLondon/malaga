@@ -3,12 +3,14 @@
 
 static context_opt options = {
 	.background={0, 0, 0, 255},
-	.screen_width=800,
+	.screen_width=400,
 	.screen_height=600,
 	.fps=60,
 	.title="Space Game",
 	.use_audio=true,
 	.volume=50,
+	.icon="icon.png",
+	.assetdir="assets",
 };
 
 static module_definition definitions[] = {
