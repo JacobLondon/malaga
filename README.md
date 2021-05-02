@@ -6,4 +6,4 @@
 
 # Raylib Installation
 * Linux: libraylib.a into /usr/local/lib/
-* Windows: Follow installation instructions on the Raylib Releases page
+* Windows: Follow Windows installer instruction on the Raylib releases page
