@@ -9,8 +9,8 @@ typedef component button;
 
 typedef void (*button_func)(void *client);
 
-void component_set_pos(component *comp, int x, int y);
-void component_set_size(component *comp, int size, int w, int h);
+void component_set_pos(component *comp, float x, float y);
+void component_set_size(component *comp, int size, float w, float h);
 void component_set_color(component *comp, Color fg, Color bg);
 
 component *label_new(char *text, size_t len);

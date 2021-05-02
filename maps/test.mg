@@ -946,3 +946,9 @@ $encounters
 )
 $sets
 encounter-down
+encounter_flyby
+encounter-across-stream
+encounter1
+doombrigade
+stopspiral
+encounter2

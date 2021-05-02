@@ -11,8 +11,8 @@ static void play_func(void *client);
 void mg_init(void)
 {
 	play_button = button_new("PLAY", play_func, NULL);
-	component_set_pos(play_button, GetScreenWidth() / 2 - 150, GetScreenHeight() / 2 - 50);
-	component_set_size(play_button, 24, 300, 100);
+	component_set_pos(play_button, .5 - .2, .75);
+	component_set_size(play_button, 24, .4, .1);
 	component_set_color(play_button, BLACK, WHITE);
 	atmos_init();
 }

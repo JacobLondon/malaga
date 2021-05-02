@@ -31,19 +31,25 @@ typedef struct component_tag {
 static component *component_new(void);
 static int component_contains(component *comp, int x, int y);
 
-void component_set_pos(component *comp, int x, int y)
+void component_set_pos(component *comp, float x, float y)
 {
 	assert(comp);
-	comp->x = x;
-	comp->y = y;
+	assert(0.f <= x && x <= 1.0f);
+	assert(0.f <= y && y <= 1.0f);
+
+	comp->x = GetScreenWidth() * x - comp->w / 2;
+	comp->y = GetScreenHeight() * y - comp->h / 2;
 }
 
-void component_set_size(component *comp, int size, int w, int h)
+void component_set_size(component *comp, int size, float w, float h)
 {
 	assert(comp);
+	assert(0.f <= w && w <= 1.0f);
+	assert(0.f <= h && h <= 1.0f);
+
 	comp->size = size;
-	comp->w = w;
-	comp->h = h;
+	comp->w = GetScreenWidth() * w;
+	comp->h = GetScreenHeight() * h;
 }
 
 void component_set_color(component *comp, Color fg, Color bg)

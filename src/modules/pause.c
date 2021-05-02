@@ -14,10 +14,10 @@ void pause_init(void)
 	resume_button = button_new("RESUME", resume, NULL);
 	menu_button = button_new("MENU", menu, NULL);
 
-	component_set_pos(resume_button, GetScreenWidth() / 2 - 150, GetScreenHeight() / 2 - 75);
-	component_set_pos(menu_button, GetScreenWidth() / 2 - 150, GetScreenHeight() / 2 + 75);
-	component_set_size(resume_button, 24, 300, 100);
-	component_set_size(menu_button, 24, 300, 100);
+	component_set_size(resume_button, 24, .4, .1);
+	component_set_size(menu_button, 24, .4, .1);
+	component_set_pos(resume_button, .5, .4);
+	component_set_pos(menu_button, .5, .6);
 	component_set_color(resume_button, BLACK, WHITE);
 	component_set_color(menu_button, BLACK, WHITE);
 }

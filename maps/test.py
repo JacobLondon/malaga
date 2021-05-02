@@ -68,11 +68,11 @@ for i in range(6):
     Encounter('doomer', i, 0, 40)
 
 Group('encounter-down')
-#Group('encounter_flyby')
-#Group('encounter-across-stream')
-#Group('encounter1')
-#Group('doombrigade')
-#Group('stopspiral')
-#Group('encounter2')
+Group('encounter_flyby')
+Group('encounter-across-stream')
+Group('encounter1')
+Group('doombrigade')
+Group('stopspiral')
+Group('encounter2')
 
 Produce()

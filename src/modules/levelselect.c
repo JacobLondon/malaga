@@ -29,10 +29,10 @@ void levelselect_init(void)
 	maplist = parray_new(NULL);
 	assert(maplist);
 
-	component_set_pos(select_button, GetScreenWidth() * 3 / 4 - 150, GetScreenHeight() - 150);
-	component_set_pos(menu_button, GetScreenWidth() / 4 - 150, GetScreenHeight() - 150);
-	component_set_size(select_button, 24, 300, 100);
-	component_set_size(menu_button, 24, 300, 100);
+	component_set_size(select_button, 24, .4, .1);
+	component_set_size(menu_button, 24, .4, .1);
+	component_set_pos(select_button, .75, .9);
+	component_set_pos(menu_button, .25, .9);
 	component_set_color(select_button, BLACK, WHITE);
 	component_set_color(menu_button, BLACK, WHITE);
 	atmos_init();
