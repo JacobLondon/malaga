@@ -3,10 +3,13 @@
 #include "atmos.h"
 #include "data.h"
 
+#define AROUND_SELECTED 6
+
 static void lselect(void *client);
 static void menu(void *client);
 static void index_maps(void);
 static void clear_maps(void);
+static char *get_around(int center, int AB, size_t max, void **buf);
 static char *find_next(void);
 static char *find_prev(void);
 
@@ -74,10 +77,11 @@ void levelselect_update(void)
 
 void levelselect_draw(void)
 {
-	const int fontsize = 70;
-	const int AB = 6;
+	const int AB = AROUND_SELECTED;
+	const int height = AB * AB;
+	const int fontsize = 20;
+	const int offset = fontsize * AB;
 	int i;
-	char *p;
 
 	atmos_draw();
 	component_draw(select_button);
@@ -85,49 +89,35 @@ void levelselect_draw(void)
 
 	// draw around
 	if (dirndx != -1 && mapdirexists) {
-		for (i = dirndx - AB; i < dirndx; i++) {
-			if (i < 0) {
-				continue;
+		for (i = -AB + 1; i < AB; i++) {
+			if (i == 0) {
+				DrawRectangle(
+					0,
+					GetScreenHeight() / height * i + offset,
+					GetScreenWidth(),
+					fontsize,
+					WHITE
+				);
+				DrawText(
+					mapdir,
+					GetScreenWidth() / 10,
+					GetScreenHeight() / height * i + offset,
+					fontsize,
+					BLACK);
 			}
-			p = maplist->buf[i];
-			DrawText(
-				p,
-				GetScreenWidth() / 10,
-				GetScreenHeight() / (AB * 6) * i,
-				20,
-				WHITE);
+			else {
+				const Color c = (Color){
+					.r=255, .g=255, .b=255,
+					.a=(int)(255.0 * 1.0 / (fabs(i) / (double)AB))
+				};
+				DrawText(
+					get_around(dirndx, i, maplist->size, maplist->buf),
+					GetScreenWidth() / 10,
+					GetScreenHeight() / height * i + offset,
+					fontsize,
+					c);
+			}
 		}
-
-		DrawRectangle(
-			0,
-			GetScreenHeight() / (AB * 6) * i,
-			GetScreenWidth(),
-			20,
-			WHITE
-		);
-		DrawText(
-			mapdir,
-			GetScreenWidth() / 10,
-			GetScreenHeight() / (AB * 6) * i,
-			20,
-			BLACK);
-
-		for (i = dirndx + 1; i < maplist->size; i++) {
-			p = maplist->buf[i];
-			DrawText(
-				p,
-				GetScreenWidth() / 10,
-				GetScreenHeight() / (AB * 6) * i,
-				20,
-				WHITE);
-		}
-
-		DrawText(
-			mapdir,
-			GetScreenWidth() / 2 - MeasureText(mapdir, fontsize) / 2,
-			GetScreenHeight() / 3,
-			fontsize,
-			WHITE);
 	}
 }
 
@@ -176,6 +166,17 @@ static void clear_maps(void)
 	while (maplist->size > 0) {
 		parray_pop(maplist);
 	}
+}
+
+static char *get_around(int center, int AB, size_t max, void **buf)
+{
+	assert(buf);
+
+	if (center + AB < 0 || center + AB >= max) {
+		return NULL;
+	}
+
+	return buf[center + AB];
 }
 
 static char *find_next(void)
