@@ -1,6 +1,7 @@
 #ifndef MG_GAME_H
 #define MG_GAME_H
 
+#include <rlu/rlu.h>
 #include "bullet.h"
 
 struct enemy_data_tag;
@@ -22,7 +23,6 @@ typedef struct player_data_tag {
 	int height;
 	int hp;
 	// end HITTABLE_OBJECT
-	int lasthp;
 	int level;
 	shoot_func shoot;
 	float lastshottime;
@@ -93,6 +93,10 @@ typedef struct encounter_tag {
 		.x=(X), \
 		.y=(Y), \
 	}
+
+void player_took_damage(player_data *player);
+void enemy_took_damage(enemy_data *enemy);
+void enemy_took_death(enemy_data *enemy);
 
 enemy_move_func lookup_enemy_move(char *name);
 

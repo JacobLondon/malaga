@@ -226,17 +226,13 @@ void game_update(void)
 			if (now - player.lasttouchtime > 1.f) {
 				player.lasttouchtime = now;
 				player.hp--;
+				player_took_damage(&player);
 			}
 		}
 	}
 
 	bullet_update();
 	atmos_update();
-
-	if (player.lasthp != player.hp) {
-		score_decrease_multiplier();
-	}
-	player.lasthp = player.hp;
 
 	if (player.hp <= 0) {
 		gamelost = true;
@@ -334,6 +330,25 @@ static bool encounter_done(void)
 	return true;
 }
 
+void player_took_damage(player_data *player)
+{
+	assert(player);
+	score_decrease_multiplier();
+}
+
+void enemy_took_damage(enemy_data *enemy)
+{
+	assert(enemy);
+	score_increase_points();
+}
+
+void enemy_took_death(enemy_data *enemy)
+{
+	assert(enemy);
+	score_increase_points();
+	score_increase_points();
+}
+
 enemy_move_func lookup_enemy_move(char *name)
 {
 	int i;
@@ -356,7 +371,7 @@ static void player_new(player_data *self)
 	self->y = screen_height * 3 / 4;
 	self->shoot = bullet_player_sin_wide;
 	self->shotperiod = bullet_lookup_timeout(self->shoot);
-	self->hp = self->lasthp = 30;
+	self->hp = 30;
 	self->level = 2;
 	tex = texture_man_load_or_default(&texman, buf, TEXTURE_GEN(PLAYER_SIZE, PLAYER_SIZE, BLUE));
 	self->width = tex->width;

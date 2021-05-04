@@ -1,6 +1,7 @@
 #include <rlu/rlu.h>
 #include "bullet.h"
 #include "score.h"
+#include "game.h"
 
 #define ENEMY_HITTABLES 64
 #define PLAYER_HITTABLES 4
@@ -240,8 +241,17 @@ static void do_move_and_hit(HITTABLE_OBJECT *targets[], size_t targets_len, move
 				if (targets[j]->hp > 0) {
 					targets[j]->hp -= tmp;
 
-					// player did damage!
-					score_increase_points();
+					if (targets == players) {
+						// enemy did damage!
+						player_took_damage(targets[j]);
+					}
+					else {
+						// player did damage!
+						enemy_took_damage(targets[j]);
+						if (targets[j]->hp <= 0) {
+							enemy_took_death(targets[j]);
+						}
+					}
 				}
 				bullets[i].y = BULLET_OFFSCREEN;
 				break;
