@@ -13,6 +13,8 @@
 #define ENEMIES_MAX 32
 
 #define ENCOUNTER_DEFAULT -1
+#define PLAYER_DAMAGE_DEFAULT 1
+#define TROUBLE_MODE_MULT_DEFAULT 2
 
 static void encounter_clear(void);
 static void encounter_next(void);
@@ -32,6 +34,7 @@ static int screen_width = 0;
 static double now = 0.0;
 static bool gamewon = false;
 static bool gamelost = false;
+static int player_damage_mult = 1;
 
 static enemy_data enemies[ENEMIES_MAX];
 
@@ -68,6 +71,13 @@ void game_init(void)
 	encounterndx = ENCOUNTER_DEFAULT;
 	gamewon = false;
 	gamelost = false;
+
+	if (game_data.trouble_mode) {
+		player_damage_mult = TROUBLE_MODE_MULT_DEFAULT;
+	}
+	else {
+		player_damage_mult = 1;
+	}
 
 	texture_man_new(&texman);
 	animan = anim_man_new();
@@ -227,7 +237,6 @@ void game_update(void)
 		if (CheckCollisionRecs(*(Rectangle *)&enemies[i], *(Rectangle *)&player)) {
 			if (now - player.lasttouchtime > 1.f) {
 				player.lasttouchtime = now;
-				player.hp--;
 				player_took_damage(&player);
 			}
 		}
@@ -275,6 +284,9 @@ void game_draw(void)
 	if (game_data.endless_mode) {
 		DrawText("ENDLESS", screen_width - 5 - MeasureText("ENDLESS", 30), screen_height - 30, 30, WHITE);
 	}
+	if (game_data.trouble_mode != 1) {
+		DrawText("2x TROUBLE", screen_width - 5 - MeasureText("2x TROUBLE", 30), screen_height - 60, 30, WHITE);
+	}
 
 	if (gamewon && !gamelost) {
 		DrawRectangle(GetScreenWidth() / 2 - MeasureText(WIN_TEXT, 40) / 2, GetScreenHeight() / 4, MeasureText(WIN_TEXT, 40), 40, BLACK);
@@ -292,6 +304,7 @@ void game_conf(struct game_message *msg)
 
 	snprintf(game_data.mapdir, sizeof(game_data.mapdir), "%s", msg->mapdir);
 	game_data.endless_mode = msg->endless_mode;
+	game_data.trouble_mode = msg->trouble_mode;
 }
 
 static void encounter_clear(void)
@@ -364,14 +377,22 @@ static bool encounter_done(void)
 
 void player_took_damage(player_data *player)
 {
+	int damage;
 	assert(player);
 	score_decrease_multiplier();
+
+	player->hp -= PLAYER_DAMAGE_DEFAULT * player_damage_mult;
 }
 
 void enemy_took_damage(enemy_data *enemy)
 {
 	assert(enemy);
 	score_increase_points();
+	enemy->hp -= 1;
+
+	if (game_data.trouble_mode) {
+		score_increase_points();
+	}
 }
 
 void enemy_took_death(enemy_data *enemy)
@@ -379,6 +400,11 @@ void enemy_took_death(enemy_data *enemy)
 	assert(enemy);
 	score_increase_points();
 	score_increase_points();
+
+	if (game_data.trouble_mode) {
+		score_increase_points();
+		score_increase_points();
+	}
 }
 
 enemy_move_func lookup_enemy_move(char *name)

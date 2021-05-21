@@ -8,6 +8,7 @@
 static void lselect(void *client);
 static void menu(void *client);
 static void tendless(void *client);
+static void tdamage(void *client);
 static void index_maps(void);
 static void clear_maps(void);
 static char *get_around(int center, int AB, size_t max, void **buf);
@@ -17,6 +18,7 @@ static char *find_prev(void);
 static button *select_button;
 static button *menu_button;
 static button *endless_button;
+static button *damage_button;
 static char *mapdir = "";
 static char **dirfiles = NULL;
 static int dircount = -1;
@@ -24,24 +26,33 @@ static int dirndx = 0;
 static struct parray *maplist; // point into dir files with the correct files
 static bool mapdirexists = false;
 static bool endless_mode = false;
+static int trouble_mode = 0;
 
 void levelselect_init(void)
 {
 	select_button = button_new("SELECT", lselect, NULL);
 	menu_button = button_new("MENU", menu, NULL);
 	endless_button = button_new("ENDLESS", tendless, NULL);
+	damage_button = button_new("DOUBLE TROUBLE", tdamage, NULL);
 	maplist = parray_new(NULL);
 	assert(maplist);
 
+	// menu-ing
 	component_set_size(select_button, 24, .4, .1);
 	component_set_size(menu_button, 24, .4, .1);
-	component_set_size(endless_button, 24, .4, .05);
+	// modes
+	component_set_size(endless_button, 24, .5, .05);
+	component_set_size(damage_button, 24, .5, .05);
+
 	component_set_pos(select_button, .75, .9);
 	component_set_pos(menu_button, .25, .9);
-	component_set_pos(endless_button, .8, .4);
+	component_set_pos(endless_button, .75, .4);
+	component_set_pos(damage_button, .75, .475);
+
 	component_set_color(select_button, WHITE, DARKGRAY);
 	component_set_color(menu_button, WHITE, DARKGRAY);
 	component_set_color(endless_button, WHITE, DARKGRAY);
+	component_set_color(damage_button, WHITE, DARKGRAY);
 	atmos_init();
 	index_maps();
 }
@@ -61,6 +72,7 @@ void levelselect_update(void)
 	component_update(select_button);
 	component_update(menu_button);
 	component_update(endless_button);
+	component_update(damage_button);
 
 	if (IsKeyDown(KEY_R)) {
 		clear_maps();
@@ -95,6 +107,7 @@ void levelselect_draw(void)
 	component_draw(select_button);
 	component_draw(menu_button);
 	component_draw(endless_button);
+	component_draw(damage_button);
 
 	// draw around
 	if (dirndx != -1 && mapdirexists) {
@@ -137,6 +150,7 @@ static void lselect(void *client)
 	if (mapdirexists) {
 		// load configuration and launch
 		msg.endless_mode = endless_mode;
+		msg.trouble_mode = trouble_mode;
 		if (strlen(mapdir) > 0) {
 			(void)snprintf(msg.mapdir, sizeof(msg.mapdir), "%s/%s", DATA_MAPS_DIR, mapdir);
 		}
@@ -161,6 +175,18 @@ static void tendless(void *client)
 	else {
 		endless_mode = false;
 		component_set_color(endless_button, WHITE, DARKGRAY);
+	}
+}
+
+static void tdamage(void *client)
+{
+	if (!trouble_mode) {
+		trouble_mode = 1;
+		component_set_color(damage_button, DARKGRAY, WHITE);
+	}
+	else {
+		trouble_mode = 0;
+		component_set_color(damage_button, WHITE, DARKGRAY);
 	}
 }
 

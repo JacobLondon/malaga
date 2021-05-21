@@ -239,8 +239,6 @@ static void do_move_and_hit(HITTABLE_OBJECT *targets[], size_t targets_len, move
 			// consume the bullet if hit
 			if (tmp) {
 				if (targets[j]->hp > 0) {
-					targets[j]->hp -= tmp;
-
 					if (targets == players) {
 						// enemy did damage!
 						player_took_damage(targets[j]);
