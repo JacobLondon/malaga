@@ -91,4 +91,6 @@ int ko_get_max_frames(ko *self);
 /* Set the position of all of its screen objects */
 void ko_set_pos(ko *self, int x, int y);
 
+size_t ko_sizeof(void);
+
 #endif // RLU_OBJ_KEY_H_

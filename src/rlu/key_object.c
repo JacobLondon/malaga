@@ -89,7 +89,6 @@ void ko_add_rate(ko *self, so *object, ko_cb cb_state, bool *key, float animatio
 	int i;
 
 	assert(self);
-	assert(object);
 	assert(cb_state);
 	
 	for (i = 0; i < STATES_MAX; i++) {
@@ -127,12 +126,16 @@ bool ko_update(ko *self)
 		}
 	}
 
-	so_draw(self->objects[self->state]);
-
 	// update object if necessary
-	so_update(self->objects[self->state]);
+	if (self->objects[self->state]) {
+		so_draw(self->objects[self->state]);
+		so_update(self->objects[self->state]);
+	}
+
 	if (self->oof > 1.0f / self->rates[self->state]) {
-		anim_update(so_get_anim(self->objects[self->state]));
+		if (self->objects[self->state]) {
+			anim_update(so_get_anim(self->objects[self->state]));
+		}
 		self->oof = 0.0f;
 		self->frame++;
 	}
@@ -179,7 +182,10 @@ float ko_get_frame(ko *self)
 int ko_get_max_frames(ko *self)
 {
 	assert(self);
-	return anim_get_frames(so_get_anim(self->objects[self->state]));
+	if (self->objects[self->state]) {
+		return anim_get_frames(so_get_anim(self->objects[self->state]));
+	}
+	return 0;
 }
 
 void ko_set_pos(ko *self, int x, int y)
@@ -191,4 +197,9 @@ void ko_set_pos(ko *self, int x, int y)
 			so_set_pos(self->objects[i], x, y);
 		}
 	}
+}
+
+size_t ko_sizeof(void)
+{
+	return sizeof(ko);
 }

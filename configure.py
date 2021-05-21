@@ -29,12 +29,13 @@ clean:
 """, file=fp)
 
 elif OS == "Windows":
+    # just use git bash or something...
     print("""\
 CC=C:\\raylib\\tcc\\tcc
 LDFLAGS = C:\\raylib\\raylib\src\\raylib.rc.data -Os -std=c99 -Wall -Iexternal -DPLATFORM_DESKTOP
-CFLAGS = -lmsvcrt -lraylib -lopengl32 -lgdi32 -lwinmm -lkernel32 -lshell32 -luser32 -Wl -O2 -Iinclude/
+CFLAGS = -lmsvcrt -lraylib -lopengl32 -lgdi32 -lwinmm -lkernel32 -lshell32 -luser32 -Wl -O2 -Iinclude/ -ggdb
 TARGET = test.exe
-REMOVE = del
+REMOVE = rm
 
 .PHONY: clean
 

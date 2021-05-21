@@ -24,6 +24,12 @@ static void player_new(player_data *self);
 static void player_del(player_data *self);
 static void enemy_new(enemy_data *self, encounter *enc);
 static void enemy_del(enemy_data *self);
+static void detonations_cleanup(void);
+static void detonations_update(void);
+static void detonations_init(void);
+static void detonation_cb1(ko *self, so *object);
+static void detonation_cb2(ko *self, so *object);
+static void enemy_detonate(enemy_data *self);
 
 static struct game_message game_data;
 static int encounterndx = ENCOUNTER_DEFAULT;
@@ -37,6 +43,9 @@ static bool gamelost = false;
 static int player_damage_mult = 1;
 
 static enemy_data enemies[ENEMIES_MAX];
+static bool detonation_keys[ENEMIES_MAX];
+static ko *detonation_objects[ENEMIES_MAX];
+static bool use_detonations = true;
 
 static enemy_move_lookup move_lookup[] = {
 	{"down", enemy_move_down},
@@ -55,6 +64,7 @@ static enemy_move_lookup move_lookup[] = {
 static player_data player;
 static texture_manager texman;
 static anim_man *animan;
+static key_manager keyman;
 
 /**
  * Enemy Prototypes
@@ -82,6 +92,7 @@ void game_init(void)
 	texture_man_new(&texman);
 	animan = anim_man_new();
 	player_new(&player);
+	detonations_init();
 
 	if (game_data.mapdir[0] == 0) {
 		char file[256];
@@ -95,12 +106,18 @@ void game_init(void)
 	score_init();
 	atmos_init();
 
-	msg_default("Game loaded in %s", game_data.endless_mode ? "ENDLESS MODE" : "NORMAL MODE");
+	if (game_data.endless_mode) {
+		msg_default("%s ACTIVATED", "ENDLESS MODE");
+	}
+	if (game_data.trouble_mode) {
+		msg_default("%s ACTIVATED", "2x TROUBLE MODE");
+	}
 }
 
 void game_cleanup(void)
 {
 	int i;
+	detonations_cleanup();
 	player_del(&player);
 	for (i = 0; i < enemy_count; i++) {
 		enemy_del(&enemies[i]);
@@ -244,6 +261,7 @@ void game_update(void)
 
 	bullet_update();
 	atmos_update();
+	detonations_update();
 
 	if (player.hp <= 0) {
 		gamelost = true;
@@ -259,6 +277,7 @@ void game_draw(void)
 	//DrawFPS(20, 20);
 	atmos_draw();
 	bullet_draw();
+	detonations_update();
 
 	for (i = 0; i < enemy_count; i++) {
 		if (enemies[i].hp >= 0 && (now - encounter_starttime >= enemies[i].spawntime)) {
@@ -284,7 +303,7 @@ void game_draw(void)
 	if (game_data.endless_mode) {
 		DrawText("ENDLESS", screen_width - 5 - MeasureText("ENDLESS", 30), screen_height - 30, 30, WHITE);
 	}
-	if (game_data.trouble_mode != 1) {
+	if (game_data.trouble_mode) {
 		DrawText("2x TROUBLE", screen_width - 5 - MeasureText("2x TROUBLE", 30), screen_height - 60, 30, WHITE);
 	}
 
@@ -405,6 +424,8 @@ void enemy_took_death(enemy_data *enemy)
 		score_increase_points();
 		score_increase_points();
 	}
+
+	enemy_detonate(enemy);
 }
 
 enemy_move_func lookup_enemy_move(char *name)
@@ -567,5 +588,90 @@ void enemy_move_horzleftstop(struct enemy_data_tag *en)
 
 	if (now - en->_timestamp < en->meta.horzleftstop) {
 		en->x -= en->speed;
+	}
+}
+
+static void detonations_cleanup(void)
+{
+	int i;
+	if (!use_detonations) {
+		return;
+	}
+
+	for (i = 0; i < ARRAY_SIZE(detonation_objects); i++) {
+		ko_del(detonation_objects[i]);
+	}
+	memset(&detonation_keys, 0, sizeof(detonation_keys));
+}
+
+static void detonations_update(void)
+{
+	int i;
+	if (!use_detonations) {
+		return;
+	}
+
+	for (i = 0; i < ARRAY_SIZE(detonation_objects); i++) {
+		ko_update(detonation_objects[i]);
+	}
+}
+
+static void detonations_init(void)
+{
+	char path[128];
+	Texture2D *explosion;
+	so *s;
+	ko *k;
+	int i;
+
+	use_detonations = false;
+	return;
+
+	snprintf(path, sizeof(path), "%s/%s", context_get_assetdir(), "explosion.png");
+	if (!FileExists(path)) {
+		use_detonations = false;
+		return;
+	}
+
+	memset(detonation_keys, 0, sizeof(detonation_keys));
+	explosion = texture_man_load(&texman, path);
+	for (i = 0; i < ARRAY_SIZE(detonation_objects); i++) {
+		s = so_new_own(anim_new(explosion, 4, 4));
+		// set off screen to start with
+		so_set_pos(s, screen_width + 10, 0);
+		k = detonation_objects[i] = ko_new();
+		ko_add(k, NULL, detonation_cb1, &detonation_keys[i]);
+		ko_add_rate(k, s, detonation_cb2, NULL, 20);
+	}
+}
+
+static void detonation_cb1(ko *self, so *object)
+{
+	// do nothing, ko_set_key is tied to detonation_keys
+}
+
+static void detonation_cb2(ko *self, so *object)
+{
+	int i;
+
+	// animate explosion then move off screen
+	if (ko_get_frame(self) >= ko_get_max_frames(self)) {
+		ko_set_key(self, true);
+		ko_set_pos(self, screen_width + 10, 0);
+		i = (self - *detonation_objects) / ko_sizeof();
+		detonation_keys[i] = false;
+	}
+}
+
+static void enemy_detonate(enemy_data *self)
+{
+	int i;
+	assert(self);
+
+	// get index of the enemy, relating to detonation keys
+	if (use_detonations) {
+		i = (self - enemies) / sizeof(*self);
+		ko_set_pos(detonation_objects[i], self->x, self->y);
+		detonation_keys[i] = true;
 	}
 }

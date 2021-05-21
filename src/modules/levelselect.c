@@ -26,14 +26,14 @@ static int dirndx = 0;
 static struct parray *maplist; // point into dir files with the correct files
 static bool mapdirexists = false;
 static bool endless_mode = false;
-static int trouble_mode = 0;
+static bool trouble_mode = false;
 
 void levelselect_init(void)
 {
 	select_button = button_new("SELECT", lselect, NULL);
 	menu_button = button_new("MENU", menu, NULL);
 	endless_button = button_new("ENDLESS", tendless, NULL);
-	damage_button = button_new("DOUBLE TROUBLE", tdamage, NULL);
+	damage_button = button_new("2x TROUBLE", tdamage, NULL);
 	maplist = parray_new(NULL);
 	assert(maplist);
 
@@ -51,8 +51,21 @@ void levelselect_init(void)
 
 	component_set_color(select_button, WHITE, DARKGRAY);
 	component_set_color(menu_button, WHITE, DARKGRAY);
-	component_set_color(endless_button, WHITE, DARKGRAY);
-	component_set_color(damage_button, WHITE, DARKGRAY);
+
+	if (!endless_mode) {
+		component_set_color(endless_button, WHITE, DARKGRAY);
+	}
+	else {
+		component_set_color(endless_button, DARKGRAY, WHITE);
+	}
+
+	if (!trouble_mode) {
+		component_set_color(damage_button, WHITE, DARKGRAY);
+	}
+	else {
+		component_set_color(damage_button, DARKGRAY, WHITE);
+	}
+
 	atmos_init();
 	index_maps();
 }
@@ -181,11 +194,11 @@ static void tendless(void *client)
 static void tdamage(void *client)
 {
 	if (!trouble_mode) {
-		trouble_mode = 1;
+		trouble_mode = true;
 		component_set_color(damage_button, DARKGRAY, WHITE);
 	}
 	else {
-		trouble_mode = 0;
+		trouble_mode = false;
 		component_set_color(damage_button, WHITE, DARKGRAY);
 	}
 }
