@@ -6,11 +6,16 @@ void mg_cleanup(void);
 void mg_update(void);
 void mg_draw(void);
 
+struct game_message {
+	char mapdir[128];
+	int endless_mode;
+};
+
 void game_init(void);
 void game_cleanup(void);
 void game_update(void);
 void game_draw(void);
-extern char game_mapdir[128];
+void game_conf(struct game_message *msg);
 
 void pause_init(void);
 void pause_cleanup(void);

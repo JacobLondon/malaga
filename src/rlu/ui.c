@@ -146,6 +146,7 @@ void component_update(component *comp)
 void component_draw(component *comp)
 {
 	Color tmp;
+	Color txt;
 	assert(comp);
 
 	switch (comp->type) {
@@ -154,13 +155,20 @@ void component_draw(component *comp)
 		break;
 	case TYPE_BUTTON:
 		tmp = comp->bg;
+		txt = comp->fg;
 		if (component_contains(comp, GetMouseX(), GetMouseY())) {
 			tmp.r = min(255, tmp.r * 1.2);
 			tmp.g = min(255, tmp.g * 1.2);
 			tmp.b = min(255, tmp.b * 1.2);
+			txt = comp->bg;
 		}
 		DrawRectangle(comp->x, comp->y, comp->w, comp->h, tmp);
-		DrawText(comp->data.button.text, comp->x + comp->w / 2 - MeasureText(comp->data.button.text, comp->size) / 2, comp->y + comp->h / 2 - comp->size / 2, comp->size, comp->fg);
+		DrawText(
+			comp->data.button.text,
+			comp->x + comp->w / 2 - MeasureText(comp->data.button.text, comp->size) / 2,
+			comp->y + comp->h / 2 - comp->size / 2,
+			comp->size,
+			txt);
 		break;
 	default:
 		break;

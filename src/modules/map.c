@@ -7,28 +7,47 @@
 #define DEFAULT_ENEMY_HEIGHT 30
 #define ENCOUNTER_ENEMIES_MAX 32
 
+static char defenemyasset[256];
+
 // DEFAULT ////////////////////////////////////////////////////////////////////
-static enemy_definition default_enemy = {
-	.shoot=bullet_enemy_straight,
+static enemy_definition default_enemy0 = {
+	.shoot=bullet_enemy_flower,
 	.move=enemy_move_downstop,
-	.hp=3,
+	.hp=7,
+	.width=DEFAULT_ENEMY_WIDTH,
+	.height=DEFAULT_ENEMY_HEIGHT,
 	.speed=10,
 	.level=0,
-	.meta={2},
+	.meta={.5f},
+	.name="Default0",
+	.pngname=defenemyasset,
+};
+
+static enemy_definition default_enemy1 = {
+	.shoot=bullet_enemy_flower,
+	.move=enemy_move_downstop,
+	.hp=7,
+	.width=DEFAULT_ENEMY_WIDTH,
+	.height=DEFAULT_ENEMY_HEIGHT,
+	.speed=10,
+	.level=0,
+	.meta={.9f},
+	.name="Default1",
+	.pngname=defenemyasset,
 };
 
 static encounter default_encounter0[] = {
-	DEFINE_ENCOUNTER(&default_enemy, 0, .3, 0),
-	DEFINE_ENCOUNTER(&default_enemy, 2, .5, 0),
-	DEFINE_ENCOUNTER(&default_enemy, 4, .7, 0),
+	DEFINE_ENCOUNTER(&default_enemy1, 0, .5, 0),
+	DEFINE_ENCOUNTER(&default_enemy0, .5, .2, 0),
+	DEFINE_ENCOUNTER(&default_enemy0, .5, .7, 0),
 	{NULL}
 };
 
 static encounter default_encounter1[] = {
-	DEFINE_ENCOUNTER(&default_enemy, 0, .4, 0),
-	DEFINE_ENCOUNTER(&default_enemy, 0, .4, 0),
-	DEFINE_ENCOUNTER(&default_enemy, 3, .8, 0),
-	DEFINE_ENCOUNTER(&default_enemy, 3, .8, 0),
+	DEFINE_ENCOUNTER(&default_enemy0, 0, .4, 0),
+	DEFINE_ENCOUNTER(&default_enemy0, 0, .6, 0),
+	DEFINE_ENCOUNTER(&default_enemy1, 1, .8, 0),
+	DEFINE_ENCOUNTER(&default_enemy1, 1, .2, 0),
 	{NULL}
 };
 
@@ -87,7 +106,6 @@ encounter **map_init(const char *mapfilename)
 	}
 
 	FILE *fp;
-	char defenemyasset[256];
 	char buf[256];
 	char id[256];
 	char lhs[256];
@@ -104,6 +122,11 @@ encounter **map_init(const char *mapfilename)
 	float real;
 	int whole;
 
+	// these must all have been satisfied, or the file is invalid
+	bool found_enemy = false;
+	bool found_encounter = false;
+	bool found_set = false;
+
 	snprintf(defenemyasset, sizeof(defenemyasset), "%s/%s", context_get_assetdir(), DATA_ASSET_ENEMY);
 
 	enemies = parray_new(del_enemy);
@@ -115,7 +138,7 @@ encounter **map_init(const char *mapfilename)
 
 	fp = fopen(mapfilename, "r");
 	if (!fp) {
-		msg_warning("Could not open %s. Defaulting to static encounters.", mapfilename);
+		msg_warning("Could not load %s. Defaulting to static encounters.", mapfilename);
 		goto static_def;
 	}
 
@@ -174,6 +197,9 @@ encounter **map_init(const char *mapfilename)
 					assert(enemy_template.pngname);
 				}
 				parray_push(enemies, make_enemy(&enemy_template));
+
+				// this section has at least been parsed successfully at least once
+				found_enemy = true;
 				state = STATE_ENEMIES;
 				memset(&enemy_template, 0, sizeof(enemy_template));
 			}
@@ -302,6 +328,8 @@ encounter **map_init(const char *mapfilename)
 		case STATE_IN_ENCOUNTER:
 			if (buf[0] == ')') {
 				if (holderndx < ENCOUNTER_ENEMIES_MAX) {
+					// this section has at least been parsed successfully at least once
+					found_encounter = true;
 					holder.spawn[holderndx] = encounter_template;
 					holderndx++;
 				}
@@ -374,6 +402,9 @@ encounter **map_init(const char *mapfilename)
 				for (i = 0; i < encounters->size; i++) {
 					encounter_holder *p = encounters->buf[i];
 					if (strcmp(lhs, p->name) == 0) {
+						// this section has at least been parsed successfully at least once
+						found_set = true;
+
 						parray_push(sets, p->spawn);
 						goto next;
 					}
@@ -392,6 +423,11 @@ encounter **map_init(const char *mapfilename)
 	next:
 		;
 	} // for fgets
+
+	// must have found at least one of each
+	if (!found_enemy || !found_encounter || !found_set) {
+		goto fail;
+	}
 
 	(void)fclose(fp);
 	parray_push(encounters, NULL);

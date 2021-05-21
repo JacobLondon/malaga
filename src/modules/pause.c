@@ -18,8 +18,8 @@ void pause_init(void)
 	component_set_size(menu_button, 24, .4, .1);
 	component_set_pos(resume_button, .5, .4);
 	component_set_pos(menu_button, .5, .6);
-	component_set_color(resume_button, BLACK, WHITE);
-	component_set_color(menu_button, BLACK, WHITE);
+	component_set_color(resume_button, WHITE, DARKGRAY);
+	component_set_color(menu_button, WHITE, DARKGRAY);
 }
 
 void pause_cleanup(void)

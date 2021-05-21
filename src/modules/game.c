@@ -12,6 +12,8 @@
 #define ENEMY_SIZE 35
 #define ENEMIES_MAX 32
 
+#define ENCOUNTER_DEFAULT -1
+
 static void encounter_clear(void);
 static void encounter_next(void);
 static bool encounter_done(void);
@@ -21,10 +23,8 @@ static void player_del(player_data *self);
 static void enemy_new(enemy_data *self, encounter *enc);
 static void enemy_del(enemy_data *self);
 
-// extern
-char game_mapdir[128] = {0};
-
-static int encounterndx = -1;
+static struct game_message game_data;
+static int encounterndx = ENCOUNTER_DEFAULT;
 static double encounter_starttime = 0.0;
 static int enemy_count = 0; // number of loaded enemies
 static int screen_height = 0;
@@ -65,7 +65,7 @@ void game_init(void)
 	screen_height = GetScreenHeight();
 	screen_width = GetScreenWidth();
 	now = GetTime();
-	encounterndx = -1;
+	encounterndx = ENCOUNTER_DEFAULT;
 	gamewon = false;
 	gamelost = false;
 
@@ -73,17 +73,19 @@ void game_init(void)
 	animan = anim_man_new();
 	player_new(&player);
 
-	if (game_mapdir[0] == 0) {
+	if (game_data.mapdir[0] == 0) {
 		char file[256];
 		snprintf(file, sizeof(file), "%s/%s", DATA_MAPS_DIR, DATA_ASSET_MAP);
 		encounters = map_init(file);
 	}
 	else {
-		encounters = map_init(game_mapdir);
+		encounters = map_init(game_data.mapdir);
 	}
 
 	score_init();
 	atmos_init();
+
+	msg_default("Game loaded in %s", game_data.endless_mode ? "ENDLESS MODE" : "NORMAL MODE");
 }
 
 void game_cleanup(void)
@@ -245,6 +247,7 @@ void game_draw(void)
 	static char health[128];
 	int i;
 
+	//DrawFPS(20, 20);
 	atmos_draw();
 	bullet_draw();
 
@@ -260,11 +263,19 @@ void game_draw(void)
 		so_draw(player.object);
 	}
 
+	// top left
 	snprintf(health, sizeof(health), "HP %d", player.hp);
 	DrawText(health, 5, 5, 30, WHITE);
+
+	// top right
 	DrawText(score_get_string(), screen_width - 5 - MeasureText(score_get_string(), 30), 5, 30, WHITE);
 	DrawText(score_get_multiplier(), screen_width - 5 - MeasureText(score_get_multiplier(), 30), 40, 30, WHITE);
-	//DrawFPS(20, 20);
+
+	// bottom right
+	if (game_data.endless_mode) {
+		DrawText("ENDLESS", screen_width - 5 - MeasureText("ENDLESS", 30), screen_height - 30, 30, WHITE);
+	}
+
 	if (gamewon && !gamelost) {
 		DrawRectangle(GetScreenWidth() / 2 - MeasureText(WIN_TEXT, 40) / 2, GetScreenHeight() / 4, MeasureText(WIN_TEXT, 40), 40, BLACK);
 		DrawText(WIN_TEXT, GetScreenWidth() / 2 - MeasureText(WIN_TEXT, 40) / 2, GetScreenHeight() / 4, 40, WHITE);
@@ -273,6 +284,14 @@ void game_draw(void)
 		DrawRectangle(GetScreenWidth() / 2 - MeasureText(WIN_TEXT, 40) / 2, GetScreenHeight() / 4, MeasureText(WIN_TEXT, 40), 40, BLACK);
 		DrawText(LOSE_TEXT, GetScreenWidth() / 2 - MeasureText(LOSE_TEXT, 40) / 2, GetScreenHeight() / 4, 40, WHITE);
 	}
+}
+
+void game_conf(struct game_message *msg)
+{
+	assert(msg);
+
+	snprintf(game_data.mapdir, sizeof(game_data.mapdir), "%s", msg->mapdir);
+	game_data.endless_mode = msg->endless_mode;
 }
 
 static void encounter_clear(void)
@@ -284,18 +303,28 @@ static void encounter_next(void)
 {
 	encounter *enc;
 
+	// map wasn't loaded properly, so do nothing
+	if (!encounters) {
+		return;
+	}
+
 	encounter_starttime = now;
 	enemy_count = 0;
 	(void)memset(enemies, 0, sizeof(enemies));
 
 	// we done
 	if (encounters[encounterndx + 1] == NULL) {
-		// clear bullets on win, remove those enemy bullets!
-		if (gamewon == false) {
-			bullet_clear();
+		if (game_data.endless_mode) {
+			encounterndx = ENCOUNTER_DEFAULT;
 		}
-		gamewon = true;
-		return;
+		else {
+			// clear bullets on win, remove those enemy bullets!
+			if (gamewon == false) {
+				bullet_clear();
+			}
+			gamewon = true;
+			return;
+		}
 	}
 
 	// TODO: Can you shoot an enemy who isn't showing up yet? Sort of, they are just not moving
@@ -303,7 +332,10 @@ static void encounter_next(void)
 	score_increase_multiplier();
 	bullet_track_hittable_player(&player);
 	encounterndx++;
-	for (enc = encounters[encounterndx]; enc->definition != NULL; enc++) {
+	for (enc = encounters[encounterndx];
+	    enc->definition != NULL;
+	    enc++)
+	{
 		if (enemies[enemy_count].object) {
 			enemy_del(&enemies[enemy_count]);
 		}

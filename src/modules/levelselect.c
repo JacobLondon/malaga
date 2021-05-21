@@ -7,6 +7,7 @@
 
 static void lselect(void *client);
 static void menu(void *client);
+static void tendless(void *client);
 static void index_maps(void);
 static void clear_maps(void);
 static char *get_around(int center, int AB, size_t max, void **buf);
@@ -15,26 +16,32 @@ static char *find_prev(void);
 
 static button *select_button;
 static button *menu_button;
+static button *endless_button;
 static char *mapdir = "";
 static char **dirfiles = NULL;
 static int dircount = -1;
 static int dirndx = 0;
 static struct parray *maplist; // point into dir files with the correct files
 static bool mapdirexists = false;
+static bool endless_mode = false;
 
 void levelselect_init(void)
 {
 	select_button = button_new("SELECT", lselect, NULL);
 	menu_button = button_new("MENU", menu, NULL);
+	endless_button = button_new("ENDLESS", tendless, NULL);
 	maplist = parray_new(NULL);
 	assert(maplist);
 
 	component_set_size(select_button, 24, .4, .1);
 	component_set_size(menu_button, 24, .4, .1);
+	component_set_size(endless_button, 24, .4, .05);
 	component_set_pos(select_button, .75, .9);
 	component_set_pos(menu_button, .25, .9);
-	component_set_color(select_button, BLACK, WHITE);
-	component_set_color(menu_button, BLACK, WHITE);
+	component_set_pos(endless_button, .8, .4);
+	component_set_color(select_button, WHITE, DARKGRAY);
+	component_set_color(menu_button, WHITE, DARKGRAY);
+	component_set_color(endless_button, WHITE, DARKGRAY);
 	atmos_init();
 	index_maps();
 }
@@ -53,6 +60,7 @@ void levelselect_update(void)
 	atmos_update();
 	component_update(select_button);
 	component_update(menu_button);
+	component_update(endless_button);
 
 	if (IsKeyDown(KEY_R)) {
 		clear_maps();
@@ -86,6 +94,7 @@ void levelselect_draw(void)
 	atmos_draw();
 	component_draw(select_button);
 	component_draw(menu_button);
+	component_draw(endless_button);
 
 	// draw around
 	if (dirndx != -1 && mapdirexists) {
@@ -123,10 +132,15 @@ void levelselect_draw(void)
 
 static void lselect(void *client)
 {
+	struct game_message msg;
+
 	if (mapdirexists) {
+		// load configuration and launch
+		msg.endless_mode = endless_mode;
 		if (strlen(mapdir) > 0) {
-			(void)snprintf(game_mapdir, sizeof(game_mapdir), "%s/%s", DATA_MAPS_DIR, mapdir);
+			(void)snprintf(msg.mapdir, sizeof(msg.mapdir), "%s/%s", DATA_MAPS_DIR, mapdir);
 		}
+		game_conf(&msg);
 		context_switch("GAME");
 	}
 }
@@ -134,6 +148,20 @@ static void lselect(void *client)
 static void menu(void *client)
 {
 	context_switch("MG");
+}
+
+static void tendless(void *client)
+{
+	// from non-endless to endless
+	if (!endless_mode) {
+		endless_mode = true;
+		component_set_color(endless_button, DARKGRAY, WHITE);
+	}
+	// from endless to non-endless
+	else {
+		endless_mode = false;
+		component_set_color(endless_button, WHITE, DARKGRAY);
+	}
 }
 
 static void index_maps(void)
