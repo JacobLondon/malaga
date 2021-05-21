@@ -27,6 +27,7 @@ typedef struct ko_tag {
 	              rate, then use the next frame of the animation */
 	int frame; /* the frame number the animation is in */
 	int state;
+	int laststate; // index
 } ko;
 
 ko *ko_new(void)
@@ -41,7 +42,7 @@ void ko_del(ko *self)
 {
 	int i;
 	assert(self);
-	for (i = 0; i < STATES_MAX; i++) {
+	for (i = 0; i < self->laststate; i++) {
 		if (self->objects[i]) {
 			so_del(self->objects[i]);
 		}
@@ -56,18 +57,19 @@ void ko_reset(ko *self)
 	assert(self);
 	self->frame = 0;
 	self->state = 0;
-	for (i = 0; i < STATES_MAX; i++) {
+	for (i = 0; i < self->laststate; i++) {
 		if (self->objects[i]) {
 			anim_reset(so_get_anim(self->objects[i]));
-			// I own
-			if (self->mykeys[i] == true) {
-				self->keys[i] = NULL;
-			}
-			// I don't own, global
-			else {
-				// should already be valid, objects[i] exists
-				*self->keys[i] = false;
-			}
+		}
+
+		// I own
+		if (self->mykeys[i]) {
+			self->keys[i] = NULL;
+		}
+		// I don't own, global
+		else {
+			// should already be valid, objects[i] exists
+			*self->keys[i] = false;
 		}
 	}
 }
@@ -86,33 +88,34 @@ ko *ko_copy(ko *self)
 
 void ko_add_rate(ko *self, so *object, ko_cb cb_state, bool *key, float animation_rate)
 {
-	int i;
-
 	assert(self);
 	assert(cb_state);
-	
-	for (i = 0; i < STATES_MAX; i++) {
-		if (self->objects[i] == NULL) {
-			self->objects[i] = object;
-			self->state_cbs[i] = cb_state;
-			if (key) {
-				self->keys[i] = key;
-			}
-			else {
-				self->mykeys[i] = true;
-			}
-			self->rates[i] = animation_rate;
-			break;
-		}
+
+
+	self->objects[self->laststate] = object;
+	self->state_cbs[self->laststate] = cb_state;
+	if (key) {
+		self->keys[self->laststate] = key;
+		self->mykeys[self->laststate] = false;
 	}
-	msg_assert(i < STATES_MAX, "Too many object keys: %d", i);
+	else {
+		self->mykeys[self->laststate] = true;
+	}
+	self->rates[self->laststate] = animation_rate;
+
+	self->laststate++;
+	msg_assert(self->laststate < STATES_MAX, "Too many object keys: %d", self->laststate);
 }
 
 bool ko_update(ko *self)
 {
+	so *object;
+	ko_cb cb;
 	assert(self);
-	ko_cb cb = self->state_cbs[self->state];
-	cb(self, self->objects[self->state]);
+
+	object = self->objects[self->state];
+	cb = self->state_cbs[self->state];
+	cb(self, object);
 
 	// done with state, go to next one
 	if (ko_get_key(self)) {
@@ -120,21 +123,22 @@ bool ko_update(ko *self)
 		self->oof = 0.0f;
 		self->state++;
 
-		if (self->state > STATES_MAX || self->objects[self->state] == NULL) {
+		object = self->objects[self->state];
+		if (self->state >= self->laststate) {
 			ko_reset(self);
 			return true;
 		}
 	}
 
 	// update object if necessary
-	if (self->objects[self->state]) {
-		so_draw(self->objects[self->state]);
-		so_update(self->objects[self->state]);
+	if (object) {
+		so_draw(object);
+		so_update(object);
 	}
 
 	if (self->oof > 1.0f / self->rates[self->state]) {
-		if (self->objects[self->state]) {
-			anim_update(so_get_anim(self->objects[self->state]));
+		if (object) {
+			anim_update(so_get_anim(object));
 		}
 		self->oof = 0.0f;
 		self->frame++;
@@ -148,8 +152,8 @@ bool ko_get_key(ko *self)
 	assert(self);
 
 	// I own
-	if (self->mykeys[self->state] == true) {
-		return self->keys[self->state] != NULL;
+	if (self->mykeys[self->state]) {
+		return (bool)self->keys[self->state]; // yeah it's weird but right
 	}
 	// I don't own, global
 	else {
@@ -163,7 +167,7 @@ void ko_set_key(ko *self, bool key)
 	assert(self);
 
 	// I own
-	if (self->mykeys[self->state] == true) {
+	if (self->mykeys[self->state]) {
 		self->keys[self->state] = (void *)key;
 	}
 	// I don't own, global
@@ -191,10 +195,16 @@ int ko_get_max_frames(ko *self)
 void ko_set_pos(ko *self, int x, int y)
 {
 	int i;
+	so *s;
 	assert(self);
 	for (i = 0; i < STATES_MAX; i++) {
-		if (self->objects[i]) {
-			so_set_pos(self->objects[i], x, y);
+		s = self->objects[i];
+		if (s) {
+			so_set_pos(
+				s,
+				x - anim_get_width(so_get_anim(s)) / 2,
+				y - anim_get_height(so_get_anim(s)) / 2
+			);
 		}
 	}
 }

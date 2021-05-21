@@ -3,6 +3,9 @@
 * Powerups and drops
 * Level select with high score stored in level file
 * Flashlight mode
+* God mode
+* Make new so_cb_strobe
+  * and a new mode called solar flare mode
 
 # Raylib Installation
 * Linux: libraylib.a into /usr/local/lib/

@@ -64,7 +64,6 @@ static enemy_move_lookup move_lookup[] = {
 static player_data player;
 static texture_manager texman;
 static anim_man *animan;
-static key_manager keyman;
 
 /**
  * Enemy Prototypes
@@ -624,9 +623,6 @@ static void detonations_init(void)
 	ko *k;
 	int i;
 
-	use_detonations = false;
-	return;
-
 	snprintf(path, sizeof(path), "%s/%s", context_get_assetdir(), "explosion.png");
 	if (!FileExists(path)) {
 		use_detonations = false;
@@ -638,10 +634,10 @@ static void detonations_init(void)
 	for (i = 0; i < ARRAY_SIZE(detonation_objects); i++) {
 		s = so_new_own(anim_new(explosion, 4, 4));
 		// set off screen to start with
-		so_set_pos(s, screen_width + 10, 0);
+		so_set_pos(s, screen_width + 20000, 0);
 		k = detonation_objects[i] = ko_new();
 		ko_add(k, NULL, detonation_cb1, &detonation_keys[i]);
-		ko_add_rate(k, s, detonation_cb2, NULL, 20);
+		ko_add_rate(k, s, detonation_cb2, NULL, 10);
 	}
 }
 
@@ -652,25 +648,24 @@ static void detonation_cb1(ko *self, so *object)
 
 static void detonation_cb2(ko *self, so *object)
 {
-	int i;
+	float frame;
+	frame = ko_get_frame(self);
 
 	// animate explosion then move off screen
 	if (ko_get_frame(self) >= ko_get_max_frames(self)) {
 		ko_set_key(self, true);
-		ko_set_pos(self, screen_width + 10, 0);
-		i = (self - *detonation_objects) / ko_sizeof();
-		detonation_keys[i] = false;
+		ko_set_pos(self, screen_width + 20000, 0);
 	}
 }
 
 static void enemy_detonate(enemy_data *self)
 {
-	int i;
+	size_t i;
 	assert(self);
 
 	// get index of the enemy, relating to detonation keys
 	if (use_detonations) {
-		i = (self - enemies) / sizeof(*self);
+		i = (self - enemies);
 		ko_set_pos(detonation_objects[i], self->x, self->y);
 		detonation_keys[i] = true;
 	}
