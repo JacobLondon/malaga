@@ -57,7 +57,7 @@ void scene_man_del(scene_manager *self);
  * statically exists inside the corresponding *.c file
  * 'names' must be NULL terminated and all names MUST
  * exist */
-void scene_man_load_set(scene_manager *self, char *name);
+void scene_man_load_set(scene_manager *self, const char *name);
 void scene_man_load_idx(scene_manager *self, int idx);
 void scene_man_load_rand(scene_manager *self);
 

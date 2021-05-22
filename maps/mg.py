@@ -32,16 +32,33 @@
 
 import sys
 
+header = None
+header_exists = None
 enemies = None
 encounters = None
 groups = None
 
 def Reset():
-    global enemies, encounters, groups
+    global header, header_exists, enemies, encounters, groups
+    header = []
+    header_exists = False
     enemies = ["$enemies"]
     encounters = ["$encounters"]
     groups = ["$sets"]
 Reset()
+
+def Header(**kwargs):
+    global header_exists
+
+    if header_exists:
+        print("ERROR: Only _one_ header may exist per file. Found a second header.")
+        exit(1)
+    header_exists = True
+
+    header.append("**")
+    for key, value in kwargs.items():
+        header.append("%s %s" % (key, value))
+    header.append("**")
 
 class Enemy:
     def __init__(self, name, shoot="straight", move="down", hp=5, speed=1, meta=0, level=0, png=None):
@@ -58,15 +75,14 @@ class Enemy:
     def __repr__(self):
         return """\
 (
-    name %s
-    shoot %s
-    move %s
-    hp %s
-    speed %s
-    meta %s
-    level %s
-%s
-)""" % (self.name, self.shoot, self.move, self.hp, self.speed, self.meta, self.level, "" if self.png is None else "    png %s" % self.png)
+name %s
+shoot %s
+move %s
+hp %s
+speed %s
+meta %s
+level %s%s
+)""" % (self.name, self.shoot, self.move, self.hp, self.speed, self.meta, self.level, "" if self.png is None else "\n    png %s" % self.png)
     def __str__(self):
         return self.__repr__()
 
@@ -80,10 +96,10 @@ class Encounter:
     def __repr__(self):
         return """\
 (
-    name %s
-    time %s
-    x %s
-    y %s
+name %s
+time %s
+x %s
+y %s
 )""" % (self.name, self.time, self.x, self.y)
     def __str__(self):
         return self.__repr__()
@@ -109,6 +125,9 @@ def Produce():
     fp = sys.stdout
     if filename:
         fp = open(filename, "w")
+
+    if header_exists:
+        print("\n".join(str(b) for b in header), file=fp)
 
     print("\n".join(str(b) for b in enemies), file=fp)
     print("\n".join(str(b) for b in encounters), file=fp)

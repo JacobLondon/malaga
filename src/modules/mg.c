@@ -14,7 +14,7 @@ void mg_init(void)
 	component_set_pos(play_button, .5 - .2, .75);
 	component_set_size(play_button, 24, .4, .1);
 	component_set_color(play_button, WHITE, DARKGRAY);
-	atmos_init();
+	atmos_init(NULL);
 }
 
 void mg_cleanup(void)

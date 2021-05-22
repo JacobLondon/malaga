@@ -9,7 +9,8 @@
  * in between different atmosphere sessions.
  */
 
-void atmos_init();
+// specify, use default if not found
+void atmos_init(char *setname);
 void atmos_cleanup(void);
 void atmos_update(void);
 void atmos_draw(void);

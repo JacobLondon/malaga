@@ -3,7 +3,7 @@
 #include "atmos.h"
 #include "data.h"
 
-#define AROUND_SELECTED 6
+#define AROUND_SELECTED 11
 
 static void lselect(void *client);
 static void menu(void *client);
@@ -80,7 +80,7 @@ void levelselect_init(void)
 		component_set_color(invinc_button, DARKGRAY, WHITE);
 	}
 
-	atmos_init();
+	atmos_init(NULL);
 	index_maps();
 }
 
@@ -114,10 +114,11 @@ void levelselect_update(void)
 			}
 		}
 
-		if (rlu_input_key(0, RLU_KEY_DPAD_DOWN, RLU_PRESS_RELEASED)) {
+		int dir = GetMouseWheelMove();
+		if (dir < 0 || rlu_input_key(0, RLU_KEY_DPAD_DOWN, RLU_PRESS_RELEASED)) {
 			mapdir = find_next();
 		}
-		else if (rlu_input_key(0, RLU_KEY_DPAD_UP, RLU_PRESS_RELEASED)) {
+		else if (dir > 0 || rlu_input_key(0, RLU_KEY_DPAD_UP, RLU_PRESS_RELEASED)) {
 			mapdir = find_prev();
 		}
 	}
@@ -126,9 +127,9 @@ void levelselect_update(void)
 void levelselect_draw(void)
 {
 	const int AB = AROUND_SELECTED;
-	const int height = AB * AB;
-	const int fontsize = 20;
-	const int offset = fontsize * AB;
+	const int fontsize = 40;
+	const int height = fontsize;
+	const int offset = (int)(GetScreenHeight() * .3f);
 	int i;
 
 	atmos_draw();
@@ -159,12 +160,12 @@ void levelselect_draw(void)
 			else {
 				const Color c = (Color){
 					.r=255, .g=255, .b=255,
-					.a=(int)(255.0 * 1.0 / (fabs(i) / (double)AB))
+					.a=(int)(255.0 * (1 - (fabs(i) / (double)AB)))
 				};
 				DrawText(
 					get_around(dirndx, i, maplist->size, maplist->buf),
 					GetScreenWidth() / 10,
-					GetScreenHeight() / height * i + offset,
+					GetScreenHeight() * .075 / 1.75 * i + offset,
 					fontsize,
 					c);
 			}

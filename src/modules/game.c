@@ -65,15 +65,12 @@ static enemy_move_lookup move_lookup[] = {
 static player_data player;
 static texture_manager texman;
 static anim_man *animan;
-
-/**
- * Enemy Prototypes
- */
-
 static encounter **encounters;
 
 void game_init(void)
 {
+	struct MapHeader header;
+
 	encounter_clear();
 	screen_height = GetScreenHeight();
 	screen_width = GetScreenWidth();
@@ -99,14 +96,15 @@ void game_init(void)
 	if (game_data.mapdir[0] == 0) {
 		char file[256];
 		snprintf(file, sizeof(file), "%s/%s", DATA_MAPS_DIR, DATA_ASSET_MAP);
-		encounters = map_init(file);
+		encounters = map_init(file, &header);
 	}
 	else {
-		encounters = map_init(game_data.mapdir);
+		encounters = map_init(game_data.mapdir, &header);
 	}
 
 	score_init();
-	atmos_init();
+	atmos_init(header.atmosphere);
+	// TODO: header.music...
 
 	if (game_data.endless_mode) {
 		msg_default("%s ACTIVATED", "ENDLESS MODE");

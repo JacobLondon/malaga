@@ -1,5 +1,9 @@
 from mg import *
 
+Header(
+    atmosphere="Asteroid",
+)
+
 DefineEncounter("encounter_flyby")
 Enemy('leftflyby', shoot='right', speed=7, hp=2, meta=1, level=2)
 Enemy('rightflyby', shoot='left', speed=7, hp=2, meta=1, level=2)
@@ -37,8 +41,8 @@ Encounter('rightdrifter', 1, 0, 0)
 
 DefineEncounter('encounter2')
 Enemy('topstop', move='downsin', speed=4, hp=16, meta=1, level=2)
-Enemy('rightstop', move='horzrightstop', shoot='spin', speed=4, hp=8, meta=1, level=2)
-Enemy('leftstop', move='horzleftstop', shoot='spin', speed=4, hp=8, meta=1, level=2)
+Enemy('rightstop', move='horzrightstop', shoot='spin', speed=4, hp=8, meta=.6, level=2)
+Enemy('leftstop', move='horzleftstop', shoot='spin', speed=4, hp=8, meta=.6, level=2)
 Enemy('superdood', move='downcos', speed=1, hp=10, meta=1, level=2)
 Encounter('topstop', 0, 50, 0)
 Encounter('rightstop', 0, 0, 30)

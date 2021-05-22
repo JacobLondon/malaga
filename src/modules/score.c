@@ -31,7 +31,7 @@ char *score_get_multiplier(void)
 	static char buf[256];
 	static unsigned long long mult_last = 0;
 	if (mult_last != multiplier) {
-		(void)snprintf(buf, sizeof(buf), "x%.2f", (float)multiplier / 100.f);
+		(void)snprintf(buf, sizeof(buf), "x%.2lf", (float)multiplier / 100.0);
 		mult_last = multiplier;
 	}
 	return buf;

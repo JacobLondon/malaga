@@ -28,12 +28,28 @@ static scene_set sets[] = {
 	{NULL}
 };
 
-void atmos_init()
+void atmos_init(char *setname)
 {
+	const char *p = NULL;
+	int i;
+
 	scene_man_new(&manager, scenes, sets);
 	texture_man_new(&textureman);
 
-	scene_man_load_set(&manager, "Asteroid");
+	if (setname) {
+		for (i = 0; sets[i].name != NULL; i++) {
+			if (strcmp(setname, sets[i].name) == 0) {
+				p = sets[i].name;
+				break;
+			}
+		}
+	}
+
+	if (!p) {
+		p = "Default";
+	}
+
+	scene_man_load_set(&manager, p);
 }
 
 void atmos_cleanup(void)

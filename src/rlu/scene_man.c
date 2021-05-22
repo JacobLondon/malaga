@@ -67,14 +67,14 @@ void scene_man_del(struct scene_manager_tag *self)
 	(void)memset(self, 0, sizeof(*self));
 }
 
-void scene_man_load_set(struct scene_manager_tag *self, char *name)
+void scene_man_load_set(struct scene_manager_tag *self, const char *name)
 {
 	int i;
 	assert(self);
 	assert(name);
 
 	for (i = 0; i < self->set_count; i++) {
-		if (streq((char *)self->set_definitions[i].name, name)) {
+		if (streq((char *)self->set_definitions[i].name, (char *)name)) {
 			msg_default("Scene set %s loaded", name);
 			load_names(self, self->set_definitions[i].scene_names);
 			self->set_loaded_idx = i;

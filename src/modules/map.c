@@ -93,14 +93,19 @@ static struct parray *encounters = NULL; // holds encounter_holders
 static struct parray *sets = NULL;
 static int initialized = 0;
 static int used_static_def = 0;
+static struct MapHeader headerinfo;
 
-encounter **map_init(const char *mapfilename)
+encounter **map_init(const char *mapfilename, struct MapHeader *out)
 {
 	assert(initialized == 0);
+	assert(out);
+
 	initialized = 1;
+	memset(&headerinfo, 0, sizeof(headerinfo));
 
 	if (mapfilename == NULL) {
 	static_def:
+		memcpy(out, &headerinfo, sizeof(*out));
 		used_static_def = 1;
 		return default_encounters;
 	}
@@ -121,6 +126,7 @@ encounter **map_init(const char *mapfilename)
 	int holderndx = 0;
 	float real;
 	int whole;
+	bool in_header = false;
 
 	// these must all have been satisfied, or the file is invalid
 	bool found_enemy = false;
@@ -145,6 +151,31 @@ encounter **map_init(const char *mapfilename)
 	state = STATE_BEGIN;
 	for (lineno = 1; fgets(buf, sizeof(buf), fp); lineno++) {
 		if (buf[0] == '#' || buf[0] == '\r' || buf[0] == '\n') {
+			continue;
+		}
+
+		if (buf[0] == '*' && buf[1] == '*') {
+			in_header = !in_header;
+			continue;
+		}
+
+		if (in_header) {
+			if (sscanf(buf, "%s %s", lhs, rhs) == 2) {
+				if (strcmp(lhs, "atmosphere") == 0) {
+					snprintf(headerinfo.atmosphere, sizeof(headerinfo.atmosphere), "%s", rhs);
+				}
+				else if (strcmp(lhs, "music") == 0) {
+					snprintf(headerinfo.music, sizeof(headerinfo.music), "%s", rhs);
+				}
+				else {
+					msg_warning("%s:%zu Unexpected header identifier found `%s'", mapfilename, lineno, buf);
+					goto fail;
+				}
+			}
+			else {
+				msg_warning("%s:%zu Header expected 2 attributes: `LHS RHS' found `%s'", mapfilename, lineno, buf);
+				goto fail;
+			}
 			continue;
 		}
 
@@ -434,6 +465,7 @@ encounter **map_init(const char *mapfilename)
 	parray_push(sets, NULL);
 
 	used_static_def = 0;
+	memcpy(out, &headerinfo, sizeof(*out));
 	msg_default("Map %s loaded", mapfilename);
 	return (encounter **)sets->buf;
 
