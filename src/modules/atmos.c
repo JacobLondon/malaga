@@ -193,7 +193,7 @@ static void init_cb_asteroids(scene *self)
 		for (j = 0; j < 10; j++) {
 			s = so_new(a);
 			so_set_pos(s, GetScreenWidth() * rand_uniform(), GetScreenHeight() * rand_uniform());
-			so_newmov(s, so_cb_loop_down, (i + 1) * .5, NULL);
+			so_newmov(s, so_cb_loop_down, (i + rand_uniform()) * .5, NULL);
 			scene_load_object(self, s);
 		}
 	}

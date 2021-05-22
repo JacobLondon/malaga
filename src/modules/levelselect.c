@@ -9,6 +9,8 @@ static void lselect(void *client);
 static void menu(void *client);
 static void tendless(void *client);
 static void tdamage(void *client);
+static void tinvinc(void *client);
+
 static void index_maps(void);
 static void clear_maps(void);
 static char *get_around(int center, int AB, size_t max, void **buf);
@@ -19,6 +21,7 @@ static button *select_button;
 static button *menu_button;
 static button *endless_button;
 static button *damage_button;
+static button *invinc_button;
 static char *mapdir = "";
 static char **dirfiles = NULL;
 static int dircount = -1;
@@ -27,6 +30,7 @@ static struct parray *maplist; // point into dir files with the correct files
 static bool mapdirexists = false;
 static bool endless_mode = false;
 static bool trouble_mode = false;
+static bool invinc_mode = false;
 
 void levelselect_init(void)
 {
@@ -34,6 +38,7 @@ void levelselect_init(void)
 	menu_button = button_new("MENU", menu, NULL);
 	endless_button = button_new("ENDLESS", tendless, NULL);
 	damage_button = button_new("2x TROUBLE", tdamage, NULL);
+	invinc_button = button_new("INVINCIBLE", tinvinc, NULL);
 	maplist = parray_new(NULL);
 	assert(maplist);
 
@@ -43,11 +48,13 @@ void levelselect_init(void)
 	// modes
 	component_set_size(endless_button, 24, .5, .05);
 	component_set_size(damage_button, 24, .5, .05);
+	component_set_size(invinc_button, 24, .5, .05);
 
 	component_set_pos(select_button, .75, .9);
 	component_set_pos(menu_button, .25, .9);
 	component_set_pos(endless_button, .75, .4);
 	component_set_pos(damage_button, .75, .475);
+	component_set_pos(invinc_button, .75, .55);
 
 	component_set_color(select_button, WHITE, DARKGRAY);
 	component_set_color(menu_button, WHITE, DARKGRAY);
@@ -64,6 +71,13 @@ void levelselect_init(void)
 	}
 	else {
 		component_set_color(damage_button, DARKGRAY, WHITE);
+	}
+
+	if (!invinc_mode) {
+		component_set_color(invinc_button, WHITE, DARKGRAY);
+	}
+	else {
+		component_set_color(invinc_button, DARKGRAY, WHITE);
 	}
 
 	atmos_init();
@@ -86,6 +100,7 @@ void levelselect_update(void)
 	component_update(menu_button);
 	component_update(endless_button);
 	component_update(damage_button);
+	component_update(invinc_button);
 
 	if (IsKeyDown(KEY_R)) {
 		clear_maps();
@@ -121,6 +136,7 @@ void levelselect_draw(void)
 	component_draw(menu_button);
 	component_draw(endless_button);
 	component_draw(damage_button);
+	component_draw(invinc_button);
 
 	// draw around
 	if (dirndx != -1 && mapdirexists) {
@@ -164,6 +180,7 @@ static void lselect(void *client)
 		// load configuration and launch
 		msg.endless_mode = endless_mode;
 		msg.trouble_mode = trouble_mode;
+		msg.god_mode = invinc_mode;
 		if (strlen(mapdir) > 0) {
 			(void)snprintf(msg.mapdir, sizeof(msg.mapdir), "%s/%s", DATA_MAPS_DIR, mapdir);
 		}
@@ -200,6 +217,18 @@ static void tdamage(void *client)
 	else {
 		trouble_mode = false;
 		component_set_color(damage_button, WHITE, DARKGRAY);
+	}
+}
+
+static void tinvinc(void *client)
+{
+	if (!invinc_mode) {
+		invinc_mode = true;
+		component_set_color(invinc_button, DARKGRAY, WHITE);
+	}
+	else {
+		invinc_mode = false;
+		component_set_color(invinc_button, WHITE, DARKGRAY);
 	}
 }
 

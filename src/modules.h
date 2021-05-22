@@ -10,6 +10,7 @@ struct game_message {
 	char mapdir[128];
 	int endless_mode;
 	int trouble_mode;
+	int god_mode;
 };
 
 void game_init(void);

@@ -31,6 +31,7 @@ static void detonation_cb1(ko *self, so *object);
 static void detonation_cb2(ko *self, so *object);
 static void enemy_detonate(enemy_data *self);
 
+static size_t roundno = 0;
 static struct game_message game_data;
 static int encounterndx = ENCOUNTER_DEFAULT;
 static double encounter_starttime = 0.0;
@@ -88,6 +89,8 @@ void game_init(void)
 		player_damage_mult = 1;
 	}
 
+	roundno = 0;
+
 	texture_man_new(&texman);
 	animan = anim_man_new();
 	player_new(&player);
@@ -110,6 +113,9 @@ void game_init(void)
 	}
 	if (game_data.trouble_mode) {
 		msg_default("%s ACTIVATED", "2x TROUBLE MODE");
+	}
+	if (game_data.god_mode) {
+		msg_default("%s ACTIVATED", "GOD MODE");
 	}
 }
 
@@ -271,6 +277,7 @@ void game_update(void)
 void game_draw(void)
 {
 	static char health[128];
+	static char round[64];
 	int i;
 
 	//DrawFPS(20, 20);
@@ -291,19 +298,25 @@ void game_draw(void)
 	}
 
 	// top left
+	const int FONTSIZE = 30;
 	snprintf(health, sizeof(health), "HP %d", player.hp);
-	DrawText(health, 5, 5, 30, WHITE);
+	DrawText(health, 5, 5, FONTSIZE, WHITE);
 
 	// top right
-	DrawText(score_get_string(), screen_width - 5 - MeasureText(score_get_string(), 30), 5, 30, WHITE);
-	DrawText(score_get_multiplier(), screen_width - 5 - MeasureText(score_get_multiplier(), 30), 40, 30, WHITE);
+	snprintf(round, sizeof(round), "Round %zu", roundno);
+	DrawText(round, screen_width - 5 - MeasureText(round, FONTSIZE), 5, FONTSIZE, WHITE);
+	DrawText(score_get_string(), screen_width - 5 - MeasureText(score_get_string(), FONTSIZE), 40, FONTSIZE, WHITE);
+	DrawText(score_get_multiplier(), screen_width - 5 - MeasureText(score_get_multiplier(), FONTSIZE), 75, FONTSIZE, WHITE);
 
 	// bottom right
 	if (game_data.endless_mode) {
-		DrawText("ENDLESS", screen_width - 5 - MeasureText("ENDLESS", 30), screen_height - 30, 30, WHITE);
+		DrawText("ENDLESS", screen_width - 5 - MeasureText("ENDLESS", FONTSIZE), screen_height - FONTSIZE, FONTSIZE, WHITE);
 	}
 	if (game_data.trouble_mode) {
-		DrawText("2x TROUBLE", screen_width - 5 - MeasureText("2x TROUBLE", 30), screen_height - 60, 30, WHITE);
+		DrawText("2x TROUBLE", screen_width - 5 - MeasureText("2x TROUBLE", FONTSIZE), screen_height - 2 * FONTSIZE, FONTSIZE, WHITE);
+	}
+	if (game_data.god_mode) {
+		DrawText("INVINCIBLE", screen_width - 5 - MeasureText("INVINCIBLE", FONTSIZE), screen_height - 3 * FONTSIZE, FONTSIZE, WHITE);
 	}
 
 	if (gamewon && !gamelost) {
@@ -323,6 +336,7 @@ void game_conf(struct game_message *msg)
 	snprintf(game_data.mapdir, sizeof(game_data.mapdir), "%s", msg->mapdir);
 	game_data.endless_mode = msg->endless_mode;
 	game_data.trouble_mode = msg->trouble_mode;
+	game_data.god_mode = msg->god_mode;
 }
 
 static void encounter_clear(void)
@@ -360,7 +374,13 @@ static void encounter_next(void)
 
 	// TODO: Can you shoot an enemy who isn't showing up yet? Sort of, they are just not moving
 	bullet_init(1);
-	score_increase_multiplier();
+
+	// no free lunch
+	if (!game_data.god_mode) {
+		score_increase_multiplier();
+	}
+
+	roundno++;
 	bullet_track_hittable_player(&player);
 	encounterndx++;
 	for (enc = encounters[encounterndx];
@@ -397,9 +417,11 @@ void player_took_damage(player_data *player)
 {
 	int damage;
 	assert(player);
-	score_decrease_multiplier();
 
-	player->hp -= PLAYER_DAMAGE_DEFAULT * player_damage_mult;
+	if (!game_data.god_mode) {
+		score_decrease_multiplier();
+		player->hp -= PLAYER_DAMAGE_DEFAULT * player_damage_mult;
+	}
 }
 
 void enemy_took_damage(enemy_data *enemy)
