@@ -24,5 +24,5 @@ Space shooter, galaga-like game. Note that I don't own these assets, and they wi
   * Easier way to generate all the .mg files
 
 # Raylib Installation
-* Linux: libraylib.a into /usr/local/lib/
-* Windows: Follow Windows installer instruction on the Raylib releases page
+* Linux: cp libraylib.a into /usr/local/lib/ (NOTE: ln -s won't work)
+* Windows: Follow Windows installer instruction on the Raylib releases [page](https://github.com/raysan5/raylib/releases)
