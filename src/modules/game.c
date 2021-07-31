@@ -4,10 +4,11 @@
 #include "map.h"
 #include "score.h"
 #include "atmos.h"
+#include "drop.h"
 
 #define WIN_TEXT "- WINNER -"
 #define LOSE_TEXT "- LOSER -"
-#define PLAYER_SPEED 650
+#define PLAYER_DEFAULT_SPEED 650
 #define PLAYER_SIZE 25
 #define ENEMY_SIZE 35
 #define ENEMIES_MAX 32
@@ -22,6 +23,7 @@ static bool encounter_done(void);
 
 static void player_new(player_data *self);
 static void player_del(player_data *self);
+static void player_eat_drop(player_data *self, item_drop drop);
 static void enemy_new(enemy_data *self, encounter *enc);
 static void enemy_del(enemy_data *self);
 static void detonations_cleanup(void);
@@ -150,7 +152,7 @@ void game_update(void)
 		dir = rlu_input_axis(0, RLU_KEY_STICK_LEFT_X);
 		if (dir < 0) {
 			if ((player.x >= player.width / 2)) {
-				player.x += (GetFrameTime() * PLAYER_SPEED * dir);
+				player.x += (GetFrameTime() * player.speed * dir);
 				if (player.x < player.width / 2) {
 					player.x = player.width / 2;
 				}
@@ -162,7 +164,7 @@ void game_update(void)
 		else if (dir > 0)
 		{
 			if (player.x + player.width / 2 <= screen_width) {
-				player.x += (GetFrameTime() * PLAYER_SPEED * dir);
+				player.x += (GetFrameTime() * player.speed * dir);
 				if (player.x + player.width / 2 > screen_width) {
 					player.x = screen_width - player.width / 2;
 				}
@@ -175,7 +177,7 @@ void game_update(void)
 		dir = rlu_input_axis(0, RLU_KEY_STICK_LEFT_Y);
 		if (dir < 0) {
 			if ((player.y >= player.height / 2)) {
-				player.y += (GetFrameTime() * PLAYER_SPEED * dir);
+				player.y += (GetFrameTime() * player.speed * dir);
 				if (player.y < player.height / 2) {
 					player.y = player.height / 2;
 				}
@@ -187,7 +189,7 @@ void game_update(void)
 		else if (dir > 0)
 		{
 			if (player.y + player.height / 2 <= screen_height) {
-				player.y += (GetFrameTime() * PLAYER_SPEED * dir);
+				player.y += (GetFrameTime() * player.speed * dir);
 				if (player.y + player.height / 2 > screen_height) {
 					player.y = screen_height - player.height / 2;
 				}
@@ -211,6 +213,19 @@ void game_update(void)
 	if (IsKeyPressed(KEY_ENTER)) {
 		context_push("PAUSE");
 	}
+
+	if (IsKeyPressed(KEY_F1)) player_eat_drop(&player, drop_bullet(BULLET_PLAYER_STRAIGHT));
+	else if (IsKeyPressed(KEY_F2)) player_eat_drop(&player, drop_bullet(BULLET_PLAYER_LEFT));
+	else if (IsKeyPressed(KEY_F3)) player_eat_drop(&player, drop_bullet(BULLET_PLAYER_RIGHT));
+	else if (IsKeyPressed(KEY_F4)) player_eat_drop(&player, drop_bullet(BULLET_PLAYER_SPIN));
+	else if (IsKeyPressed(KEY_F5)) player_eat_drop(&player, drop_bullet(BULLET_PLAYER_FLOWER));
+	else if (IsKeyPressed(KEY_F6)) player_eat_drop(&player, drop_bullet(BULLET_PLAYER_SIN));
+	else if (IsKeyPressed(KEY_F7)) player_eat_drop(&player, drop_bullet(BULLET_PLAYER_SIN_WIDE));
+	else if (IsKeyPressed(KEY_F8)) player_eat_drop(&player, drop_bullet(BULLET_PLAYER_COS));
+	else if (IsKeyPressed(KEY_F9)) player_eat_drop(&player, drop_bullet(BULLET_PLAYER_COS_WIDE));
+	else if (IsKeyPressed(KEY_F10)) player_eat_drop(&player, drop_bullet(BULLET_PLAYER_BIG));
+	else if (IsKeyPressed(KEY_F11)) player_eat_drop(&player, drop_bullet(BULLET_PLAYER_BEAM));
+	else if (IsKeyPressed(KEY_F12)) player_eat_drop(&player, drop_bullet(BULLET_PLAYER_PARABOLA));
 
 	/*if (IsGamepadAvailable(0)) {
 		if (GetGamepadButtonPressed() != -1) DrawText(TextFormat("DETECTED BUTTON: %i", GetGamepadButtonPressed()), 10, 430, 10, RED);
@@ -470,7 +485,8 @@ static void player_new(player_data *self)
 	self->shoot = bullet_player_sin_wide;
 	self->shotperiod = bullet_lookup_timeout(self->shoot);
 	self->hp = 30;
-	self->level = 2;
+	self->speed = PLAYER_DEFAULT_SPEED;
+	self->level = 0;
 	tex = texture_man_load_or_default(&texman, buf, TEXTURE_GEN(PLAYER_SIZE, PLAYER_SIZE, BLUE));
 	self->width = tex->width;
 	self->height = tex->height;
@@ -490,6 +506,27 @@ static void player_del(player_data *self)
 	if (self->object) {
 		so_del(self->object);
 		self->object = NULL;
+	}
+}
+
+static void player_eat_drop(player_data *self, item_drop drop)
+{
+	assert(self);
+	switch (drop.type) {
+	case DROP_LEVEL:
+		self->level += drop.spec.level_amount;
+		break;
+	case DROP_BULLET:
+		self->shoot = bullet_lookup_shoot((char *)drop_to_string(&drop));
+		break;
+	case DROP_HEALTH:
+		self->hp += drop.spec.health_amount;
+		break;
+	case DROP_SPEED:
+		self->speed += drop.spec.speed_amount;
+		break;
+	default:
+		msg_assert(0, "Invalid path");
 	}
 }
 

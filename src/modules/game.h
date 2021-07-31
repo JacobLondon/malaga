@@ -23,6 +23,7 @@ typedef struct player_data_tag {
 	int height;
 	int hp;
 	// end HITTABLE_OBJECT
+	int speed; // move speed
 	int level;
 	shoot_func shoot;
 	float lastshottime;

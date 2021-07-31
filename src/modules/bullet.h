@@ -22,6 +22,22 @@ typedef struct bullet_data_tag {
 
 typedef void (* shoot_func)(int x, int y, int level);
 
+enum bullet_player_enum {
+	BULLET_PLAYER_STRAIGHT,
+	BULLET_PLAYER_LEFT,
+	BULLET_PLAYER_RIGHT,
+	BULLET_PLAYER_SPIN,
+	BULLET_PLAYER_FLOWER,
+	BULLET_PLAYER_SIN,
+	BULLET_PLAYER_SIN_WIDE,
+	BULLET_PLAYER_COS,
+	BULLET_PLAYER_COS_WIDE,
+	BULLET_PLAYER_BIG,
+	BULLET_PLAYER_BEAM,
+	BULLET_PLAYER_PARABOLA,
+	BULLET_PLAYER_COUNT,
+};
+
 void bullet_init(int nplayers);
 void bullet_cleanup(void);
 void bullet_clear(void);
@@ -31,6 +47,7 @@ void bullet_draw(void);
 // all bullet_[enemy|player].* Really only do once on load then save result
 float bullet_lookup_timeout(shoot_func bullet_func);
 shoot_func bullet_lookup_shoot(char *name);
+const char *bullet_lookup_id(int id);
 
 // will decrement the HP, untrack automatically hit HP <= 0 or offscreen (player should never be removed)
 void bullet_track_hittable_enemy(void *hittable);

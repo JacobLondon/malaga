@@ -1,5 +1,5 @@
 **
-atmosphere Asteroid
+atmosphere Default
 **
 $enemies
 (
