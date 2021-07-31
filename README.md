@@ -13,6 +13,7 @@ Space shooter, galaga-like game. Note that I don't own these assets, and they wi
 * Default sprites if some or all are missing
 
 # TODO
+* Flower which spins
 * Make more levels
 * Powerups and drops
 * Level select with high score stored in level file
