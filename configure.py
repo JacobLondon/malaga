@@ -12,7 +12,7 @@ if OS in ("Linux", "Darwin"):
     print("""\
 CC=gcc
 LDFLAGS = -std=c99 -Wall -Iexternal -DPLATFORM_DESKTOP
-CFLAGS = -lraylib -lm -lpthread -ldl -Iinclude -Wall -ggdb
+CFLAGS = -lraylib -lm -lpthread -ldl -Iinclude -Wall -ggdb -Wno-format-truncation -Wno-missing-braces
 TARGET = test
 REMOVE = rm -f
 

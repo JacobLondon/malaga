@@ -214,18 +214,27 @@ void game_update(void)
 		context_push("PAUSE");
 	}
 
-	if (IsKeyPressed(KEY_F1)) player_eat_drop(&player, drop_bullet(BULLET_PLAYER_STRAIGHT));
-	else if (IsKeyPressed(KEY_F2)) player_eat_drop(&player, drop_bullet(BULLET_PLAYER_LEFT));
-	else if (IsKeyPressed(KEY_F3)) player_eat_drop(&player, drop_bullet(BULLET_PLAYER_RIGHT));
-	else if (IsKeyPressed(KEY_F4)) player_eat_drop(&player, drop_bullet(BULLET_PLAYER_SPIN));
-	else if (IsKeyPressed(KEY_F5)) player_eat_drop(&player, drop_bullet(BULLET_PLAYER_FLOWER));
-	else if (IsKeyPressed(KEY_F6)) player_eat_drop(&player, drop_bullet(BULLET_PLAYER_SIN));
-	else if (IsKeyPressed(KEY_F7)) player_eat_drop(&player, drop_bullet(BULLET_PLAYER_SIN_WIDE));
-	else if (IsKeyPressed(KEY_F8)) player_eat_drop(&player, drop_bullet(BULLET_PLAYER_COS));
-	else if (IsKeyPressed(KEY_F9)) player_eat_drop(&player, drop_bullet(BULLET_PLAYER_COS_WIDE));
-	else if (IsKeyPressed(KEY_F10)) player_eat_drop(&player, drop_bullet(BULLET_PLAYER_BIG));
-	else if (IsKeyPressed(KEY_F11)) player_eat_drop(&player, drop_bullet(BULLET_PLAYER_BEAM));
-	else if (IsKeyPressed(KEY_F12)) player_eat_drop(&player, drop_bullet(BULLET_PLAYER_PARABOLA));
+	if      (IsKeyPressed(KEY_ONE))   player_eat_drop(&player, drop_bullet(BULLET_PLAYER_STRAIGHT));
+	else if (IsKeyPressed(KEY_TWO))   player_eat_drop(&player, drop_bullet(BULLET_PLAYER_LEFT));
+	else if (IsKeyPressed(KEY_THREE)) player_eat_drop(&player, drop_bullet(BULLET_PLAYER_RIGHT));
+	else if (IsKeyPressed(KEY_FOUR))  player_eat_drop(&player, drop_bullet(BULLET_PLAYER_SPIN));
+	else if (IsKeyPressed(KEY_FIVE))  player_eat_drop(&player, drop_bullet(BULLET_PLAYER_FLOWER));
+	else if (IsKeyPressed(KEY_SIX))   player_eat_drop(&player, drop_bullet(BULLET_PLAYER_SIN));
+	else if (IsKeyPressed(KEY_SEVEN)) player_eat_drop(&player, drop_bullet(BULLET_PLAYER_SIN_WIDE));
+	else if (IsKeyPressed(KEY_EIGHT)) player_eat_drop(&player, drop_bullet(BULLET_PLAYER_COS));
+	else if (IsKeyPressed(KEY_NINE))  player_eat_drop(&player, drop_bullet(BULLET_PLAYER_COS_WIDE));
+	else if (IsKeyPressed(KEY_ZERO))  player_eat_drop(&player, drop_bullet(BULLET_PLAYER_BIG));
+	else if (IsKeyPressed(KEY_MINUS)) player_eat_drop(&player, drop_bullet(BULLET_PLAYER_BEAM));
+	else if (IsKeyPressed(KEY_EQUAL)) player_eat_drop(&player, drop_bullet(BULLET_PLAYER_PARABOLA));
+
+	if (IsKeyPressed(KEY_PERIOD)) {
+		player.level += 1;
+	}
+	else if (IsKeyPressed(KEY_COMMA)) {
+		if (player.level - 1 >= 0) {
+			player.level -= 1;
+		}
+	}
 
 	/*if (IsGamepadAvailable(0)) {
 		if (GetGamepadButtonPressed() != -1) DrawText(TextFormat("DETECTED BUTTON: %i", GetGamepadButtonPressed()), 10, 430, 10, RED);
@@ -291,6 +300,7 @@ void game_draw(void)
 {
 	static char health[128];
 	static char round[64];
+	static char shoot[128];
 	int i;
 
 	//DrawFPS(20, 20);
@@ -331,6 +341,10 @@ void game_draw(void)
 	if (game_data.god_mode) {
 		DrawText("INVINCIBLE", screen_width - 5 - MeasureText("INVINCIBLE", FONTSIZE), screen_height - 3 * FONTSIZE, FONTSIZE, WHITE);
 	}
+
+	// bottom left
+	snprintf(shoot, sizeof(shoot), "%s: %d", &player.shoot_name[sizeof("player_bullet")], player.level);
+	DrawText(shoot, 5, screen_height - FONTSIZE - 5, FONTSIZE, WHITE);
 
 	if (gamewon && !gamelost) {
 		DrawRectangle(GetScreenWidth() / 2 - MeasureText(WIN_TEXT, 40) / 2, GetScreenHeight() / 4, MeasureText(WIN_TEXT, 40), 40, BLACK);
@@ -476,13 +490,18 @@ enemy_move_func lookup_enemy_move(char *name)
 
 static void player_new(player_data *self)
 {
+	item_drop shooter_drop;
 	char buf[256];
 	Texture2D *tex;
 	assert(self);
+
 	snprintf(buf, sizeof(buf), "%s/%s", context_get_assetdir(), DATA_ASSET_PLAYER);
 	self->x = screen_width / 2;
 	self->y = screen_height * 3 / 4;
-	self->shoot = bullet_player_sin_wide;
+
+	shooter_drop = drop_bullet(BULLET_PLAYER_STRAIGHT);
+	self->shoot = bullet_lookup_shoot(drop_to_string(&shooter_drop));
+	self->shoot_name = drop_to_string(&shooter_drop);
 	self->shotperiod = bullet_lookup_timeout(self->shoot);
 	self->hp = 30;
 	self->speed = PLAYER_DEFAULT_SPEED;
@@ -511,13 +530,16 @@ static void player_del(player_data *self)
 
 static void player_eat_drop(player_data *self, item_drop drop)
 {
+	char *tmp;
 	assert(self);
 	switch (drop.type) {
 	case DROP_LEVEL:
 		self->level += drop.spec.level_amount;
 		break;
 	case DROP_BULLET:
-		self->shoot = bullet_lookup_shoot((char *)drop_to_string(&drop));
+		tmp = (char *)drop_to_string(&drop);
+		self->shoot = bullet_lookup_shoot(tmp);
+		self->shoot_name = tmp;
 		break;
 	case DROP_HEALTH:
 		self->hp += drop.spec.health_amount;

@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <rlu/rlu.h>
 #include "bullet.h"
 #include "score.h"
@@ -36,7 +37,7 @@ typedef struct wrapper_tag {
 	Texture2D *tex;
 } wrapper;
 
-#define DEFINE_WRAPPER(SHOOT_FUNC, MOVE_FUNC, HITTABLES, WIDTH, HEIGHT, TIMEOUT) \
+#define DEFINE_WRAPPER_NAME(NAME, SHOOT_FUNC, MOVE_FUNC, HITTABLES, WIDTH, HEIGHT, TIMEOUT) \
 { \
 	.move=(move_func)(MOVE_FUNC), \
 	.array=(HITTABLES), \
@@ -47,8 +48,11 @@ typedef struct wrapper_tag {
 	.bullets={0}, \
 	.timeout=(TIMEOUT), \
 	.shoot=(SHOOT_FUNC), \
-	.name=#SHOOT_FUNC, \
+	.name=NAME, \
 }
+
+#define DEFINE_WRAPPER(SHOOT_FUNC, MOVE_FUNC, HITTABLES, WIDTH, HEIGHT, TIMEOUT) \
+	DEFINE_WRAPPER_NAME(#SHOOT_FUNC, SHOOT_FUNC, MOVE_FUNC, HITTABLES, WIDTH, HEIGHT, TIMEOUT)
 
 static void wrapper_init(wrapper *self);
 static void wrapper_update(wrapper *self);
@@ -78,8 +82,8 @@ static wrapper wrap_enemy_spin      = DEFINE_WRAPPER(bullet_enemy_spin,      mov
 static wrapper wrap_enemy_flower    = DEFINE_WRAPPER(bullet_enemy_flower,    move_straight, players, 20, 20, SHOOT_INT);
 static wrapper wrap_enemy_sin       = DEFINE_WRAPPER(bullet_enemy_sin,       move_sin,      players, 20, 20, SHOOT_INT);
 static wrapper wrap_enemy_sin_wide  = DEFINE_WRAPPER(bullet_enemy_sin_wide,  move_sin_wide, players, 20, 20, SHOOT_INT);
-static wrapper wrap_enemy_cos       = DEFINE_WRAPPER(bullet_enemy_sin,       move_cos,      players, 20, 20, SHOOT_INT);
-static wrapper wrap_enemy_cos_wide  = DEFINE_WRAPPER(bullet_enemy_sin_wide,  move_cos_wide, players, 20, 20, SHOOT_INT);
+static wrapper wrap_enemy_cos       = DEFINE_WRAPPER_NAME("bullet_enemy_cos",      bullet_enemy_sin,       move_cos,      players, 20, 20, SHOOT_INT);
+static wrapper wrap_enemy_cos_wide  = DEFINE_WRAPPER_NAME("bullet_enemy_cos_wide", bullet_enemy_sin_wide,  move_cos_wide, players, 20, 20, SHOOT_INT);
 static wrapper wrap_enemy_big       = DEFINE_WRAPPER(bullet_enemy_big,       move_big,      players, 20, 20, SHOOT_SLOW);
 static wrapper wrap_enemy_beam      = DEFINE_WRAPPER(bullet_enemy_beam,      move_beam,     players, 20, 20, SHOOT_FAST);
 
@@ -90,11 +94,11 @@ static wrapper wrap_player_spin     = DEFINE_WRAPPER(bullet_player_spin,     mov
 static wrapper wrap_player_flower   = DEFINE_WRAPPER(bullet_player_flower,   move_straight, enemies, 20, 20, SHOOT_FAST);
 static wrapper wrap_player_sin      = DEFINE_WRAPPER(bullet_player_sin,      move_sin,      enemies, 20, 20, SHOOT_FAST);
 static wrapper wrap_player_sin_wide = DEFINE_WRAPPER(bullet_player_sin_wide, move_sin_wide, enemies, 20, 20, SHOOT_FAST);
-static wrapper wrap_player_cos      = DEFINE_WRAPPER(bullet_player_sin,      move_cos,      enemies, 20, 20, SHOOT_FAST);
-static wrapper wrap_player_cos_wide = DEFINE_WRAPPER(bullet_player_sin_wide, move_cos_wide, enemies, 20, 20, SHOOT_FAST);
+static wrapper wrap_player_cos      = DEFINE_WRAPPER_NAME("bullet_player_cos",      bullet_player_sin,      move_cos,      enemies, 20, 20, SHOOT_FAST);
+static wrapper wrap_player_cos_wide = DEFINE_WRAPPER_NAME("bullet_player_cos_wide", bullet_player_sin_wide, move_cos_wide, enemies, 20, 20, SHOOT_FAST);
 static wrapper wrap_player_big      = DEFINE_WRAPPER(bullet_player_big,      move_big,      enemies, 20, 20, SHOOT_FAST);
-static wrapper wrap_player_beam     = DEFINE_WRAPPER(bullet_player_beam,     move_beam,     enemies, 20, 20, SHOOT_FAST);
-static wrapper wrap_player_parabola = DEFINE_WRAPPER(bullet_player_parabola, move_parabola, enemies, 20, 20, SHOOT_FAST);
+static wrapper wrap_player_beam     = DEFINE_WRAPPER(bullet_player_beam,     move_beam,     enemies, 20, 20, 0.01);
+static wrapper wrap_player_parabola = DEFINE_WRAPPER(bullet_player_parabola, move_parabola, enemies, 20, 20, SHOOT_INT);
 
 static wrapper *wrappers[] = {
 	&wrap_enemy_straight,
@@ -301,6 +305,8 @@ shoot_func bullet_lookup_shoot(char *name)
 			return wrappers[i]->shoot;
 		}
 	}
+
+	msg_assert(0, "Could not find %s in bullet_lookup_shoot", name);
 	return NULL;
 }
 
@@ -321,10 +327,7 @@ const char *bullet_lookup_id(int id)
 		[BULLET_PLAYER_PARABOLA] = "bullet_player_parabola",
 	};
 
-	if (id < 0 || id >= BULLET_PLAYER_COUNT) {
-		return NULL;
-	}
-
+	msg_assert(id >= 0 && id < BULLET_PLAYER_COUNT, "Invalid bullet_lookup_id");
 	return player_bullet_list[id];
 }
 
@@ -395,8 +398,8 @@ static void move_cos_wide(bullet_data *bullet)
 static void move_big(bullet_data *bullet)
 {
 	assert(bullet);
-	bullet->x += frametime * 0.33 * VEL_STRAIGHT * fast_fcosf(bullet->direction);
-	bullet->y += frametime * 0.33 * VEL_STRAIGHT * -fast_fsinf(bullet->direction);
+	bullet->x += frametime * VEL_STRAIGHT * fast_fcosf(bullet->direction);
+	bullet->y += frametime * VEL_STRAIGHT * -fast_fsinf(bullet->direction);
 }
 
 static void move_beam(bullet_data *bullet)
@@ -429,7 +432,7 @@ static void move_parabola(bullet_data *bullet)
 		const float deltax = 1.5f; // trust me, this is correct for this.
 		const float deltay = m;
 		bullet->x += 100.f * deltax * frametime;
-		bullet->y -= 100.f * deltay * frametime;
+		bullet->y -= 50.f * deltay * frametime;
 	}
 	else if (bullet->direction == 2.f) {
 		// left
@@ -438,7 +441,7 @@ static void move_parabola(bullet_data *bullet)
 		const float deltax = -1.f; // this one too
 		const float deltay = m;
 		bullet->x += 100.f * deltax * frametime;
-		bullet->y -= 100.f * deltay * frametime;
+		bullet->y -= 50.f * deltay * frametime;
 	}
 	// enemy
 	else if (bullet->direction == -1.f) {
@@ -485,21 +488,32 @@ void bullet_enemy_right(int x, int y, int level)
 
 void bullet_enemy_spin(int x, int y, int level)
 {
+	wrapper *wrap = &wrap_enemy_spin;
 	float angle;
-	switch (level) {
-	case 1:
-		angle = fmod(now, PI);
-	default:
-	case 0:
-		angle = fmod(now, 2 * PI);
-	}
 
-	insert_bullet(x, y, angle, &wrap_enemy_spin);
+	switch (level) {
+	default:
+		angle = fmod(now + 2, PI) + PI;
+		insert_bullet(x, y, angle, wrap);
+	case 3: // fallthrough
+		angle = fmod(now + 1.5, PI) + PI;
+		insert_bullet(x, y, angle, wrap);
+	case 2: // fallthrough
+		angle = fmod(now + 1, PI) + PI;
+		insert_bullet(x, y, angle, wrap);
+	case 1: // fallthrough
+		angle = fmod(now + 0.5, PI) + PI;
+		insert_bullet(x, y, angle, wrap);
+	case 0: // fallthrough
+		angle = fmod(now, PI) + PI;
+		insert_bullet(x, y, angle, wrap);
+	}
 }
 
 void bullet_enemy_flower(int x, int y, int level)
 {
 	switch (level) {
+	default: // fallthrough
 	case 2:
 		insert_bullet(x, y, 0, &wrap_enemy_flower);
 		insert_bullet(x, y, PI / 2.f, &wrap_enemy_flower);
@@ -507,12 +521,11 @@ void bullet_enemy_flower(int x, int y, int level)
 		insert_bullet(x, y, PI * 3.f / 2.f, &wrap_enemy_flower);
 		// fallthrough
 	case 1: // X
-		insert_bullet(x, y, 0, &wrap_enemy_flower);
-		insert_bullet(x, y, PI / 2.f, &wrap_enemy_flower);
-		insert_bullet(x, y, PI, &wrap_enemy_flower);
-		insert_bullet(x, y, PI * 3.f / 2.f, &wrap_enemy_flower);
+		insert_bullet(x, y, PI / 4.f, &wrap_player_flower);
+		insert_bullet(x, y, 3.f * PI / 4.f, &wrap_player_flower);
+		insert_bullet(x, y, 5.f * PI / 4.f, &wrap_player_flower);
+		insert_bullet(x, y, 7.f * PI / 4.f, &wrap_player_flower);
 		break;
-	default: // fallthrough
 	case 0: // +
 		insert_bullet(x, y, 0, &wrap_enemy_flower);
 		insert_bullet(x, y, PI / 2.f, &wrap_enemy_flower);
@@ -525,16 +538,24 @@ void bullet_enemy_flower(int x, int y, int level)
 // straight bullets, shot by player
 void bullet_player_straight(int x, int y, int level)
 {
+	wrapper *wrap = &wrap_player_straight;
 	switch (level) {
-	case 2:
-		insert_bullet(x, y - SIZE_STRAIGHT_HEIGHT, PI / 2.f, &wrap_player_straight);
-	case 1: // fallthrough
-		insert_bullet(x, y - SIZE_STRAIGHT_HEIGHT, PI / 3.f, &wrap_player_straight);
-		insert_bullet(x, y - SIZE_STRAIGHT_HEIGHT, PI * 2.f / 3.f, &wrap_player_straight);
-		break;
 	default: // fallthrough
+		insert_bullet(x, y - SIZE_STRAIGHT_HEIGHT, PI / 2.f, wrap);
+	case 3: // fallthrough
+		insert_bullet(x, y - SIZE_STRAIGHT_HEIGHT, PI / 6.f, wrap);
+		insert_bullet(x, y - SIZE_STRAIGHT_HEIGHT, PI / 3.f, wrap);
+		insert_bullet(x, y - SIZE_STRAIGHT_HEIGHT, PI * 2.f / 3.f, wrap);
+		insert_bullet(x, y - SIZE_STRAIGHT_HEIGHT, PI * 5.f / 6.f, wrap);
+		break;
+	case 2:
+		insert_bullet(x, y - SIZE_STRAIGHT_HEIGHT, PI / 2.f, wrap);
+	case 1: // fallthrough
+		insert_bullet(x, y - SIZE_STRAIGHT_HEIGHT, PI / 3.f, wrap);
+		insert_bullet(x, y - SIZE_STRAIGHT_HEIGHT, PI * 2.f / 3.f, wrap);
+		break;
 	case 0:
-		insert_bullet(x, y - SIZE_STRAIGHT_HEIGHT, PI / 2.f, &wrap_player_straight);
+		insert_bullet(x, y - SIZE_STRAIGHT_HEIGHT, PI / 2.f, wrap);
 	}
 }
 
@@ -550,14 +571,31 @@ void bullet_player_right(int x, int y, int level)
 
 void bullet_player_spin(int x, int y, int level)
 {
-	float angle = fmod(now, 2 * PI);
+	float angle;
 
-	insert_bullet(x, y, angle, &wrap_player_spin);
+	switch (level) {
+	default:
+		angle = fmod(now + 2, PI);
+		insert_bullet(x, y, angle, &wrap_player_spin);
+	case 3: // fallthrough
+		angle = fmod(now + 1.5, PI);
+		insert_bullet(x, y, angle, &wrap_player_spin);
+	case 2: // fallthrough
+		angle = fmod(now + 1, PI);
+		insert_bullet(x, y, angle, &wrap_player_spin);
+	case 1: // fallthrough
+		angle = fmod(now + 0.5, PI);
+		insert_bullet(x, y, angle, &wrap_player_spin);
+	case 0: // fallthrough
+		angle = fmod(now, PI);
+		insert_bullet(x, y, angle, &wrap_player_spin);
+	}
 }
 
 void bullet_player_flower(int x, int y, int level)
 {
 	switch (level) {
+	default: // fallthrough
 	case 2:
 		insert_bullet(x, y, 0, &wrap_player_flower);
 		insert_bullet(x, y, PI / 2.f, &wrap_player_flower);
@@ -565,12 +603,11 @@ void bullet_player_flower(int x, int y, int level)
 		insert_bullet(x, y, PI * 3.f / 2.f, &wrap_player_flower);
 		// fallthrough
 	case 1: // X
-		insert_bullet(x, y, 0, &wrap_player_flower);
-		insert_bullet(x, y, PI / 2.f, &wrap_player_flower);
-		insert_bullet(x, y, PI, &wrap_player_flower);
-		insert_bullet(x, y, PI * 3.f / 2.f, &wrap_player_flower);
+		insert_bullet(x, y, PI / 4.f, &wrap_player_flower);
+		insert_bullet(x, y, 3.f * PI / 4.f, &wrap_player_flower);
+		insert_bullet(x, y, 5.f * PI / 4.f, &wrap_player_flower);
+		insert_bullet(x, y, 7.f * PI / 4.f, &wrap_player_flower);
 		break;
-	default: // fallthrough
 	case 0: // +
 		insert_bullet(x, y, 0, &wrap_player_flower);
 		insert_bullet(x, y, PI / 2.f, &wrap_player_flower);
@@ -584,11 +621,11 @@ void bullet_player_flower(int x, int y, int level)
 void bullet_enemy_sin(int x, int y, int level)
 {
 	switch (level) {
-	case 2:
+	default: // fallthrough
+	case 2: // fallthrough
 		insert_bullet(x, y - SIZE_STRAIGHT_HEIGHT, PI / 2.f, &wrap_enemy_straight);
 	case 1: // fallthrough
 		insert_bullet(x, y - SIZE_STRAIGHT_HEIGHT, PI / 2.f, &wrap_enemy_cos);
-	default: // fallthrough
 	case 0: // fallthrough
 		insert_bullet(x, y - SIZE_STRAIGHT_HEIGHT, PI / 2.f, &wrap_enemy_sin);
 	}
@@ -597,11 +634,12 @@ void bullet_enemy_sin(int x, int y, int level)
 void bullet_enemy_sin_wide(int x, int y, int level)
 {
 	switch (level) {
-	case 2:
+	default: // fallthrough
+		bullet_enemy_sin(x, y, 1);
+	case 2: // fallthrough
 		insert_bullet(x, y - SIZE_STRAIGHT_HEIGHT, PI / 2.f, &wrap_enemy_straight);
 	case 1: // fallthrough
 		insert_bullet(x, y - SIZE_STRAIGHT_HEIGHT, PI / 2.f, &wrap_enemy_cos_wide);
-	default: // fallthrough
 	case 0: // fallthrough
 		insert_bullet(x, y - SIZE_STRAIGHT_HEIGHT, PI / 2.f, &wrap_enemy_sin_wide);
 	}
@@ -611,11 +649,11 @@ void bullet_enemy_sin_wide(int x, int y, int level)
 void bullet_player_sin(int x, int y, int level)
 {
 	switch (level) {
+	default: // fallthrough
 	case 2:
 		insert_bullet(x, y - SIZE_STRAIGHT_HEIGHT, PI / 2.f, &wrap_player_straight);
 	case 1: // fallthrough
 		insert_bullet(x, y - SIZE_STRAIGHT_HEIGHT, PI / 2.f, &wrap_player_cos);
-	default: // fallthrough
 	case 0: // fallthrough
 		insert_bullet(x, y - SIZE_STRAIGHT_HEIGHT, PI / 2.f, &wrap_player_sin);
 	}
@@ -624,11 +662,12 @@ void bullet_player_sin(int x, int y, int level)
 void bullet_player_sin_wide(int x, int y, int level)
 {
 	switch (level) {
-	case 2:
+	default: // fallthrough
+		bullet_player_sin(x, y, 1);
+	case 2: // fallthrough
 		insert_bullet(x, y - SIZE_STRAIGHT_HEIGHT, PI / 2.f, &wrap_player_straight);
 	case 1: // fallthrough
 		insert_bullet(x, y - SIZE_STRAIGHT_HEIGHT, PI / 2.f, &wrap_player_cos_wide);
-	default: // fallthrough
 	case 0: // fallthrough
 		insert_bullet(x, y - SIZE_STRAIGHT_HEIGHT, PI / 2.f, &wrap_player_sin_wide);
 	}
@@ -637,23 +676,93 @@ void bullet_player_sin_wide(int x, int y, int level)
 // big bullets, straight
 void bullet_enemy_big(int x, int y, int level)
 {
-	insert_bullet(x, y - SIZE_STRAIGHT_HEIGHT, PI * 3.f / 2.f, &wrap_enemy_big);
+	float dir = PI * 3.f / 2.f;
+	wrapper *wrap = &wrap_enemy_big;
+	switch (level) {
+	default:
+		insert_bullet(x - SIZE_STRAIGHT_WIDTH * 1.5f, y + 2 * SIZE_STRAIGHT_HEIGHT, dir, wrap);
+		insert_bullet(x + SIZE_STRAIGHT_WIDTH * 1.5f, y + 2 * SIZE_STRAIGHT_HEIGHT, dir, wrap);
+	case 2:
+		insert_bullet(x - SIZE_STRAIGHT_WIDTH, y + 2 * SIZE_STRAIGHT_HEIGHT, dir, wrap);
+		insert_bullet(x + SIZE_STRAIGHT_WIDTH, y + 2 * SIZE_STRAIGHT_HEIGHT, dir, wrap);
+		insert_bullet(x - SIZE_STRAIGHT_WIDTH / 2, y + 2 * SIZE_STRAIGHT_HEIGHT, dir, wrap);
+		insert_bullet(x + SIZE_STRAIGHT_WIDTH / 2, y + 2 * SIZE_STRAIGHT_HEIGHT, dir, wrap);
+	case 1:
+		insert_bullet(x - SIZE_STRAIGHT_WIDTH, y + SIZE_STRAIGHT_HEIGHT, dir, wrap);
+		insert_bullet(x + SIZE_STRAIGHT_WIDTH, y + SIZE_STRAIGHT_HEIGHT, dir, wrap);
+	case 0: // fallthrough
+		insert_bullet(x - SIZE_STRAIGHT_WIDTH / 2, y + SIZE_STRAIGHT_HEIGHT, dir, wrap);
+		insert_bullet(x + SIZE_STRAIGHT_WIDTH / 2, y + SIZE_STRAIGHT_HEIGHT, dir, wrap);
+		break;
+	}
 }
 
 void bullet_player_big(int x, int y, int level)
 {
-	insert_bullet(x, y + SIZE_STRAIGHT_HEIGHT, PI / 2.f, &wrap_player_big);
+	float dir = PI / 2.f;
+	wrapper *wrap = &wrap_player_big;
+	switch (level) {
+	default:
+		insert_bullet(x - SIZE_STRAIGHT_WIDTH * 1.5f, y - 2 * SIZE_STRAIGHT_HEIGHT, dir, wrap);
+		insert_bullet(x + SIZE_STRAIGHT_WIDTH * 1.5f, y - 2 * SIZE_STRAIGHT_HEIGHT, dir, wrap);
+	case 2: // fallthrough
+		insert_bullet(x - SIZE_STRAIGHT_WIDTH, y - 2 * SIZE_STRAIGHT_HEIGHT, dir, wrap);
+		insert_bullet(x + SIZE_STRAIGHT_WIDTH, y - 2 * SIZE_STRAIGHT_HEIGHT, dir, wrap);
+		insert_bullet(x - SIZE_STRAIGHT_WIDTH / 2, y - 2 * SIZE_STRAIGHT_HEIGHT, dir, wrap);
+		insert_bullet(x + SIZE_STRAIGHT_WIDTH / 2, y - 2 * SIZE_STRAIGHT_HEIGHT, dir, wrap);
+	case 1: // fallthrough
+		insert_bullet(x - SIZE_STRAIGHT_WIDTH, y - SIZE_STRAIGHT_HEIGHT, dir, wrap);
+		insert_bullet(x + SIZE_STRAIGHT_WIDTH, y - SIZE_STRAIGHT_HEIGHT, dir, wrap);
+	case 0: // fallthrough
+		insert_bullet(x - SIZE_STRAIGHT_WIDTH / 2, y - SIZE_STRAIGHT_HEIGHT, dir, wrap);
+		insert_bullet(x + SIZE_STRAIGHT_WIDTH / 2, y - SIZE_STRAIGHT_HEIGHT, dir, wrap);
+		break;
+	}
 }
 
 // beam, (fast widish, straight)
 void bullet_enemy_beam(int x, int y, int level)
 {
-	insert_bullet(x, y - SIZE_STRAIGHT_HEIGHT, PI * 3.f / 2.f, &wrap_enemy_beam);
+	wrapper *wrap = &wrap_enemy_beam;
+	switch (level) {
+	default:
+		insert_bullet(x, y + 9 * SIZE_STRAIGHT_HEIGHT, PI * 3.f / 2.f, wrap);
+		insert_bullet(x, y + 8 * SIZE_STRAIGHT_HEIGHT, PI * 3.f / 2.f, wrap);
+	case 3:
+		insert_bullet(x, y + 7 * SIZE_STRAIGHT_HEIGHT, PI * 3.f / 2.f, wrap);
+		insert_bullet(x, y + 6 * SIZE_STRAIGHT_HEIGHT, PI * 3.f / 2.f, wrap);
+	case 2: // fallthrough
+		insert_bullet(x, y + 5 * SIZE_STRAIGHT_HEIGHT, PI * 3.f / 2.f, wrap);
+		insert_bullet(x, y + 4 * SIZE_STRAIGHT_HEIGHT, PI * 3.f / 2.f, wrap);
+	case 1: // fallthrough
+		insert_bullet(x, y + 3 * SIZE_STRAIGHT_HEIGHT, PI * 3.f / 2.f, wrap);
+		insert_bullet(x, y + 2 * SIZE_STRAIGHT_HEIGHT, PI * 3.f / 2.f, wrap);
+	case 0: // fallthrough
+		insert_bullet(x, y + SIZE_STRAIGHT_HEIGHT, PI * 3.f / 2.f, wrap);
+		break;
+	}
 }
 
 void bullet_player_beam(int x, int y, int level)
 {
-	insert_bullet(x, y + SIZE_STRAIGHT_HEIGHT, PI / 2.f, &wrap_player_beam);
+	wrapper *wrap = &wrap_player_beam;
+	switch (level) {
+	default:
+		insert_bullet(x, y - 9 * SIZE_STRAIGHT_HEIGHT, PI / 2.f, wrap);
+		insert_bullet(x, y - 8 * SIZE_STRAIGHT_HEIGHT, PI / 2.f, wrap);
+	case 3:
+		insert_bullet(x, y - 7 * SIZE_STRAIGHT_HEIGHT, PI / 2.f, wrap);
+		insert_bullet(x, y - 6 * SIZE_STRAIGHT_HEIGHT, PI / 2.f, wrap);
+	case 2: // fallthrough
+		insert_bullet(x, y - 5 * SIZE_STRAIGHT_HEIGHT, PI / 2.f, wrap);
+		insert_bullet(x, y - 4 * SIZE_STRAIGHT_HEIGHT, PI / 2.f, wrap);
+	case 1: // fallthrough
+		insert_bullet(x, y - 3 * SIZE_STRAIGHT_HEIGHT, PI / 2.f, wrap);
+		insert_bullet(x, y - 2 * SIZE_STRAIGHT_HEIGHT, PI / 2.f, wrap);
+	case 0: // fallthrough
+		insert_bullet(x, y - SIZE_STRAIGHT_HEIGHT, PI / 2.f, wrap);
+		break;
+	}
 }
 
 void bullet_player_parabola(int x, int y, int level)
