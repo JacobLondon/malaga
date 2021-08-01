@@ -12,6 +12,13 @@ Space shooter, galaga-like game. Note that I don't own these assets, and they wi
 * Statically compiled
 * Default sprites if some or all are missing
 
+# Compiling
+```bash
+python3 configure.py
+make
+./test[.exe]
+```
+
 # TODO
 * Flower which spins
 * Make more levels
@@ -24,6 +31,14 @@ Space shooter, galaga-like game. Note that I don't own these assets, and they wi
 * Don't impound .mg files but the python files instead
   * Easier way to generate all the .mg files
 
+# Requirements
+* Linux
+  * make, gcc, /usr/local/lib/libraylib.a
+* Windows
+  * make, tcc/Raylib installation
+
 # Raylib Installation
-* Linux: cp libraylib.a into /usr/local/lib/ (NOTE: ln -s won't work)
-* Windows: Follow Windows installer instruction on the Raylib releases [page](https://github.com/raysan5/raylib/releases)
+* Linux: Manually clone/build Raylib and `cp libraylib.a /usr/local/lib/` (NOTE: ln -s won't work)
+* Windows: Follow Windows exe installer instructions on the Raylib releases [page](https://github.com/raysan5/raylib/releases)
+  * New versions of Raylib may be different. This may require performing the exe install and changing `configure.py` Windows section's CC/CFLAGS/LDFLAGS.
+  * Steps for setting compiler flags are at the Raylib GitHub page
