@@ -4,6 +4,7 @@ Space shooter, galaga-like game. Note that I don't own these assets, and they wi
 ![](https://user-images.githubusercontent.com/17059471/126079271-e560e05b-bd8f-429b-96b5-016c79d9e1de.png)
 
 # Features
+* Xbox Controller Support
 * Backgrounds are simple to create and customize using the scene_man.c library in atmos.c module.
 * Levels are fully scripted. Scripts are generated with maps/mg.py. Use maps/test.py as a reference, this will generate maps/test.mg which will be then available from the level select screen.
 * Gamemodes: Endless, Double-Trouble, Godmode
