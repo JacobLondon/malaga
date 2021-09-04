@@ -2,6 +2,7 @@
 #define RLU_SCENE_MAN_H
 
 #include "scene.h"
+#include "anim_man.h"
 
 #define ACTIVE_SCENES_MAX 16 /* max number of scenes to use at once */
 

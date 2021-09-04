@@ -2,30 +2,28 @@
 
 typedef struct scene_tag {
 	so **scene_objects;
-	scene_cb init;
 	char *name;
 	size_t max_objects;
 } scene;
 
-scene *scene_new(char *name, size_t max_objects, scene_cb init)
+scene *scene_new(char *name, size_t max_objects, scene_cb init, void *client)
 {
 	scene *self = allocate(sizeof(scene));
 	assert(self);
 	self->scene_objects = allocate(sizeof(so *) * max_objects);
 	memset(self->scene_objects, 0, sizeof(so *) * max_objects);
-	self->init = init;
 	self->name = name;
 	self->max_objects = max_objects;
 
-	if (self->init) {
-		self->init(self);
+	if (init) {
+		init(self, client);
 	}
 	return self;
 }
 
 scene *scene_new_def(scene_definition *def)
 {
-	return scene_new(def->name, def->max_objects, def->init);
+	return scene_new(def->name, def->max_objects, def->init, def->client);
 }
 
 void scene_del(scene *self)

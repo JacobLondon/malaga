@@ -10,8 +10,7 @@
  */
 
 typedef struct scene_tag scene;
-typedef void (*scene_cb)(struct scene_tag *self);
-
+typedef void (*scene_cb)(struct scene_tag *self, void *client);
 
 /**
  * Args to pass into scene_new. Can define
@@ -22,9 +21,10 @@ typedef struct scene_definition_tag {
 	char *name;
 	size_t max_objects;
 	scene_cb init;
+	void *client;
 } scene_definition;
 
-scene *scene_new(char *name, size_t max_objects, scene_cb init);
+scene *scene_new(char *name, size_t max_objects, scene_cb init, void *client);
 scene *scene_new_def(scene_definition *def);
 void scene_del(scene *self);
 

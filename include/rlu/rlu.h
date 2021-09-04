@@ -13,6 +13,7 @@
 #include <ctype.h>
 #include <stdarg.h>
 
+#include "atmosphere.h"
 #include "anim_man.h"
 #include "context.h"
 #include "input.h"
