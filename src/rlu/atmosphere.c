@@ -172,6 +172,36 @@ void atmosphere_draw(atmosphere_t *atm)
 	scene_man_draw(&atm->sceneman);
 }
 
+const char *atmosphere_get_setname_or_default(atmosphere_t *atm, char *set_name, char *def)
+{
+	int i;
+	scene_set *ss;
+	char *p = NULL;
+	assert(atm != NULL);
+
+	if (set_name == NULL)
+	{
+		return def;
+	}
+
+	ss = atm->sets;
+	for (i = 0; ss[i].name != NULL; i++)
+	{
+		assert(i < ARRAY_SIZE(atm->sets) - 1);
+		if (streq(set_name, ss[i].name))
+		{
+			p = set_name;
+		}
+	}
+
+	if (p == NULL)
+	{
+		p = def;
+	}
+
+	return p;
+}
+
 scene_manager *atmosphere_get_sceneman(atmosphere_t *atm)
 {
 	assert(atm != NULL);

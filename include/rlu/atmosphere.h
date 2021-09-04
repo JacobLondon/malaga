@@ -21,6 +21,7 @@ void atmosphere_load(atmosphere_t *atm, const char *set_name);
 void atmosphere_update(atmosphere_t *atm);
 void atmosphere_draw(atmosphere_t *atm);
 
+const char *atmosphere_get_setname_or_default(atmosphere_t *atm, char *set_name, char *def);
 scene_manager *atmosphere_get_sceneman(atmosphere_t *atm);
 texture_manager *atmosphere_get_textureman(atmosphere_t *atm);
 

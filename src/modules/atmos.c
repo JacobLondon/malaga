@@ -15,13 +15,7 @@ static texture_manager *textureman;
 
 void atmos_init(char *setname)
 {
-	const char *p = NULL;
-	int i;
-
-	if (!p)
-	{
-		p = "Default";
-	}
+	const char *p;
 
 	atmosphere = atmosphere_new(NULL);
 	atmosphere_insert_definition(atmosphere, "Background", 1, init_cb_background, NULL);
@@ -45,6 +39,7 @@ void atmos_init(char *setname)
 	manager = atmosphere_get_sceneman(atmosphere);
 	textureman = atmosphere_get_textureman(atmosphere);
 
+	p = atmosphere_get_setname_or_default(atmosphere, setname, "Default");
 	atmosphere_load(atmosphere, p);
 }
 
