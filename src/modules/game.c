@@ -288,7 +288,6 @@ void game_update(void)
 
 	bullet_update();
 	atmos_update();
-	detonations_update();
 
 	if (player.hp <= 0) {
 		gamelost = true;
@@ -306,6 +305,7 @@ void game_draw(void)
 	//DrawFPS(20, 20);
 	atmos_draw();
 	bullet_draw();
+	detonations_update();
 	detonations_update();
 
 	for (i = 0; i < enemy_count; i++) {
