@@ -16,12 +16,14 @@ ifeq ($(OS),Windows_NT)
 	MYLIBS    = -lraylib -lmsvcrt -lopengl32 -lgdi32 -lwinmm -lkernel32 -lshell32 -luser32
 	MG_T      = $(MG_PRE_T).exe
 	RM        = rm -f
+	MYOS      = WINDOWS
 else
 	CC=gcc
 	MYLDFLAGS = -DPLATFORM_DESKTOP
 	MYLIBS    = -lraylib -lm -lpthread -ldl
 	MG_T      = $(MG_PRE_T)
 	RM        = rm -f
+	MYOS      = UNIX
 endif
 
 # find src/rlu | grep '\.c$' | sed 's/\.c/\.o \\/g'
@@ -59,8 +61,9 @@ MG_O=src/main.o
 ALL_O= $(MG_O) $(CORE_O) $(RLU_O)
 ALL_T= $(MG_T)
 
-.PHONY: clean
+.PHONY: clean cleansubs clobber
 
+# TODO: Add 'subs' to the build dependency chain once it is needed
 all: debug
 
 release: CFLAGS += -O2
@@ -76,6 +79,14 @@ $(MG_T): CORE_T $(MG_O)
 
 clean:
 	$(RM) $(ALL_T) $(ALL_O)
+
+subs: collections lua
+
+cleansubs:
+	make clean -C submodules/collections
+	make clean -C submodules/lua
+
+clobber: clean cleansubs
 
 # find src | grep '\.c$' | xargs gcc -MM
 main.o: src/main.c src/modules.h
@@ -108,3 +119,13 @@ scene_object.o: src/rlu/scene_object.c
 texture_man.o: src/rlu/texture_man.c
 ui.o: src/rlu/ui.c
 util.o: src/rlu/util.c
+
+# submodules
+
+lua: submodules/lua/lua
+submodules/lua/lua:
+	submodules/build.sh -s $(MYOS) -m lua
+
+collections: submodules/collections/build
+submodules/collections/build:
+	submodules/build.sh -s $(MYOS) -m collections

@@ -35,7 +35,7 @@ make
 * Linux
   * make, gcc, /usr/local/lib/libraylib.a
 * Windows
-  * make, tcc/Raylib installation
+  * git-bash, make, tcc/Raylib installation
 
 # Raylib Installation
 * Linux: Manually clone/build Raylib and `cp libraylib.a /usr/local/lib/` (NOTE: ln -s won't work)
