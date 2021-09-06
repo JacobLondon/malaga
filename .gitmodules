@@ -1,3 +1,6 @@
 [submodule "submodules/collections"]
 	path = submodules/collections
 	url = https://github.com/JacobLondon/collections
+[submodule "submodules/lua"]
+	path = submodules/lua
+	url = https://github.com/lua/lua
