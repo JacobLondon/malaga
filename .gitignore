@@ -1,4 +1,5 @@
 test
+malaga
 *.exe
 .vscode
 *.swp
@@ -6,4 +7,3 @@ test
 assets/
 maps/*.mg
 __pycache__/
-Makefile

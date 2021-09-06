@@ -15,7 +15,6 @@ Space shooter, galaga-like game. Note that I don't own these assets, and they wi
 
 # Compiling
 ```bash
-python3 configure.py
 make
 ./test[.exe]
 ```
