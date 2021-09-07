@@ -35,7 +35,7 @@ void scene_del(scene *self)
 
 void scene_load_object(scene *self, so *s)
 {
-	int i;
+	size_t i;
 	assert(self);
 	assert(s);
 	for (i = 0; i < self->max_objects; i++) {
@@ -44,12 +44,12 @@ void scene_load_object(scene *self, so *s)
 			break;
 		}
 	}
-	msg_assert(i != self->max_objects, "Too many scene objects: %d", i);
+	msg_assert(i != self->max_objects, "Too many scene objects: %zu", i);
 }
 
 void scene_clear(scene *self)
 {
-	int i;
+	size_t i;
 	assert(self);
 	for (i = 0; i < self->max_objects; i++) {
 		if (self->scene_objects[i]) {
@@ -61,7 +61,7 @@ void scene_clear(scene *self)
 
 void scene_draw(scene *self)
 {
-	int i;
+	size_t i;
 	assert(self);
 	for (i = 0; i < self->max_objects; i++) {
 		if (self->scene_objects[i]) {
@@ -72,7 +72,7 @@ void scene_draw(scene *self)
 
 void scene_update(scene *self)
 {
-	int i;
+	size_t i;
 	assert(self);
 	for (i = 0; i < self->max_objects; i++) {
 		if (self->scene_objects[i]) {

@@ -431,12 +431,12 @@ encounter **map_init(const char *mapfilename, struct MapHeader *out)
 
 			if (sscanf(buf, "%s", lhs) == 1) {
 				for (i = 0; i < encounters->size; i++) {
-					encounter_holder *p = encounters->buf[i];
-					if (strcmp(lhs, p->name) == 0) {
+					encounter_holder *eh = encounters->buf[i];
+					if (strcmp(lhs, eh->name) == 0) {
 						// this section has at least been parsed successfully at least once
 						found_set = true;
 
-						parray_push(sets, p->spawn);
+						parray_push(sets, eh->spawn);
 						goto next;
 					}
 				}

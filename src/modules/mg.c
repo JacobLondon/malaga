@@ -45,5 +45,6 @@ void mg_draw(void)
 
 static void play_func(void *client)
 {
+	(void)client;
 	context_switch("SELECT");
 }

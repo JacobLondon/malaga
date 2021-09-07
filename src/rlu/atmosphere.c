@@ -70,7 +70,7 @@ int atmosphere_insert_definition(atmosphere_t *atm, char *scene_name, size_t max
 	assert(scene_name != NULL);
 	assert(init != NULL);
 	assert(max_objects != 0);
-	msg_assert(atm->scene_ndx < ARRAY_SIZE(atm->scenes) - 1, "Too many scene definitions loaded at %s", scene_name);
+	msg_assert((size_t)atm->scene_ndx < ARRAY_SIZE(atm->scenes) - 1, "Too many scene definitions loaded at %s", scene_name);
 
 	sd = &atm->scenes[atm->scene_ndx];
 	sd->name = strdup(scene_name);
@@ -88,10 +88,11 @@ int atmosphere_insert_set(atmosphere_t *atm, char *set_name)
 
 	assert(atm != NULL);
 	assert(set_name != NULL);
-	msg_assert(atm->set_ndx < ARRAY_SIZE(atm->sets) - 1);
+	msg_assert((size_t)atm->set_ndx < ARRAY_SIZE(atm->sets) - 1);
 
 	ss = &atm->sets[atm->set_ndx];
-	ss->name = set_name;
+	ss->name = strdup(set_name);
+	assert(ss->name);
 	atm->set_ndx++;
 
 	return 0;
@@ -99,7 +100,7 @@ int atmosphere_insert_set(atmosphere_t *atm, char *set_name)
 
 int atmosphere_insert_set_scene(atmosphere_t *atm, char *set_name, char *scene_name)
 {
-	int i;
+	unsigned i;
 	scene_set *ss = NULL;
 	char *s = NULL;
 	assert(atm != NULL);
@@ -120,7 +121,6 @@ int atmosphere_insert_set_scene(atmosphere_t *atm, char *set_name, char *scene_n
 		return 1;
 	}
 
-	bool inserted = false;
 	for (i = 0; i < ARRAY_SIZE(ss->scene_names) - 1; i++)
 	{
 		if (ss->scene_names[i] == NULL)
@@ -174,7 +174,7 @@ void atmosphere_draw(atmosphere_t *atm)
 
 const char *atmosphere_get_setname_or_default(atmosphere_t *atm, char *set_name, char *def)
 {
-	int i;
+	size_t i;
 	scene_set *ss;
 	char *p = NULL;
 	assert(atm != NULL);

@@ -13,7 +13,7 @@ static void tinvinc(void *client);
 
 static void index_maps(void);
 static void clear_maps(void);
-static char *get_around(int center, int AB, size_t max, void **buf);
+static char *get_around(int center, int AB, int max, void **buf);
 static char *find_next(void);
 static char *find_prev(void);
 
@@ -160,10 +160,10 @@ void levelselect_draw(void)
 			else {
 				const Color c = (Color){
 					.r=255, .g=255, .b=255,
-					.a=(int)(255.0 * (1 - (fabs(i) / (double)AB)))
+					.a=(int)(255.0 * (1 - ((double)abs(i) / (double)AB)))
 				};
 				DrawText(
-					get_around(dirndx, i, maplist->size, maplist->buf),
+					get_around(dirndx, i, (int)maplist->size, maplist->buf),
 					GetScreenWidth() / 10,
 					GetScreenHeight() * .075 / 1.75 * i + offset,
 					fontsize,
@@ -176,6 +176,7 @@ void levelselect_draw(void)
 static void lselect(void *client)
 {
 	struct game_message msg;
+	(void)client;
 
 	if (mapdirexists) {
 		// load configuration and launch
@@ -192,11 +193,14 @@ static void lselect(void *client)
 
 static void menu(void *client)
 {
+	(void)client;
 	context_switch("MG");
 }
 
 static void tendless(void *client)
 {
+	(void)client;
+
 	// from non-endless to endless
 	if (!endless_mode) {
 		endless_mode = true;
@@ -211,6 +215,8 @@ static void tendless(void *client)
 
 static void tdamage(void *client)
 {
+	(void)client;
+
 	if (!trouble_mode) {
 		trouble_mode = true;
 		component_set_color(damage_button, DARKGRAY, WHITE);
@@ -223,6 +229,8 @@ static void tdamage(void *client)
 
 static void tinvinc(void *client)
 {
+	(void)client;
+
 	if (!invinc_mode) {
 		invinc_mode = true;
 		component_set_color(invinc_button, DARKGRAY, WHITE);
@@ -265,7 +273,7 @@ static void clear_maps(void)
 	}
 }
 
-static char *get_around(int center, int AB, size_t max, void **buf)
+static char *get_around(int center, int AB, int max, void **buf)
 {
 	assert(buf);
 
@@ -280,10 +288,10 @@ static char *find_next(void)
 {
 	int i;
 	char *p;
-	for (i = dirndx + 1; i < maplist->size; i++) {
+	for (i = dirndx + 1; (size_t)i < maplist->size; i++) {
 		p = maplist->buf[i];
 		if (strstr(p, DATA_MAPS_EXT)) {
-			dirndx = i;
+			dirndx = (int)i;
 			return p;
 		}
 	}

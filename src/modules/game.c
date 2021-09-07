@@ -137,7 +137,7 @@ void game_cleanup(void)
 
 void game_update(void)
 {
-	int i;
+	size_t i;
 	float dir;
 
 	screen_width = GetScreenWidth();
@@ -440,31 +440,30 @@ static bool encounter_done(void)
 	return true;
 }
 
-void player_took_damage(player_data *player)
+void player_took_damage(player_data *pd)
 {
-	int damage;
-	assert(player);
+	assert(pd);
 
 	if (!game_data.god_mode) {
 		score_decrease_multiplier();
-		player->hp -= PLAYER_DAMAGE_DEFAULT * player_damage_mult;
+		pd->hp -= PLAYER_DAMAGE_DEFAULT * player_damage_mult;
 	}
 }
 
-void enemy_took_damage(enemy_data *enemy)
+void enemy_took_damage(enemy_data *ed)
 {
-	assert(enemy);
+	assert(ed);
 	score_increase_points();
-	enemy->hp -= 1;
+	ed->hp -= 1;
 
 	if (game_data.trouble_mode) {
 		score_increase_points();
 	}
 }
 
-void enemy_took_death(enemy_data *enemy)
+void enemy_took_death(enemy_data *ed)
 {
-	assert(enemy);
+	assert(ed);
 	score_increase_points();
 	score_increase_points();
 
@@ -473,7 +472,7 @@ void enemy_took_death(enemy_data *enemy)
 		score_increase_points();
 	}
 
-	enemy_detonate(enemy);
+	enemy_detonate(ed);
 }
 
 enemy_move_func lookup_enemy_move(char *name)
@@ -500,7 +499,7 @@ static void player_new(player_data *self)
 	self->y = screen_height * 3 / 4;
 
 	shooter_drop = drop_bullet(BULLET_PLAYER_STRAIGHT);
-	self->shoot = bullet_lookup_shoot(drop_to_string(&shooter_drop));
+	self->shoot = bullet_lookup_shoot((char *)drop_to_string(&shooter_drop));
 	self->shoot_name = drop_to_string(&shooter_drop);
 	self->shotperiod = bullet_lookup_timeout(self->shoot);
 	self->hp = 30;
@@ -671,7 +670,7 @@ void enemy_move_horzleftstop(struct enemy_data_tag *en)
 
 static void detonations_cleanup(void)
 {
-	int i;
+	size_t i;
 	if (!use_detonations) {
 		return;
 	}
@@ -684,7 +683,7 @@ static void detonations_cleanup(void)
 
 static void detonations_update(void)
 {
-	int i;
+	size_t i;
 	if (!use_detonations) {
 		return;
 	}
@@ -700,7 +699,7 @@ static void detonations_init(void)
 	Texture2D *explosion;
 	so *s;
 	ko *k;
-	int i;
+	size_t i;
 
 	snprintf(path, sizeof(path), "%s/%s", context_get_assetdir(), "explosion.png");
 	if (!FileExists(path)) {
@@ -723,12 +722,13 @@ static void detonations_init(void)
 static void detonation_cb1(ko *self, so *object)
 {
 	// do nothing, ko_set_key is tied to detonation_keys
+	(void)self;
+	(void)object;
 }
 
 static void detonation_cb2(ko *self, so *object)
 {
-	float frame;
-	frame = ko_get_frame(self);
+	(void)object;
 
 	// animate explosion then move off screen
 	if (ko_get_frame(self) >= ko_get_max_frames(self)) {

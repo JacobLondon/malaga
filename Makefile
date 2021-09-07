@@ -69,7 +69,7 @@ all: debug
 release: CFLAGS += -O2
 release: $(MG_T)
 
-debug: CFLAGS += -ggdb
+debug: CFLAGS += -ggdb -O0
 debug: $(MG_T)
 
 CORE_T: $(RLU_O) $(CORE_O)

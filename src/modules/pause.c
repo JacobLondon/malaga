@@ -48,11 +48,13 @@ void pause_draw(void)
 
 static void resume(void *client)
 {
+	(void)client;
 	context_pop();
 }
 
 static void menu(void *client)
 {
+	(void)client;
 	context_pop();
 	context_switch("MG");
 }

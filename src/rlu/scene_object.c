@@ -177,10 +177,10 @@ void so_cb_trk_vrt(so *self, float amt, bool *trigger)
 	const int y = GetMouseY();
 	if (trigger == NULL || *trigger == true) {
 		if (self->pos.y > y) {
-			self->pos.y -= abs(self->pos.y - y) / amt;
+			self->pos.y -= fabs(self->pos.y - y) / amt;
 		}
 		else if (self->pos.y < y) {
-			self->pos.y += abs(self->pos.y - y) / amt;
+			self->pos.y += fabs(self->pos.y - y) / amt;
 		}
 	}
 }
@@ -191,10 +191,10 @@ void so_cb_trk_hrz(so *self, float amt, bool *trigger)
 	const int x = GetMouseX();
 	if (trigger == NULL || *trigger == true) {
 		if (self->pos.x > x) {
-			self->pos.x -= abs(self->pos.x - x) / amt;
+			self->pos.x -= fabs(self->pos.x - x) / amt;
 		}
 		else if (self->pos.x < x) {
-			self->pos.x += abs(self->pos.x - x) / amt;
+			self->pos.x += fabs(self->pos.x - x) / amt;
 		}
 	}
 }

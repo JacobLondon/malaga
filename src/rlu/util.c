@@ -217,6 +217,23 @@ int min(int a, int b)
 }
 #endif
 
+#ifndef strdup
+char *strdup(const char *str)
+{
+	char *rv;
+	size_t len;
+	assert(str);
+	len = strlen(str);
+	rv = malloc(len + 1);
+	if (rv == NULL) {
+		return NULL;
+	}
+	strncpy(rv, str, len);
+	rv[len] = '\0';
+	return rv;
+}
+#endif
+
 int param_read(const char *filename, param paramList[])
 {
 	char buf[256];

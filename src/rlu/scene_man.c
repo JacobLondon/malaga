@@ -69,7 +69,7 @@ void scene_man_del(struct scene_manager_tag *self)
 
 void scene_man_load_set(struct scene_manager_tag *self, const char *name)
 {
-	int i;
+	size_t i;
 	assert(self);
 	assert(name);
 
@@ -86,7 +86,8 @@ void scene_man_load_set(struct scene_manager_tag *self, const char *name)
 
 void scene_man_load_idx(struct scene_manager_tag *self, int idx)
 {
-	assert(0 <= idx && idx < self->set_count);
+	assert(0 <= idx);
+	assert((size_t)idx < self->set_count);
 	load_names(self, self->set_definitions[idx].scene_names);
 	msg_default("Scene set %s loaded", self->set_definitions[idx].name);
 	self->set_loaded_idx = idx;

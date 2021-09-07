@@ -44,6 +44,8 @@ item_drop drop_random(void)
 	case DROP_SPEED:
 		rv.spec.speed_amount = 10;
 		break;
+	default:
+		break;
 	}
 	return rv;
 }

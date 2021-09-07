@@ -96,9 +96,9 @@ typedef struct encounter_tag {
 		.y=(Y), \
 	}
 
-void player_took_damage(player_data *player);
-void enemy_took_damage(enemy_data *enemy);
-void enemy_took_death(enemy_data *enemy);
+void player_took_damage(player_data *pd);
+void enemy_took_damage(enemy_data *ed);
+void enemy_took_death(enemy_data *ed);
 
 enemy_move_func lookup_enemy_move(char *name);
 

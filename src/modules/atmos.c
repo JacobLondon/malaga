@@ -71,7 +71,8 @@ static void init_cb_background(scene *self, void *client)
 	Texture2D *t;
 	anim *a;
 	so *s;
-
+	(void)client;
+	
 	snprintf(path, sizeof(path), "%s/%s", context_get_assetdir(), "background.png");
 	t = texture_man_load_or_default(textureman, path, TEXTURE_GEN(1000, 1000, BLACK));
 	a = anim_man_load(scene_man_get_anim_man(manager), t, 1, 1);
@@ -87,6 +88,7 @@ static void init_cb_starfield(scene *self, void *client)
 	Texture2D *t;
 	anim *a;
 	so *s;
+	(void)client;
 
 	// 90 items max...
 
@@ -127,6 +129,7 @@ static void init_cb_planetfield(scene *self, void *client)
 	Texture2D *t;
 	anim *a;
 	so *s;
+	(void)client;
 
 	snprintf(path, sizeof(path), "%s/%s", context_get_assetdir(), "planet.png");
 	t = texture_man_load_or_default(textureman, path, TEXTURE_GEN(35, 35, GRAY));
@@ -143,6 +146,7 @@ static void init_cb_spacefield(scene *self, void *client)
 	Texture2D *t;
 	anim *a;
 	so *s;
+	(void)client;
 
 	snprintf(path, sizeof(path), "%s/%s", context_get_assetdir(), "background2.png");
 	t = texture_man_load_or_default(textureman, path, TEXTURE_GEN(1000, 1000, BLACK));
@@ -158,6 +162,7 @@ static void init_cb_planet(scene *self, void *client)
 	Texture2D *t;
 	anim *a;
 	so *s;
+	(void)client;
 
 	snprintf(path, sizeof(path), "%s/%s", context_get_assetdir(), "planet2.png");
 	t = texture_man_load_or_default(textureman, path, TEXTURE_GEN(500, 500, GRAY));
@@ -174,6 +179,7 @@ static void init_cb_asteroids(scene *self, void *client)
 	Texture2D *t;
 	anim *a;
 	so *s;
+	(void)client;
 
 	// sorted by size...
 	const char *asteroids[] = {

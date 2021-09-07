@@ -66,7 +66,7 @@ float keyboard_key_stick_right_y(int player);
 float keyboard_key_stick_trigger_right(int player);
 float keyboard_key_stick_trigger_left(int player);
 
-const static key_cb gamepad_key_lookup[] = {
+static const key_cb gamepad_key_lookup[] = {
 	[RLU_KEY_DPAD_UP] = gamepad_dpad_up,
 	[RLU_KEY_DPAD_RIGHT] = gamepad_dpad_right,
 	[RLU_KEY_DPAD_DOWN] = gamepad_dpad_down,
@@ -83,7 +83,7 @@ const static key_cb gamepad_key_lookup[] = {
 	[RLU_KEY_BUTTON_THUMB_LEFT] = gamepad_button_thumb_left,
 };
 
-const static axis_cb gamepad_axis_lookup[] = {
+static const axis_cb gamepad_axis_lookup[] = {
 	[RLU_KEY_STICK_LEFT_X] = gamepad_key_stick_left_x,
 	[RLU_KEY_STICK_LEFT_Y] = gamepad_key_stick_left_y,
 	[RLU_KEY_STICK_RIGHT_X] = gamepad_key_stick_right_x,
@@ -118,7 +118,7 @@ static int gamepad_axis_map[] = {
 	[RLU_KEY_TRIGGER_LEFT] = GAMEPAD_AXIS_LEFT_TRIGGER,
 };
 
-const static key_cb keyboard_key_lookup[] = {
+static const key_cb keyboard_key_lookup[] = {
 	[RLU_KEY_DPAD_UP] = keyboard_dpad_up,
 	[RLU_KEY_DPAD_RIGHT] = keyboard_dpad_right,
 	[RLU_KEY_DPAD_DOWN] = keyboard_dpad_down,
@@ -135,7 +135,7 @@ const static key_cb keyboard_key_lookup[] = {
 	[RLU_KEY_BUTTON_THUMB_LEFT] = keyboard_button_thumb_left,
 };
 
-const static axis_cb keyboard_axis_lookup[] = {
+static const axis_cb keyboard_axis_lookup[] = {
 	[RLU_KEY_STICK_LEFT_X] = keyboard_key_stick_left_x,
 	[RLU_KEY_STICK_LEFT_Y] = keyboard_key_stick_left_y,
 	[RLU_KEY_STICK_RIGHT_X] = keyboard_key_stick_right_x,
@@ -175,7 +175,7 @@ static int keyboard_axis_map[] = {
 };
 
 typedef bool (* const keyboard_func)(int key);
-const static keyboard_func keyboard_press_lookup[] = {
+static const keyboard_func keyboard_press_lookup[] = {
 	[RLU_PRESS_PRESSED] = IsKeyPressed,
 	[RLU_PRESS_DOWN] = IsKeyDown,
 	[RLU_PRESS_RELEASED] = IsKeyReleased,
@@ -183,7 +183,7 @@ const static keyboard_func keyboard_press_lookup[] = {
 };
 
 typedef bool (* const gamepad_func)(int player, int button);
-const static gamepad_func gamepad_press_lookup[] = {
+static const gamepad_func gamepad_press_lookup[] = {
 	[RLU_PRESS_PRESSED] = IsGamepadButtonPressed,
 	[RLU_PRESS_DOWN] = IsGamepadButtonDown,
 	[RLU_PRESS_RELEASED] = IsGamepadButtonReleased,
@@ -297,71 +297,85 @@ bool gamepad_button_thumb_left(int player, rlu_key_press press)
 
 bool keyboard_dpad_up(int player, rlu_key_press press)
 {
+	(void)player;
 	return keyboard_press_lookup[press](keyboard_key_map[RLU_KEY_DPAD_UP]);
 }
 
 bool keyboard_dpad_right(int player, rlu_key_press press)
 {
+	(void)player;
 	return keyboard_press_lookup[press](keyboard_key_map[RLU_KEY_DPAD_RIGHT]);
 }
 
 bool keyboard_dpad_down(int player, rlu_key_press press)
 {
+	(void)player;
 	return keyboard_press_lookup[press](keyboard_key_map[RLU_KEY_DPAD_DOWN]);
 }
 
 bool keyboard_dpad_left(int player, rlu_key_press press)
 {
+	(void)player;
 	return keyboard_press_lookup[press](keyboard_key_map[RLU_KEY_DPAD_LEFT]);
 }
 
 bool keyboard_button_up(int player, rlu_key_press press)
 {
+	(void)player;
 	return keyboard_press_lookup[press](keyboard_key_map[RLU_KEY_BUTTON_UP]);
 }
 
 bool keyboard_button_right(int player, rlu_key_press press)
 {
+	(void)player;
 	return keyboard_press_lookup[press](keyboard_key_map[RLU_KEY_BUTTON_RIGHT]);
 }
 
 bool keyboard_button_down(int player, rlu_key_press press)
 {
+	(void)player;
 	return keyboard_press_lookup[press](keyboard_key_map[RLU_KEY_BUTTON_DOWN]);
 }
 
 bool keyboard_button_left(int player, rlu_key_press press)
 {
+	(void)player;
 	return keyboard_press_lookup[press](keyboard_key_map[RLU_KEY_BUTTON_LEFT]);
 }
 
 bool keyboard_bumper_right(int player, rlu_key_press press)
 {
+	(void)player;
 	return keyboard_press_lookup[press](keyboard_key_map[RLU_KEY_BUMPER_RIGHT]);
 }
 
 bool keyboard_bumper_left(int player, rlu_key_press press)
 {
+	(void)player;
 	return keyboard_press_lookup[press](keyboard_key_map[RLU_KEY_BUMPER_LEFT]);
 }
 
 bool keyboard_button_select(int player, rlu_key_press press)
 {
 	return keyboard_press_lookup[press](keyboard_key_map[RLU_KEY_BUTTON_SELECT]);
+	(void)player;
 }
 
 bool keyboard_button_start(int player, rlu_key_press press)
 {
+	(void)player;
 	return keyboard_press_lookup[press](keyboard_key_map[RLU_KEY_BUTTON_START]);
 }
 
 bool keyboard_button_thumb_right(int player, rlu_key_press press)
 {
+	(void)player;
 	return keyboard_press_lookup[press](keyboard_key_map[RLU_KEY_BUTTON_THUMB_RIGHT]);
 }
 
 bool keyboard_button_thumb_left(int player, rlu_key_press press)
 {
+	(void)player;
 	return keyboard_press_lookup[press](keyboard_key_map[RLU_KEY_BUTTON_THUMB_LEFT]);
 }
 
@@ -397,6 +411,7 @@ float gamepad_key_stick_trigger_left(int player)
 
 float keyboard_key_stick_left_x(int player)
 {
+	(void)player;
 	if (IsKeyDown(keyboard_axis_map[RLU_KEY_STICK_LEFT_X])) {
 		return -1.0f;
 	}
@@ -408,6 +423,7 @@ float keyboard_key_stick_left_x(int player)
 
 float keyboard_key_stick_left_y(int player)
 {
+	(void)player;
 	if (IsKeyDown(keyboard_axis_map[RLU_KEY_STICK_LEFT_Y])) {
 		return -1.0f;
 	}
@@ -419,6 +435,7 @@ float keyboard_key_stick_left_y(int player)
 
 float keyboard_key_stick_right_x(int player)
 {
+	(void)player;
 	if (IsKeyDown(keyboard_axis_map[RLU_KEY_STICK_RIGHT_X])) {
 		return -1.0f;
 	}
@@ -430,6 +447,7 @@ float keyboard_key_stick_right_x(int player)
 
 float keyboard_key_stick_right_y(int player)
 {
+	(void)player;
 	if (IsKeyDown(keyboard_axis_map[RLU_KEY_STICK_RIGHT_Y])) {
 		return -1.0f;
 	}
@@ -441,6 +459,7 @@ float keyboard_key_stick_right_y(int player)
 
 float keyboard_key_stick_trigger_right(int player)
 {
+	(void)player;
 	if (IsKeyDown(keyboard_axis_map[RLU_KEY_TRIGGER_RIGHT])) {
 		return 1.0f;
 	}
@@ -449,6 +468,7 @@ float keyboard_key_stick_trigger_right(int player)
 
 float keyboard_key_stick_trigger_left(int player)
 {
+	(void)player;
 	if (IsKeyDown(keyboard_axis_map[RLU_KEY_TRIGGER_LEFT])) {
 		return 1.0f;
 	}

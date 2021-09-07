@@ -75,6 +75,10 @@ float fclamp(float x, float max, float min);
 int min(int, int);
 #endif
 
+#ifndef strdup
+char *strdup(const char *str);
+#endif
+
 typedef enum param_type_tag {
 	PARAM_TYPE_FLOAT,
 	PARAM_TYPE_INT,
