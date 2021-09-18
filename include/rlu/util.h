@@ -104,6 +104,15 @@ typedef struct param_tag {
 	.type = TYPE, \
 }
 
+#define DEFINE_PARAM_END() \
+{ \
+	.name=NULL, \
+	.value=NULL, \
+	.def=NULL, \
+	.len=0, \
+	.type=0, \
+}
+
 /** read the config file defined by paramList
  * Should have the format "varname=value" with 1 item per line
  */

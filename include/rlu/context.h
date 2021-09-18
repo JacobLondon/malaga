@@ -35,6 +35,17 @@ typedef struct module_definition_tag {
 	} \
 }
 
+#define DEFINE_MODULE_END() \
+{ \
+	.name=NULL, \
+	.mod={ \
+		.update=NULL, \
+		.draw=NULL, \
+		.init=NULL, \
+		.cleanup=NULL, \
+	} \
+}
+
 typedef struct context_opt_tag {
 	Color background;
 	int screen_width;

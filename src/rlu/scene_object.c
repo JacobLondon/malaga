@@ -2,7 +2,7 @@
 
 #define MOVEMENTS_MAX 4
 
-typedef struct so_tag {
+struct so_tag {
 	Vector2 pos;
 	float bobrate;
 	float bobdelta;
@@ -16,7 +16,7 @@ typedef struct so_tag {
 		float amt;
 	} movements[MOVEMENTS_MAX];
 	anim *animation; /* points, doesn't own */
-} so;
+};
 
 so *so_new_owner(anim *animation, bool own_animation)
 {

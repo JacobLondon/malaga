@@ -75,7 +75,7 @@ static param paramList[] = {
 	DEFINE_PARAM(PARAM_TYPE_FLOAT, volume, options, defaultOptions),
 	DEFINE_PARAM(PARAM_TYPE_STRING, icon, options, defaultOptions),
 	DEFINE_PARAM(PARAM_TYPE_STRING, assetdir, options, defaultOptions),
-	{NULL}
+	DEFINE_PARAM_END(),
 };
 
 static void null_init(void)

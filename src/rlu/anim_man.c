@@ -2,10 +2,10 @@
 
 #define IMGS_MAX 64
 
-typedef struct anim_man_tag {
+struct anim_man_tag {
 	Texture2D *textures[IMGS_MAX];
 	anim *animations[IMGS_MAX];
-} anim_man;
+};
 
 anim_man *anim_man_new(void)
 {

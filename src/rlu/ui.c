@@ -6,7 +6,7 @@ enum comp_type {
 	TYPE_COUNT,
 };
 
-typedef struct component_tag {
+struct component_tag {
 	int x;
 	int y;
 	int w;
@@ -26,7 +26,7 @@ typedef struct component_tag {
 			void *client;
 		} button;
 	} data;
-} component;
+};
 
 static component *component_new(void);
 static int component_contains(component *comp, int x, int y);

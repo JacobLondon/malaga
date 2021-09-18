@@ -4,7 +4,6 @@
 #include <raylib.h>
 
 typedef struct anim_man_tag anim_man;
-typedef struct anim_tag anim;
 
 /**
  * Manage the loading and freeing of animations

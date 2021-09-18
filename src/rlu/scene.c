@@ -1,10 +1,10 @@
 #include <rlu/rlu.h>
 
-typedef struct scene_tag {
+struct scene_tag {
 	so **scene_objects;
 	char *name;
 	size_t max_objects;
-} scene;
+};
 
 scene *scene_new(char *name, size_t max_objects, scene_cb init, void *client)
 {

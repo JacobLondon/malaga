@@ -1,13 +1,12 @@
 #include <rlu/rlu.h>
 
-typedef struct anim_tag {
+struct anim_tag {
 	Texture2D *texture;
 	int width;
 	int height;
 	int i;
 	int j;
-} anim;
-
+};
 
 anim *anim_new(Texture2D *texture, int width, int height)
 {

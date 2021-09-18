@@ -96,6 +96,14 @@ typedef struct encounter_tag {
 		.y=(Y), \
 	}
 
+#define DEFINE_ENCOUNTER_END() \
+	{ \
+		.definition=NULL, \
+		.spawntime=0, \
+		.x=0, \
+		.y=0, \
+	}
+
 void player_took_damage(player_data *pd);
 void enemy_took_damage(enemy_data *ed);
 void enemy_took_death(enemy_data *ed);

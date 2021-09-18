@@ -40,7 +40,7 @@ static encounter default_encounter0[] = {
 	DEFINE_ENCOUNTER(&default_enemy1, 0, .5, 0),
 	DEFINE_ENCOUNTER(&default_enemy0, .5, .2, 0),
 	DEFINE_ENCOUNTER(&default_enemy0, .5, .7, 0),
-	{NULL}
+	DEFINE_ENCOUNTER_END(),
 };
 
 static encounter default_encounter1[] = {
@@ -48,7 +48,7 @@ static encounter default_encounter1[] = {
 	DEFINE_ENCOUNTER(&default_enemy0, 0, .6, 0),
 	DEFINE_ENCOUNTER(&default_enemy1, 1, .8, 0),
 	DEFINE_ENCOUNTER(&default_enemy1, 1, .2, 0),
-	{NULL}
+	DEFINE_ENCOUNTER_END(),
 };
 
 static encounter *default_encounters[] = {

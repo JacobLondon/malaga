@@ -18,7 +18,7 @@ static module_definition definitions[] = {
 	DEFINE_MODULE("GAME", game_init, game_cleanup, game_update, game_draw),
 	DEFINE_MODULE("PAUSE", pause_init, pause_cleanup, pause_update, pause_draw),
 	DEFINE_MODULE("SELECT", levelselect_init, levelselect_cleanup, levelselect_update, levelselect_draw),
-	{NULL}
+	DEFINE_MODULE_END(),
 };
 
 int main(void)

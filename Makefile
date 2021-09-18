@@ -5,25 +5,41 @@ CWARNS=\
 	-Wall \
 	-Wextra \
 	-Wshadow \
-	-Wno-format-truncation \
 	-Wno-missing-braces
+
+CWARNSNOTMAC=\
+	-Wno-format-truncation
 
 CFLAGS = $(CWARNS) -std=c99 -Iinclude/
 
 ifeq ($(OS),Windows_NT)
+	UNAME_S   = WINDOWS
+	MYOS      = WINDOWS
 	CC=tcc
 	MYLDFLAGS = C:/raylib/raylib/src/raylib.rc.data -DPLATFORM_DESKTOP
 	MYLIBS    = -lraylib -lmsvcrt -lopengl32 -lgdi32 -lwinmm -lkernel32 -lshell32 -luser32
 	MG_T      = $(MG_PRE_T).exe
 	RM        = rm -f
-	MYOS      = WINDOWS
+	CFLAGS += $(CWARNSNOTMAC)
 else
-	CC=gcc
-	MYLDFLAGS = -DPLATFORM_DESKTOP
-	MYLIBS    = -lraylib -lm -lpthread -ldl
-	MG_T      = $(MG_PRE_T)
-	RM        = rm -f
-	MYOS      = UNIX
+	UNAME_S = $(shell uname -s)
+	ifeq ($(UNAME_S),Linux)
+		CC=gcc
+		MYLDFLAGS = -DPLATFORM_DESKTOP
+		MYLIBS    = -lraylib -lm -lpthread -ldl
+		MG_T      = $(MG_PRE_T)
+		RM        = rm -f
+		MYOS      = UNIX
+		CFLAGS += $(CWARNSNOTMAC)
+	endif
+	ifeq ($(UNAME_S),Darwin)
+		CC=clang
+		MYLDFLAGS = -DPLATFORM_DESKTOP
+		MYLIBS = -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL -lraylib
+		MG_T      = $(MG_PRE_T)
+		RM        = rm -f
+		MYOS      = UNIX
+	endif
 endif
 
 # find src/rlu | grep '\.c$' | sed 's/\.c/\.o \\/g'

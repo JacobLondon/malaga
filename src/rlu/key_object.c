@@ -2,7 +2,7 @@
 
 #define STATES_MAX 6 /* max number of states for a ko to manage */
 
-typedef struct ko_tag {
+struct ko_tag {
 	so *objects[STATES_MAX]; /* owns all of its screen objects */
 	ko_cb state_cbs[STATES_MAX];
 
@@ -28,7 +28,7 @@ typedef struct ko_tag {
 	int frame; /* the frame number the animation is in */
 	int state;
 	int laststate; // index
-} ko;
+};
 
 ko *ko_new(void)
 {
