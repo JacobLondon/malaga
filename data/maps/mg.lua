@@ -32,23 +32,27 @@ Bullet Types:
 
 local M = {}
 
-function M.New()
-	local N = {
-		header = {},
-		enemies = {'$enemies'},
-		encounters = {'$encounters'},
-		groups = {'$sets'},
-	}
-	return N
+local header = {}
+local enemies = {}
+local encounters = {}
+local groups = {}
+
+function reset()
+	header = {}
+	enemies = {'$enemies'}
+	encounters = {'$encounters'}
+	groups = {'$sets'}
 end
 
-function M.Header(self, atmosphere)
-	table.insert(self.header,'**')
-	table.insert(self.header, string.format("%s %s", "atmosphere", atmosphere))
-	table.insert(self.header, '**')
+-- only once at top per file, so reset is ok
+function M.header(atmosphere)
+	reset()
+	table.insert(header,'**')
+	table.insert(header, string.format("%s %s", "atmosphere", atmosphere))
+	table.insert(header, '**')
 end
 
-function M.Enemy(self, t)
+function M.enemy(t)
 	setmetatable(t, {__index={
 		name=nil,
 		shoot='straight',
@@ -78,14 +82,14 @@ meta %f
 level %d%s
 )]], name, shoot, move, hp, speed, meta,
 			level, png and string.format("\npng %s", png) or "")
-	table.insert(self.enemies, s)
+	table.insert(enemies, s)
 end
 
-function M.DefineEncounter(self, name)
-	table.insert(self.encounters, string.format('[%s]', name))
+function M.defencounter(name)
+	table.insert(encounters, string.format('[%s]', name))
 end
 
-function M.Encounter(self, name, time, x, y)
+function M.encounter(name, time, x, y)
 	local s = string.format([[
 (
 name %s
@@ -93,15 +97,15 @@ time %f
 x %d
 y %d
 )]], name, time, x, y)
-	table.insert(self.encounters, s)
+	table.insert(encounters, s)
 end
 
-function M.Group(self, name)
-	table.insert(self.groups, name)
+function M.group(name)
+	table.insert(groups, name)
 end
 
-function M.Generate(self)
-	all = {self.header, self.enemies, self.encounters, self.groups}
+function M.generate()
+	local all = {header, enemies, encounters, groups}
 	for i, t in ipairs(all) do
 		for j, v in ipairs(t) do
 			print(v)
