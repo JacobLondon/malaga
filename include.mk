@@ -14,7 +14,11 @@ AR = ar rc
 RANLIB = ranlib
 RM_F = rm -rf
 
+default_target = debug
+found = No
+
 ifeq ($(OS),Windows_NT)
+	found    = Yes
 	CFLAGS   += $(CWARNSNOTMAC)
 
 	MYEXT     = .exe
@@ -26,6 +30,7 @@ else
 	MYEXT =
 	UNAME_S = $(shell uname -s)
 	ifeq ($(UNAME_S),Linux)
+		found    = Yes
 		CFLAGS   += $(CWARNSNOTMAC)
 
 		CC        = gcc
@@ -33,10 +38,15 @@ else
 		MYLIBS    = -lraylib -lm -lpthread -ldl
 	endif
 	ifeq ($(UNAME_S),Darwin)
+		found     = Yes
 		CC        = clang
 		MYLDFLAGS = -DPLATFORM_DESKTOP
 		MYLIBS    = -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL -lraylib
 	endif
+endif
+
+ifeq ($(found),No)
+	default_target = abort
 endif
 
 RLU_A = ../rlu/librlu.a
@@ -46,7 +56,11 @@ DEF = ../collections/def$(MYEXT)
 
 MYLIBS += $(RLU_A) $(MYLUA_A)
 
-all: debug
+all: $(default_target)
 # required by all includers
 release: CFLAGS += -O2
 debug: CFLAGS += -ggdb -O0
+
+abort:
+	@echo 'ERROR: Your OS isn't supported
+	@false

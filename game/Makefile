@@ -1,12 +1,7 @@
 
 include ../include.mk
 
-MG_PRE_T = malaga
-ifeq ($(UNAME_S),Windows)
-	MG_T = $(MG_PRE_T).exe
-else
-	MG_T = $(MG_PRE_T)
-endif
+MG_T = malaga$(MYEXT)
 
 MG_O=main.o
 
@@ -25,7 +20,6 @@ atmos.o
 ALL_O = $(CORE_O) $(MG_O)
 
 release: $(MG_T)
-
 debug: $(MG_T)
 
 $(MG_T): $(CORE_O) $(MG_O)

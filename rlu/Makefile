@@ -29,7 +29,7 @@ $(GEN_T):
 	$(DEF) -f atmosphere.json -o $(GEN_T)
 
 $(RLU_A): $(GEN_T) $(RLU_O)
-	$(AR) $@ $^
+	$(AR) $@ $(RLU_O)
 	$(RANLIB) $@
 
 clean:
@@ -77,6 +77,7 @@ input.o: input.c rlu.h raylib.h atmosphere.h scene.h scene_object.h \
 rlu.o: rlu.h raylib.h atmosphere.h scene.h scene_object.h anim.h \
   scene_man.h anim_man.h texture_man.h util.h context.h input.h \
   key_object.h key_man.h music_man.h ui.h parray.h
+atmosphere.gen.o: atmosphere.gen.h
 parray.o: parray.h
 music_man.o: music_man.h
 scene_object.o: scene_object.c rlu.h raylib.h atmosphere.h scene.h \
@@ -95,7 +96,8 @@ context.o: context.c rlu.h raylib.h atmosphere.h scene.h scene_object.h \
   key_object.h key_man.h music_man.h ui.h parray.h
 atmosphere.o: atmosphere.c rlu.h raylib.h atmosphere.h scene.h \
   scene_object.h anim.h scene_man.h anim_man.h texture_man.h util.h \
-  context.h input.h key_object.h key_man.h music_man.h ui.h parray.h
+  context.h input.h key_object.h key_man.h music_man.h ui.h parray.h \
+  atmosphere.gen.h
 anim_man.o: anim_man.h raylib.h
 raylib.o: raylib.h
 texture_man.o: texture_man.c rlu.h raylib.h atmosphere.h scene.h \

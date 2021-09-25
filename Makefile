@@ -28,9 +28,11 @@ mybuild:
 
 clean:
 	rm -rf bin
-	make -C collections clean
 	make -C rlu clean
-	make -C lua clean
 	make -C rlua clean
 	make -C game clean
 	make -C data clean
+
+clobber: clean
+	make -C collections clean
+	make -C lua clean
