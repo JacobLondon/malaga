@@ -41,6 +41,7 @@ endif
 
 RLU_A = ../rlu/librlu.a
 MYLUA_A = ../lua/lua/liblua.a
+LUA = ../lua/lua/lua
 
 MYLIBS += $(RLU_A) $(MYLUA_A)
 

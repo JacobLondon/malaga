@@ -6,7 +6,9 @@ malaga
 *.o
 *.a
 .DS_Store
-data/assets/
-maps/*.mg
 __pycache__/
+
 bin/*
+data/assets/
+data/generate.mk
+data/maps/*.mg
