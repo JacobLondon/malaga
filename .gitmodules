@@ -1,6 +1,7 @@
-[submodule "submodules/collections"]
-	path = submodules/collections
-	url = https://github.com/JacobLondon/collections
-[submodule "submodules/lua"]
-	path = submodules/lua
+[submodule "lua/lua"]
+	path = lua/lua
 	url = https://github.com/lua/lua
+	branch = 9db4bfed6bb9d5828c99c0f24749eedf54d70cc2
+[submodule "collections"]
+	path = collections
+	url = https://github.com/JacobLondon/collections

@@ -4,6 +4,9 @@ malaga
 .vscode
 *.swp
 *.o
-assets/
+*.a
+.DS_Store
+data/assets/
 maps/*.mg
 __pycache__/
+bin/*
