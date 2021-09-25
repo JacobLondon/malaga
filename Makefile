@@ -4,19 +4,40 @@ include include.mk
 .PHONY: clean
 
 BUILD_MODE=
+COMPRESS_TOOL=
+COMPRESS_EXT=
+
+help:
+	@echo 'Options:'
+	@echo '  debug'
+	@echo '  release'
+	@echo '  zip'
+	@echo '  tar'
+	@echo '  clean'
+	@echo '  nopack'
+	@echo '  clobber'
 
 debug: BUILD_MODE += debug
-debug: bin
+debug: $(PROJECT)
 release: BUILD_MODE += release
-release: bin
+release: $(PROJECT)
 
-bin: mybuild
-	mkdir -p bin/
-	cp game/malaga bin/
-	mkdir -p bin/maps
-	cp data/maps/* bin/maps/
-	mkdir -p bin/assets
-	cp data/assets/* bin/assets/
+$(PROJECT): mybuild
+	mkdir -p $(PROJECT)
+	cp game/malaga $(PROJECT)
+	mkdir -p $(PROJECT)/maps
+	cp data/maps/* $(PROJECT)/maps/
+	mkdir -p $(PROJECT)/assets
+	cp data/assets/* $(PROJECT)/assets/
+
+zip: COMPRESS_TOOL = zip -r
+zip: COMPRESS_EXT = zip
+zip: release compress
+tar: COMPRESS_TOOL = tar czf
+tar: COMPRESS_EXT = tar.gz
+tar: release compress
+compress:
+	$(COMPRESS_TOOL) $(PROJECT).$(COMPRESS_EXT) $(PROJECT)
 
 mybuild:
 	make -C collections $(BUILD_MODE)
@@ -27,12 +48,15 @@ mybuild:
 	make -C data $(BUILD_MODE)
 
 clean:
-	rm -rf bin
+	$(RM_F) bin
 	make -C rlu clean
 	make -C rlua clean
 	make -C game clean
 	make -C data clean
 
-clobber: clean
+nopack:
+	$(RM_F) $(PROJECT).zip $(PROJECT).tar.gz
+
+clobber: clean nopack
 	make -C collections clean
 	make -C lua clean

@@ -1,6 +1,10 @@
 # MG: MyGalaga
 Space shooter, galaga-like game. Note that I don't own these assets, and they will not be available for download.
 
+```bash
+git clone git@github.com:/JacobLondon/mg --recurse-submodules
+```
+
 ![](https://user-images.githubusercontent.com/17059471/126079271-e560e05b-bd8f-429b-96b5-016c79d9e1de.png)
 
 # Features
@@ -15,8 +19,11 @@ Space shooter, galaga-like game. Note that I don't own these assets, and they wi
 
 # Compiling
 ```bash
-make
-./test[.exe]
+# ensure you have raylib installed, see below
+make help
+make release
+make tar
+make zip
 ```
 
 # TODO
@@ -36,9 +43,40 @@ make
   * make, gcc, /usr/local/lib/libraylib.a
 * Windows
   * git-bash, make, tcc/Raylib installation
+* Mac
+  * make, gcc/clang, /usr/local/lib/libraylib.a
 
 # Raylib Installation
-* Linux: Manually clone/build Raylib and `cp libraylib.a /usr/local/lib/` (NOTE: ln -s won't work)
-* Windows: Follow Windows exe installer instructions on the Raylib releases [page](https://github.com/raysan5/raylib/releases)
-  * New versions of Raylib may be different. This may require performing the exe install and changing `configure.py` Windows section's CC/CFLAGS/LDFLAGS.
-  * Steps for setting compiler flags are at the Raylib GitHub page
+Go here to get the latest: [https://github.com/raysan5/raylib/releases](https://github.com/raysan5/raylib/releases)
+
+## Linux
+```bash
+wget https://github.com/raysan5/raylib/releases/download/3.5.0/raylib-3.5.0_linux_amd64.tar.gz
+
+tar xzf raylib-3.5.0_linux_amd64.tar.gz
+cp raylib-3.5.0_linux_amd64/lib/libraylib.a /usr/local/lib/
+```
+
+## Windows
+```bash
+# make sure you have MinGW for Windows thru git-for-windows
+https://git-scm.com/downloads
+
+# Then go here
+https://github.com/raysan5/raylib/releases
+
+# download and run
+raylib_installer_v370.mingw.exe
+```
+
+## Mac
+```bash
+# Homebrew way, might get wrong version. Need 3.5.0
+brew install raylib
+
+# wget or just manually download it from github downloads page
+wget https://github.com/raysan5/raylib/releases/download/3.5.0/raylib-3.5.0_macos.tar.gz
+
+tar xzf raylib-3.5.0_macos.tar.gz
+cp raylib-3.5.0_macos/lib/libraylib.a /usr/local/lib/
+```

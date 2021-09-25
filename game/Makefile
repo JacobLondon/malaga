@@ -1,7 +1,7 @@
 
 include ../include.mk
 
-MG_T = malaga$(MYEXT)
+MG_T = $(PROJECT)$(MYEXT)
 
 MG_O=main.o
 

@@ -1,4 +1,6 @@
 
+PROJECT = malaga
+
 CWARNS=\
 	-Wall \
 	-Wextra \
