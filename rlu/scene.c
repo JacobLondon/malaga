@@ -6,6 +6,15 @@ struct scene_tag {
 	size_t max_objects;
 };
 
+void scene_definition_del(scene_definition *self)
+{
+	assert(self);
+	assert(self->name);
+
+	dealloc(self->name);
+	(void)memset(self, 0, sizeof(scene_definition));
+}
+
 scene *scene_new(char *name, size_t max_objects, scene_cb init, void *client)
 {
 	scene *self = allocate(sizeof(scene));

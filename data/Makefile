@@ -5,6 +5,7 @@ include ../include.mk
 
 GENERATE = generate.mk
 
+# convert 'maps/test.lua' -> '\t$(LUA) maps/test.lua > maps/test.mg' and put lines into generated makefile by rule 'generate'
 $(GENERATE):
 	echo 'generate:' > $(GENERATE)
 	find maps | grep -v 'mg\.lua' | grep '\.lua' | sed 's/.lua//g' | xargs -I {} echo {} {} | xargs printf '\t$$(LUA) %s.lua > %s.mg\n' >> $(GENERATE)

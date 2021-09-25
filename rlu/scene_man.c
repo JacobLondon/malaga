@@ -32,6 +32,26 @@ static anim_man *animation_man = NULL;
 static scene *active_scenes[ACTIVE_SCENES_MAX] = { NULL };
 static bool *active_visibility[ACTIVE_SCENES_MAX] = { false };*/
 
+/** delete a scene set if it owns all its pointers */
+void scene_set_del(scene_set *self)
+{
+	size_t i;
+	assert(self);
+	assert(self->name);
+	dealloc(self->name);
+
+	for (i = 0; i < ARRAY_SIZE(self->scene_names); i++)
+	{
+		if (self->scene_names[i] == NULL)
+		{
+			break;
+		}
+
+		dealloc(self->scene_names[i]);
+	}
+	(void)memset(self, 0, sizeof(scene_set));
+}
+
 void scene_man_new(struct scene_manager_tag *out, scene_definition *definitions, scene_set *sets)
 {
 	size_t i;

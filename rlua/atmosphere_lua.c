@@ -3,7 +3,6 @@
 #include <lua/lauxlib.h>
 #include <lua/lualib.h>
 
-#include "atmosphere.h"
 #include "atmosphere_lua.h"
 
 static int mylua_openlib(lua_State *L, const char *name, const struct luaL_reg *reg);

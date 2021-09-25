@@ -22,7 +22,7 @@ $(LINIT_C):
 	cp mylinit.c $(LINIT_C)
 
 mybuild:
-	make -C lua -f $(UNAME_S).mk
+	make -C lua -f $(UNAME_S).mk MYEXT=$(MYEXT)
 
 # include requirements
 release: debug

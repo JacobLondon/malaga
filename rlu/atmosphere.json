@@ -1,0 +1,20 @@
+{
+	"../collections/vectordef.h": [
+		{
+			"$NN": "SCENEDEF",
+			"$Nn": "SceneDef",
+			"$nn": "scene_def",
+			"$T": "scene_definition",
+			"$ZEROVALUE": "(!a.name)",
+			"$FREEVALUE": "scene_definition_del(&a)"
+		},
+		{
+			"$NN": "SCENESET",
+			"$Nn": "SceneSet",
+			"$nn": "scene_set",
+			"$T": "scene_set",
+			"$ZEROVALUE": "(!a.name)",
+			"$FREEVALUE": "scene_set_del(&a)"
+		}
+	]
+}

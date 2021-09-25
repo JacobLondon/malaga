@@ -7,7 +7,7 @@
 #define ACTIVE_SCENES_MAX 16 /* max number of scenes to use at once */
 
 typedef struct scene_set_tag {
-	const char *name;
+	char *name; /** can be owned */
 	char *scene_names[ACTIVE_SCENES_MAX];
 } scene_set;
 
@@ -29,6 +29,9 @@ struct scene_manager_tag {
 };
 
 typedef struct scene_manager_tag scene_manager;
+
+/* free name and all scene_names if owned */
+void scene_set_del(scene_set *self);
 
 /**
  * Manage groupings of scenes. Call update

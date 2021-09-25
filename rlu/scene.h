@@ -18,11 +18,14 @@ typedef void (*scene_cb)(struct scene_tag *self, void *client);
  * called. An additional way to create a
  * scene */
 typedef struct scene_definition_tag {
-	char *name;
+	char *name; /** if owned, use \ref scene_definition_del */
 	size_t max_objects;
 	scene_cb init;
-	void *client;
+	void *client; /* never owned */
 } scene_definition;
+
+/* free name when it is owned */
+void scene_definition_del(scene_definition *self);
 
 scene *scene_new(char *name, size_t max_objects, scene_cb init, void *client);
 scene *scene_new_def(scene_definition *def);

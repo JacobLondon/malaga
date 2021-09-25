@@ -8,7 +8,7 @@ CWARNS=\
 CWARNSNOTMAC=\
 	-Wno-format-truncation
 
-CFLAGS = $(CWARNS) -std=c99 -I..
+CFLAGS = $(CWARNS) -std=c99 -I.. -I../lua
 
 AR = ar rc
 RANLIB = ranlib
@@ -41,7 +41,8 @@ endif
 
 RLU_A = ../rlu/librlu.a
 MYLUA_A = ../lua/lua/liblua.a
-LUA = ../lua/lua/lua
+LUA = ../lua/lua/lua$(MYEXT)
+DEF = ../collections/def$(MYEXT)
 
 MYLIBS += $(RLU_A) $(MYLUA_A)
 

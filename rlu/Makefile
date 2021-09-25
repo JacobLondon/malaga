@@ -19,16 +19,21 @@ texture_man.o \
 ui.o \
 util.o
 
+GEN_T=atmosphere.gen.h
+
 release: $(RLU_A)
 
 debug: $(RLU_A)
 
-$(RLU_A): $(RLU_O)
+$(GEN_T):
+	$(DEF) -f atmosphere.json -o $(GEN_T)
+
+$(RLU_A): $(GEN_T) $(RLU_O)
 	$(AR) $@ $^
 	$(RANLIB) $@
 
 clean:
-	$(RM_F) $(RLU_A) $(RLU_O)
+	$(RM_F) $(RLU_A) $(RLU_O) $(GEN_T)
 
 depend:
 	find . | grep -E '\.c|\.h' | xargs $(CC) $(CFLAGS) -MM

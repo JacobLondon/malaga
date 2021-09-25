@@ -19,16 +19,18 @@ bin: mybuild
 	cp data/assets/* bin/assets/
 
 mybuild:
+	make -C collections $(BUILD_MODE)
 	make -C rlu $(BUILD_MODE)
 	make -C lua $(BUILD_MODE)
 	make -C rlua $(BUILD_MODE)
-	make -C data $(BUILD_MODE)
 	make -C game $(BUILD_MODE)
+	make -C data $(BUILD_MODE)
 
 clean:
 	rm -rf bin
-	make -C lua clean
-	make -C data clean
+	make -C collections clean
 	make -C rlu clean
+	make -C lua clean
 	make -C rlua clean
 	make -C game clean
+	make -C data clean

@@ -12,3 +12,4 @@ bin/*
 data/assets/
 data/generate.mk
 data/maps/*.mg
+*.gen.h
