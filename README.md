@@ -9,8 +9,8 @@ git clone git@github.com:/JacobLondon/mg --recurse-submodules
 
 # Features
 * Xbox Controller Support
-* Backgrounds are simple to create and customize using the scene_man.c library in atmos.c module.
-* Levels are fully scripted. Scripts are generated with maps/mg.py. Use maps/test.py as a reference, this will generate maps/test.mg which will be then available from the level select screen.
+* Backgrounds are simple to create and customize using the scene_man.c library in atmos.c module. (Planning for backgrounds to be fully scripted in Lua)
+* Levels are scripted in Lua (planning for levels to be fully scripted in Lua)
 * Gamemodes: Endless, Double-Trouble, Godmode
 * Combos, multipliers, rounds, health
 * Enemy explosions when sprites are available
@@ -32,11 +32,10 @@ make zip
 * Powerups and drops
 * Level select with high score stored in level file
 * Flashlight mode
-* Make new so_cb_strobe
+* Darker background option
+* Make new `so_cb_strobe`
   * and a new mode called solar flare mode
 * Level files can define assets and which background to use
-* Don't impound .mg files but the python files instead
-  * Easier way to generate all the .mg files
 
 # Requirements
 * Linux
