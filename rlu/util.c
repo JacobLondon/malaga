@@ -446,3 +446,50 @@ void *svec_tail(svec *self)
 	}
 	return self->buf[self->end - 1];
 }
+
+Color color_lookup(const char *color)
+{
+	int i;
+	static struct {
+		const char *name;
+		Color color;
+	} lookup[] = {
+		{"lightgray", LIGHTGRAY},
+		{"gray", GRAY},
+		{"darkgray", DARKGRAY},
+		{"yellow", YELLOW},
+		{"gold", GOLD},
+		{"orange", ORANGE},
+		{"pink", PINK},
+		{"red", RED},
+		{"maroon", MAROON},
+		{"green", GREEN},
+		{"lime", LIME},
+		{"darkgreen", DARKGREEN},
+		{"skyblue", SKYBLUE},
+		{"blue", BLUE},
+		{"darkblue", DARKBLUE},
+		{"purple", PURPLE},
+		{"violet", VIOLET},
+		{"beige", BEIGE},
+		{"brown", BROWN},
+		{"darkbrown", DARKBROWN},
+		{"white", WHITE},
+		{"black", BLACK},
+		{"magenta", MAGENTA},
+		{0}
+	};
+
+	if (!color) {
+		goto miss;
+	}
+
+	for (i = 0; lookup[i].name != NULL; i++) {
+		if (strcasecmp(color, lookup[i].name) == 0) {
+			return lookup[i].color;
+		}
+	}
+
+miss:
+	return MAGENTA;
+}

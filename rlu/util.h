@@ -137,4 +137,6 @@ void svec_pop(svec *self);
 void svec_map(svec *self, void (*func)(void *data));
 void *svec_tail(svec *self); /** get last item */
 
+Color color_lookup(const char *color);
+
 #endif // RLU_UTIL_H
