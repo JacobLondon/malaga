@@ -1,6 +1,8 @@
 #ifndef RLU_MUSIC_MAN_H
 #define RLU_MUSIC_MAN_H
 
+#include "raylib.h"
+
 typedef struct sound_def_tag {
 	const char *name;
 	const char *filename;

@@ -8,6 +8,7 @@ malaga
 .DS_Store
 __pycache__/
 
+tmp/
 bin/*
 data/assets/
 data/generate.mk

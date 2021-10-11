@@ -22,8 +22,10 @@ ALL_O = $(CORE_O) $(MG_O)
 release: $(MG_T)
 debug: $(MG_T)
 
-$(MG_T): $(CORE_O) $(MG_O)
-	$(CC) -o $@ $(MYLDFLAGS) $(ALL_O) $(MYLIBS) $(CFLAGS)
+# *MUST* be this order... at least for tcc
+# all CC -o TARGET *.o *.data *.a -l* CFLAGS
+$(MG_T): $(ALL_O)
+	$(CC) -o $@ $(ALL_O) $(MYLIBS) $(MYLDFLAGS) $(CFLAGS)
 
 clean:
 	$(RM_F) $(ALL_O) $(MG_T)

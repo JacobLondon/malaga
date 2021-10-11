@@ -74,7 +74,7 @@ MYLIBS=
 
 CC= tcc
 CFLAGS= -Wall -O2 $(MYCFLAGS) -fno-stack-protector -fno-common -march=native
-AR= ar rc
+AR= tcc -ar rc
 RANLIB= ranlib
 RM= rm -f
 
