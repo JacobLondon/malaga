@@ -28,7 +28,7 @@ $(PROJECT): mybuild
 	mkdir -p $(PROJECT)/maps
 	cp data/maps/* $(PROJECT)/maps/
 	mkdir -p $(PROJECT)/assets
-	cp data/assets/* $(PROJECT)/assets/
+	[ -d data/assets ] && cp data/assets/* $(PROJECT)/assets/ || true
 
 zip: COMPRESS_TOOL = zip -r
 zip: COMPRESS_EXT = zip
