@@ -29,11 +29,11 @@ MYLIBS = $(RLU_A) $(MYLUA_A)
 ifeq ($(OS),Windows_NT)
 	found    = Yes
 	CFLAGS   += $(CWARNSNOTMAC)
-	AR       = tcc -ar rc
+	AR       = C:/raylib/tcc/tcc -ar rc
 
 	MYEXT     = .exe
 	UNAME_S   = Windows
-	CC        = tcc
+	CC        = C:/raylib/tcc/tcc
 	MYLDFLAGS = -DPLATFORM_DESKTOP
 	MYLIBS   += C:/raylib/raylib/src/raylib.rc.data -lmsvcrt -lraylib -lopengl32 -lgdi32 -lwinmm -lkernel32 -lshell32 -luser32
 else

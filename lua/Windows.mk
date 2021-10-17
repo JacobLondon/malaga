@@ -72,9 +72,9 @@ MYLDFLAGS= $(LOCAL) -Wl
 MYLIBS=
 
 
-CC= tcc
+CC= C:/raylib/tcc/tcc
 CFLAGS= -Wall -O2 $(MYCFLAGS) -fno-stack-protector -fno-common -march=native
-AR= tcc -ar rc
+AR= C:/raylib/tcc/tcc -ar rc
 RANLIB= ranlib
 RM= rm -f
 
