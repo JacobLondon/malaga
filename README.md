@@ -2,13 +2,13 @@
 Space shooter, galaga-like game. Note that I don't own these assets, and they will not be available for download.
 
 ```bash
-git clone git@github.com:/JacobLondon/mg --recurse-submodules
+git clone git@github.com:/JacobLondon/malaga --recurse-submodules
 ```
 
 ![](https://user-images.githubusercontent.com/17059471/126079271-e560e05b-bd8f-429b-96b5-016c79d9e1de.png)
 
 # Features
-* Xbox Controller Support
+* Xbox Controller Support (non-menu, just in-game)
 * Backgrounds are simple to create and customize using the scene_man.c library in atmos.c module. (Planning for backgrounds to be fully scripted in Lua)
 * Levels are scripted in Lua (planning for levels to be fully scripted in Lua)
 * Gamemodes: Endless, Double-Trouble, Godmode
@@ -21,7 +21,14 @@ git clone git@github.com:/JacobLondon/mg --recurse-submodules
 ```bash
 # ensure you have raylib installed, see below
 make help
+
+# build release
 make release
+
+# easiest
+make play
+
+# package all
 make tar
 make zip
 ```
@@ -38,6 +45,9 @@ make zip
 * Level files can define assets and which background to use
 
 # Requirements
+* Raylib
+  * Raylib 3.0.0 is used, however it seems 3.5.0 also works
+  * Raylib 3.7.0 or higher does not work due to changes in the audio interface
 * Linux
   * make, gcc, /usr/local/lib/libraylib.a
 * Windows
