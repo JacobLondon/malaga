@@ -2,7 +2,7 @@
 #include "atmos.h"
 #include "modules.h"
 
-#define MENU_TEXT "SPACE GAME"
+#define MENU_TEXT "MALAGA"
 
 static button *play_button;
 
