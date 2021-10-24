@@ -1,4 +1,4 @@
-# MG: MyGalaga
+# Malaga
 Space shooter, galaga-like game. Note that I don't own these assets, and they will not be available for download.
 
 ```bash
