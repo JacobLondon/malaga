@@ -65,7 +65,7 @@ https://git-scm.com/downloads
 https://github.com/raysan5/raylib/releases
 
 # download and run
-raylib_installer_v370.mingw.exe
+ raylib_installer_v300.tcc.exe
 ```
 
 ## Mac
