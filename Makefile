@@ -47,7 +47,8 @@ mybuild:
 	make -C game $(BUILD_MODE)
 	make -C data $(BUILD_MODE)
 
-play: $(PROJECT)
+play: $(PROJECT) run
+run:
 	$(shell cd $(PROJECT) && ./$(PROJECT) ; cd ..)
 
 clean:

@@ -52,17 +52,18 @@ function M.header(atmosphere)
 	table.insert(header, '**')
 end
 
+local enemy_default_args = {
+	name=nil,
+	shoot='straight',
+	move='down',
+	hp=5,
+	speed=1,
+	meta=0,
+	level=0,
+	png=nil,
+}
 function M.enemy(t)
-	setmetatable(t, {__index={
-		name=nil,
-		shoot='straight',
-		move='down',
-		hp=5,
-		speed=1,
-		meta=0,
-		level=0,
-		png=nil,
-	}})
+	setmetatable(t, {__index=enemy_default_args})
 	local name = t[1]
 	local shoot = 'bullet_enemy_' .. (t[2] or t.shoot)
 	local move = t[3] or t.move
