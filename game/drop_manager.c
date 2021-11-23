@@ -124,6 +124,12 @@ void drop_manager_draw(void)
 	for (i = 0; i < DROPS_MAX; i++) {
 		if (ctx.drops[i].drop.type != DROP_NONE) {
 			so_draw(ctx.drops[i].object);
+
+			DrawText(
+				drop_to_string(&ctx.drops[i].drop),
+				ctx.drops[i].x + anim_get_width(so_get_anim(ctx.drops[i].object)),
+				ctx.drops[i].y,
+				12, WHITE);
 		}
 	}
 }
