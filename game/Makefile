@@ -9,6 +9,7 @@ MG_O=main.o
 CORE_O=\
 game.o \
 bullet.o \
+drop_manager.o \
 levelselect.o \
 drop.o \
 mg.o \

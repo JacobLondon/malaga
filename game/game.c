@@ -5,6 +5,7 @@
 #include "score.h"
 #include "atmos.h"
 #include "drop.h"
+#include "drop_manager.h"
 
 #define WIN_TEXT "- WINNER -"
 #define LOSE_TEXT "- LOSER -"
@@ -94,6 +95,7 @@ void game_init(void)
 	animan = anim_man_new();
 	player_new(&player);
 	detonations_init();
+	drop_manager_init();
 
 	if (game_data.mapdir[0] == 0) {
 		char file[256];
@@ -122,6 +124,7 @@ void game_init(void)
 void game_cleanup(void)
 {
 	int i;
+	drop_manager_cleanup();
 	detonations_cleanup();
 	player_del(&player);
 	for (i = 0; i < enemy_count; i++) {
@@ -236,6 +239,10 @@ void game_update(void)
 		}
 	}
 
+	// move it after the player tries to eat the last frame instance
+	player_eat_drop(&player, drop_manager_pickup(&player));
+	drop_manager_update();
+
 	/*if (IsGamepadAvailable(0)) {
 		if (GetGamepadButtonPressed() != -1) DrawText(TextFormat("DETECTED BUTTON: %i", GetGamepadButtonPressed()), 10, 430, 10, RED);
 		else DrawText("DETECTED BUTTON: NONE", 10, 430, 10, GRAY);
@@ -305,6 +312,7 @@ void game_draw(void)
 	//DrawFPS(20, 20);
 	atmos_draw();
 	bullet_draw();
+	drop_manager_draw();
 	detonations_update();
 	detonations_update();
 
@@ -473,6 +481,7 @@ void enemy_took_death(enemy_data *ed)
 		score_increase_points();
 	}
 
+	drop_manager_dropit(ed);
 	enemy_detonate(ed);
 }
 
@@ -533,6 +542,8 @@ static void player_eat_drop(player_data *self, item_drop drop)
 	char *tmp;
 	assert(self);
 	switch (drop.type) {
+	case DROP_NONE:
+		break;
 	case DROP_LEVEL:
 		self->level += drop.spec.level_amount;
 		break;

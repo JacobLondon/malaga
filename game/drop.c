@@ -9,6 +9,9 @@ const char *drop_to_string(item_drop *drop)
 	static char buf[128];
 	assert(drop);
 	switch (drop->type) {
+	case DROP_NONE:
+		snprintf(buf, sizeof(buf), "None");
+		break;
 	case DROP_LEVEL:
 		snprintf(buf, sizeof(buf), "%+d Level", drop->spec.level_amount);
 		break;
@@ -32,6 +35,9 @@ item_drop drop_random(void)
 	item_drop rv;
 	rv.type = rand_range(0, DROP_COUNT);
 	switch(rv.type) {
+	case DROP_NONE:
+		rv.spec.none = 0;
+		break;
 	case DROP_LEVEL:
 		rv.spec.level_amount = 1;
 		break;

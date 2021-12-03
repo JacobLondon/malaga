@@ -34,6 +34,7 @@ make zip
 ```
 
 # TODO
+* highscore system
 * Flower which spins
 * Make more levels
 * Powerups and drops

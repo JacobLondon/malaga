@@ -5,6 +5,7 @@
 
 typedef struct item_drop {
 	enum {
+		DROP_NONE,
 		DROP_LEVEL,
 		DROP_BULLET,
 		DROP_HEALTH,
@@ -12,6 +13,7 @@ typedef struct item_drop {
 		DROP_COUNT
 	} type;
 	union {
+		int none;
 		int level_amount;
 		int bullet_id;
 		int health_amount;
