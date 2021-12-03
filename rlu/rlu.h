@@ -32,4 +32,6 @@
 #include "util.h"
 #include "parray.h"
 
+#define MYDARKGRAY CLITERAL(Color){ 80, 80, 150, 150 }
+
 #endif // RLU_RLU_H_

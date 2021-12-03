@@ -31,6 +31,7 @@ static bool mapdirexists = false;
 static bool endless_mode = false;
 static bool trouble_mode = false;
 static bool invinc_mode = false;
+static char playership[128] = {0};
 
 void levelselect_init(void)
 {
@@ -56,29 +57,31 @@ void levelselect_init(void)
 	component_set_pos(damage_button, .75, .475);
 	component_set_pos(invinc_button, .75, .55);
 
-	component_set_color(select_button, WHITE, DARKGRAY);
-	component_set_color(menu_button, WHITE, DARKGRAY);
+	component_set_color(select_button, WHITE, MYDARKGRAY);
+	component_set_color(menu_button, WHITE, MYDARKGRAY);
 
 	if (!endless_mode) {
-		component_set_color(endless_button, WHITE, DARKGRAY);
+		component_set_color(endless_button, WHITE, MYDARKGRAY);
 	}
 	else {
-		component_set_color(endless_button, DARKGRAY, WHITE);
+		component_set_color(endless_button, MYDARKGRAY, WHITE);
 	}
 
 	if (!trouble_mode) {
-		component_set_color(damage_button, WHITE, DARKGRAY);
+		component_set_color(damage_button, WHITE, MYDARKGRAY);
 	}
 	else {
-		component_set_color(damage_button, DARKGRAY, WHITE);
+		component_set_color(damage_button, MYDARKGRAY, WHITE);
 	}
 
 	if (!invinc_mode) {
-		component_set_color(invinc_button, WHITE, DARKGRAY);
+		component_set_color(invinc_button, WHITE, MYDARKGRAY);
 	}
 	else {
-		component_set_color(invinc_button, DARKGRAY, WHITE);
+		component_set_color(invinc_button, MYDARKGRAY, WHITE);
 	}
+
+	memset(playership, 0, sizeof(playership));
 
 	atmos_init(NULL);
 	index_maps();
@@ -186,6 +189,13 @@ static void lselect(void *client)
 		if (strlen(mapdir) > 0) {
 			(void)snprintf(msg.mapdir, sizeof(msg.mapdir), "%s/%s", DATA_MAPS_DIR, mapdir);
 		}
+		if (strlen(playership) > 0) {
+			(void)snprintf(msg.playership, sizeof(msg.playership), "%s/%s", context_get_assetdir(), playership);
+		}
+		else {
+			(void)snprintf(msg.playership, sizeof(msg.playership), "%s/%s", context_get_assetdir(), DATA_ASSET_PLAYER);
+		}
+
 		game_conf(&msg);
 		context_switch("GAME");
 	}
@@ -204,12 +214,12 @@ static void tendless(void *client)
 	// from non-endless to endless
 	if (!endless_mode) {
 		endless_mode = true;
-		component_set_color(endless_button, DARKGRAY, WHITE);
+		component_set_color(endless_button, MYDARKGRAY, WHITE);
 	}
 	// from endless to non-endless
 	else {
 		endless_mode = false;
-		component_set_color(endless_button, WHITE, DARKGRAY);
+		component_set_color(endless_button, WHITE, MYDARKGRAY);
 	}
 }
 
@@ -219,11 +229,11 @@ static void tdamage(void *client)
 
 	if (!trouble_mode) {
 		trouble_mode = true;
-		component_set_color(damage_button, DARKGRAY, WHITE);
+		component_set_color(damage_button, MYDARKGRAY, WHITE);
 	}
 	else {
 		trouble_mode = false;
-		component_set_color(damage_button, WHITE, DARKGRAY);
+		component_set_color(damage_button, WHITE, MYDARKGRAY);
 	}
 }
 
@@ -233,11 +243,11 @@ static void tinvinc(void *client)
 
 	if (!invinc_mode) {
 		invinc_mode = true;
-		component_set_color(invinc_button, DARKGRAY, WHITE);
+		component_set_color(invinc_button, MYDARKGRAY, WHITE);
 	}
 	else {
 		invinc_mode = false;
-		component_set_color(invinc_button, WHITE, DARKGRAY);
+		component_set_color(invinc_button, WHITE, MYDARKGRAY);
 	}
 }
 

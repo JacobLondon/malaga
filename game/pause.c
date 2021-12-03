@@ -1,5 +1,6 @@
 #include <rlu/rlu.h>
 #include "modules.h"
+#include "data.h"
 
 #define PAUSE_TEXT "- PAUSE -"
 
@@ -18,8 +19,8 @@ void pause_init(void)
 	component_set_size(menu_button, 24, .4, .1);
 	component_set_pos(resume_button, .5, .4);
 	component_set_pos(menu_button, .5, .6);
-	component_set_color(resume_button, WHITE, DARKGRAY);
-	component_set_color(menu_button, WHITE, DARKGRAY);
+	component_set_color(resume_button, WHITE, MYDARKGRAY);
+	component_set_color(menu_button, WHITE, MYDARKGRAY);
 }
 
 void pause_cleanup(void)

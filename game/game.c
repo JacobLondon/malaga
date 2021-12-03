@@ -364,6 +364,7 @@ void game_conf(struct game_message *msg)
 	game_data.endless_mode = msg->endless_mode;
 	game_data.trouble_mode = msg->trouble_mode;
 	game_data.god_mode = msg->god_mode;
+	snprintf(game_data.playership, sizeof(game_data.playership), "%s", msg->playership);
 }
 
 static void encounter_clear(void)
@@ -494,7 +495,7 @@ static void player_new(player_data *self)
 	Texture2D *tex;
 	assert(self);
 
-	snprintf(buf, sizeof(buf), "%s/%s", context_get_assetdir(), DATA_ASSET_PLAYER);
+	(void)snprintf(buf, sizeof(buf), "%s", game_data.playership);
 	self->x = screen_width / 2;
 	self->y = screen_height * 3 / 4;
 
