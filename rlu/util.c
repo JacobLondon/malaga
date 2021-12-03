@@ -493,3 +493,13 @@ Color color_lookup(const char *color)
 miss:
 	return MAGENTA;
 }
+
+char *tempbuf(const char *fmt, ...)
+{
+	static char buf[1024];
+	va_list ap;
+	va_start(ap, fmt);
+	vsnprintf(buf, sizeof(buf), fmt, ap);
+	va_end(ap);
+	return buf;
+}

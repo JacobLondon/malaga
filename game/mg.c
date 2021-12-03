@@ -14,7 +14,7 @@ void mg_init(void)
 	component_set_pos(play_button, .5 - .2, .75);
 	component_set_size(play_button, 24, .4, .1);
 	component_set_color(play_button, WHITE, MYDARKGRAY);
-	atmos_init(NULL);
+	atmos_init("Dark");
 }
 
 void mg_cleanup(void)
@@ -33,7 +33,8 @@ void mg_draw(void)
 {
 	atmos_draw();
 	component_draw(play_button);
-	DrawText(MENU_TEXT, GetScreenWidth() / 2 - MeasureText(MENU_TEXT, 40) / 2, GetScreenHeight() / 4, 40, WHITE);
+	DrawRectangle(0, GetScreenHeight() * 0.2, GetScreenWidth(), 40, WHITE);
+	DrawText(MENU_TEXT, GetScreenWidth() / 2 - MeasureText(MENU_TEXT, 40) / 2, GetScreenHeight() * 0.2, 40, BLACK);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

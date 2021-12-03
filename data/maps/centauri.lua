@@ -79,6 +79,13 @@ for i = 1,6 do
 	m.encounter('doomer', i, 0, 40)
 end
 
+m.defencounter('boss')
+	m.enemy{'bossman', png='bossman.png', shoot='flower', move='downstop', hp=300, speed=1, meta=2, level=999}
+	m.encounter('bossman', 3, 50, 0)
+for i = 1,3 do
+	m.encounter('rightstop', i*10, 0, 30 + 15*i)
+	m.encounter('leftstop', i*10, 100, 30 + 15*i)
+end
 
 m.group('encounter_down')
 m.group('encounter_flyby')
@@ -87,5 +94,6 @@ m.group('encounter1')
 m.group('doombrigade')
 m.group('stopspiral')
 m.group('encounter2')
+m.group('boss')
 
 m.generate()

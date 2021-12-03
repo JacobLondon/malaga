@@ -121,12 +121,18 @@ void drop_manager_update(void)
 void drop_manager_draw(void)
 {
 	int i;
+	char *p;
 	for (i = 0; i < DROPS_MAX; i++) {
 		if (ctx.drops[i].drop.type != DROP_NONE) {
 			so_draw(ctx.drops[i].object);
 
+			p = drop_to_string(&ctx.drops[i].drop);
+			if (ctx.drops[i].drop.type == DROP_BULLET) {
+				p += + sizeof("player_bullet");
+			}
+
 			DrawText(
-				drop_to_string(&ctx.drops[i].drop),
+				p,
 				ctx.drops[i].x + anim_get_width(so_get_anim(ctx.drops[i].object)),
 				ctx.drops[i].y,
 				12, WHITE);

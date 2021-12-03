@@ -241,7 +241,7 @@ encounter **map_init(const char *mapfilename, struct MapHeader *out)
 					assert(enemy_template.name);
 				}
 				else if (strcmp(lhs, "png") == 0) {
-					enemy_template.pngname = strdup(rhs);
+					enemy_template.pngname = strdup(tempbuf("%s/%s", context_get_assetdir(), rhs));
 					assert(enemy_template.pngname);
 				}
 				else if (strcmp(lhs, "shoot") == 0) {

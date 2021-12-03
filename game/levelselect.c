@@ -4,12 +4,15 @@
 #include "data.h"
 
 #define AROUND_SELECTED 11
+#define SHIP_COUNT 6 /** TODO: This is terrible way of doing it */
 
 static void lselect(void *client);
 static void menu(void *client);
 static void tendless(void *client);
 static void tdamage(void *client);
 static void tinvinc(void *client);
+static void nextship(void *client);
+static void prevship(void *client);
 
 static void index_maps(void);
 static void clear_maps(void);
@@ -22,6 +25,9 @@ static button *menu_button;
 static button *endless_button;
 static button *damage_button;
 static button *invinc_button;
+static button *nextship_button;
+static button *prevship_button;
+
 static char *mapdir = "";
 static char **dirfiles = NULL;
 static int dircount = -1;
@@ -31,17 +37,33 @@ static bool mapdirexists = false;
 static bool endless_mode = false;
 static bool trouble_mode = false;
 static bool invinc_mode = false;
-static char playership[128] = {0};
+
+static texture_manager texman;
+static Texture2D *shiptexas[SHIP_COUNT];
+static int shipndx = 0;
 
 void levelselect_init(void)
 {
+	int i;
+
 	select_button = button_new("SELECT", lselect, NULL);
 	menu_button = button_new("MENU", menu, NULL);
 	endless_button = button_new("ENDLESS", tendless, NULL);
 	damage_button = button_new("2x TROUBLE", tdamage, NULL);
 	invinc_button = button_new("INVINCIBLE", tinvinc, NULL);
+	nextship_button = button_new("Next Ship", nextship, NULL);
+	prevship_button = button_new("Previous Ship", prevship, NULL);
 	maplist = parray_new(NULL);
 	assert(maplist);
+
+	shipndx = 0;
+	texture_man_new(&texman);
+	for (i = 0; i < ARRAY_SIZE(shiptexas); i++) {
+		shiptexas[i] = texture_man_load_or_default(
+			&texman,
+			tempbuf("%s/%s%d.png", context_get_assetdir(), "default_player", i),
+			TEXTURE_GEN(50, 50, BLUE));
+	}
 
 	// menu-ing
 	component_set_size(select_button, 24, .4, .1);
@@ -50,12 +72,16 @@ void levelselect_init(void)
 	component_set_size(endless_button, 24, .5, .05);
 	component_set_size(damage_button, 24, .5, .05);
 	component_set_size(invinc_button, 24, .5, .05);
+	component_set_size(prevship_button, 25, .5, .05);
+	component_set_size(nextship_button, 24, .5, .05);
 
 	component_set_pos(select_button, .75, .9);
 	component_set_pos(menu_button, .25, .9);
 	component_set_pos(endless_button, .75, .4);
 	component_set_pos(damage_button, .75, .475);
 	component_set_pos(invinc_button, .75, .55);
+	component_set_pos(nextship_button, .75, .245);
+	component_set_pos(prevship_button, .75, .05);
 
 	component_set_color(select_button, WHITE, MYDARKGRAY);
 	component_set_color(menu_button, WHITE, MYDARKGRAY);
@@ -81,18 +107,28 @@ void levelselect_init(void)
 		component_set_color(invinc_button, MYDARKGRAY, WHITE);
 	}
 
-	memset(playership, 0, sizeof(playership));
+	component_set_color(nextship_button, WHITE, MYDARKGRAY);
+	component_set_color(prevship_button, WHITE, MYDARKGRAY);
 
-	atmos_init(NULL);
+	shipndx = 0;
+
+	atmos_init("Dark");
 	index_maps();
 }
 
 void levelselect_cleanup(void)
 {
+	texture_man_del(&texman);
+	memset(shiptexas, 0, sizeof(shiptexas));
 	clear_maps();
 	atmos_cleanup();
 	component_del(select_button);
 	component_del(menu_button);
+	component_del(endless_button);
+	component_del(damage_button);
+	component_del(invinc_button);
+	component_del(prevship_button);
+	component_del(nextship_button);
 	parray_free(maplist);
 }
 
@@ -104,6 +140,8 @@ void levelselect_update(void)
 	component_update(endless_button);
 	component_update(damage_button);
 	component_update(invinc_button);
+	component_update(prevship_button);
+	component_update(nextship_button);
 
 	if (IsKeyDown(KEY_R)) {
 		clear_maps();
@@ -136,11 +174,6 @@ void levelselect_draw(void)
 	int i;
 
 	atmos_draw();
-	component_draw(select_button);
-	component_draw(menu_button);
-	component_draw(endless_button);
-	component_draw(damage_button);
-	component_draw(invinc_button);
 
 	// draw around
 	if (dirndx != -1 && mapdirexists) {
@@ -174,6 +207,15 @@ void levelselect_draw(void)
 			}
 		}
 	}
+
+	component_draw(select_button);
+	component_draw(menu_button);
+	component_draw(endless_button);
+	component_draw(damage_button);
+	component_draw(invinc_button);
+	component_draw(prevship_button);
+	component_draw(nextship_button);
+	texture_man_draw_tex(shiptexas[shipndx], GetScreenWidth() * 0.70, GetScreenHeight() * 0.1);
 }
 
 static void lselect(void *client)
@@ -189,12 +231,7 @@ static void lselect(void *client)
 		if (strlen(mapdir) > 0) {
 			(void)snprintf(msg.mapdir, sizeof(msg.mapdir), "%s/%s", DATA_MAPS_DIR, mapdir);
 		}
-		if (strlen(playership) > 0) {
-			(void)snprintf(msg.playership, sizeof(msg.playership), "%s/%s", context_get_assetdir(), playership);
-		}
-		else {
-			(void)snprintf(msg.playership, sizeof(msg.playership), "%s/%s", context_get_assetdir(), DATA_ASSET_PLAYER);
-		}
+		msg.playership = shipndx;
 
 		game_conf(&msg);
 		context_switch("GAME");
@@ -345,4 +382,24 @@ static char *find_prev(void)
 		return "";
 	}
 	return maplist->buf[dirndx];
+}
+
+static void nextship(void *client)
+{
+	(void)client;
+	if (shipndx + 1 >= SHIP_COUNT) {
+		return;
+	}
+
+	shipndx += 1;
+}
+
+static void prevship(void *client)
+{
+	(void)client;
+	if (shipndx - 1 < 0) {
+		return;
+	}
+
+	shipndx -= 1;
 }

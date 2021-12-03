@@ -8,6 +8,8 @@ static void init_cb_planetfield(scene *self, void *client);
 static void init_cb_spacefield(scene *self, void *client);
 static void init_cb_planet(scene *self, void *client);
 static void init_cb_asteroids(scene *self, void *client);
+static void init_cb_traffic(scene *self, void *client);
+static void init_cb_darkrise(scene *self, void *client);
 
 static atmosphere_t *atmosphere;
 static scene_manager *manager;
@@ -24,6 +26,8 @@ void atmos_init(char *setname)
 	atmosphere_insert_definition(atmosphere, "Spacefield", 1, init_cb_spacefield, NULL);
 	atmosphere_insert_definition(atmosphere, "Planet", 1, init_cb_planet, NULL);
 	atmosphere_insert_definition(atmosphere, "Asteroids", 100, init_cb_asteroids, NULL);
+	atmosphere_insert_definition(atmosphere, "Traffic", 100, init_cb_traffic, NULL);
+	atmosphere_insert_definition(atmosphere, "BackgroundDarkrise", 1, init_cb_darkrise, NULL);
 
 	atmosphere_insert_set(atmosphere, "Default");
 	atmosphere_insert_set_scene(atmosphere, "Default", "Background");
@@ -34,6 +38,10 @@ void atmos_init(char *setname)
 	atmosphere_insert_set_scene(atmosphere, "Asteroid", "Spacefield");
 	atmosphere_insert_set_scene(atmosphere, "Asteroid", "Planet");
 	atmosphere_insert_set_scene(atmosphere, "Asteroid", "Asteroids");
+
+	atmosphere_insert_set(atmosphere, "Dark");
+	atmosphere_insert_set_scene(atmosphere, "Dark", "BackgroundDarkrise");
+	atmosphere_insert_set_scene(atmosphere, "Dark", "Traffic");
 
 	atmosphere_finish_inserting(atmosphere);
 	manager = atmosphere_get_sceneman(atmosphere);
@@ -125,14 +133,12 @@ static void init_cb_starfield(scene *self, void *client)
 
 static void init_cb_planetfield(scene *self, void *client)
 {
-	char path[128];
 	Texture2D *t;
 	anim *a;
 	so *s;
 	(void)client;
 
-	snprintf(path, sizeof(path), "%s/%s", context_get_assetdir(), "planet.png");
-	t = texture_man_load_or_default(textureman, path, TEXTURE_GEN(35, 35, GRAY));
+	t = texture_man_load_or_default(textureman, tempbuf("%s/%s", context_get_assetdir(), "planet.png"), TEXTURE_GEN(35, 35, GRAY));
 	a = anim_man_load(scene_man_get_anim_man(manager), t, 1, 1);
 	s = so_new(a);
 	so_set_pos(s, GetScreenWidth() * rand_uniform(), GetScreenHeight() * rand_uniform());
@@ -212,4 +218,65 @@ static void init_cb_asteroids(scene *self, void *client)
 			scene_load_object(self, s);
 		}
 	}
+}
+
+static void init_cb_traffic(scene *self, void *client)
+{
+	int i;
+	(void)client;
+	Texture2D *t1 = texture_man_load_or_default(textureman, tempbuf("%s/%s", context_get_assetdir(), "ship_lakota.png"), TEXTURE_GEN(50, 50, GRAY));
+	Texture2D *t2 = texture_man_load_or_default(textureman, tempbuf("%s/%s", context_get_assetdir(), "ship_brokenarm.png"), TEXTURE_GEN(75, 75, GRAY));
+	Texture2D *t3 = texture_man_load_or_default(textureman, tempbuf("%s/%s", context_get_assetdir(), "ship_dreadnought.png"), TEXTURE_GEN(100, 100, GRAY));
+	anim *a1 = anim_man_load(scene_man_get_anim_man(manager), t1, 1, 1);
+	anim *a2 = anim_man_load(scene_man_get_anim_man(manager), t2, 1, 1);
+	anim *a3 = anim_man_load(scene_man_get_anim_man(manager), t3, 1, 1);
+
+	so *tmp;
+	so *s1 = so_new(a1);
+	so *s2 = so_new(a2);
+	so *s3 = so_new(a3);
+
+	so_newmov(s1, so_cb_loop_down, 2, NULL);
+	so_newmov(s1, so_cb_loop_left, 5, NULL);
+	so_set_scale(s1, 0.05);
+
+	for (i = rand_range(20, 40); i >= 0; i--) {
+		tmp = so_copy(s1);
+		so_set_pos(tmp, rand_uniform() * GetScreenWidth(), rand_uniform() * GetScreenHeight());
+		so_newmov(tmp, so_cb_bob_hrz, rand_range(3, 6), NULL);
+		scene_load_object(self, tmp);
+	}
+
+	so_newmov(s2, so_cb_loop_down, 2.5, NULL);
+	so_newmov(s2, so_cb_loop_left, 9, NULL);
+	so_set_scale(s2, 0.08);
+
+	for (i = rand_range(20, 40); i >= 0; i--) {
+		tmp = so_copy(s2);
+		so_set_pos(tmp, rand_uniform() * GetScreenWidth(), rand_uniform() * GetScreenHeight());
+		so_newmov(tmp, so_cb_bob_vrt, rand_range(4, 8), NULL);
+		scene_load_object(self, tmp);
+	}
+
+	so_newmov(s3, so_cb_loop_down, 0.9, NULL);
+	so_newmov(s3, so_cb_loop_left, 1.6, NULL);
+	so_set_scale(s3, 0.5);
+	so_set_pos(s3, GetScreenWidth(), GetScreenHeight());
+	scene_load_object(self, s3);
+}
+
+static void init_cb_darkrise(scene *self, void *client)
+{
+	char path[128];
+	Texture2D *t;
+	anim *a;
+	so *s;
+	(void)client;
+
+	snprintf(path, sizeof(path), "%s/%s", context_get_assetdir(), "background_dark.png");
+	t = texture_man_load_or_default(textureman, path, TEXTURE_GEN(1000, 1000, BLACK));
+	a = anim_man_load(scene_man_get_anim_man(manager), t, 1, 1);
+	s = so_new(a);
+	so_set_pos(s, -t->width / 2, 0);
+	scene_load_object(self, s);
 }

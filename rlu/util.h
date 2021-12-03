@@ -141,4 +141,6 @@ void *svec_tail(svec *self); /** get last item */
 
 Color color_lookup(const char *color);
 
+char *tempbuf(const char *fmt, ...);
+
 #endif // RLU_UTIL_H

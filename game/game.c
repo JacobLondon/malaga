@@ -355,12 +355,12 @@ void game_draw(void)
 	DrawText(shoot, 5, screen_height - FONTSIZE - 5, FONTSIZE, WHITE);
 
 	if (gamewon && !gamelost) {
-		DrawRectangle(GetScreenWidth() / 2 - MeasureText(WIN_TEXT, 40) / 2, GetScreenHeight() / 4, MeasureText(WIN_TEXT, 40), 40, BLACK);
-		DrawText(WIN_TEXT, GetScreenWidth() / 2 - MeasureText(WIN_TEXT, 40) / 2, GetScreenHeight() / 4, 40, WHITE);
+		DrawRectangle(0, GetScreenHeight() * 0.2, GetScreenWidth(), 40, WHITE);
+		DrawText(WIN_TEXT, GetScreenWidth() / 2 - MeasureText(WIN_TEXT, 40) / 2, GetScreenHeight() * 0.2, 40, BLACK);
 	}
 	else if (gamelost && !gamewon) {
-		DrawRectangle(GetScreenWidth() / 2 - MeasureText(WIN_TEXT, 40) / 2, GetScreenHeight() / 4, MeasureText(WIN_TEXT, 40), 40, BLACK);
-		DrawText(LOSE_TEXT, GetScreenWidth() / 2 - MeasureText(LOSE_TEXT, 40) / 2, GetScreenHeight() / 4, 40, WHITE);
+		DrawRectangle(0, GetScreenHeight() * 0.2, GetScreenWidth(), 40, WHITE);
+		DrawText(LOSE_TEXT, GetScreenWidth() / 2 - MeasureText(LOSE_TEXT, 40) / 2, GetScreenHeight() * 0.2, 40, BLACK);
 	}
 }
 
@@ -372,7 +372,7 @@ void game_conf(struct game_message *msg)
 	game_data.endless_mode = msg->endless_mode;
 	game_data.trouble_mode = msg->trouble_mode;
 	game_data.god_mode = msg->god_mode;
-	snprintf(game_data.playership, sizeof(game_data.playership), "%s", msg->playership);
+	game_data.playership = msg->playership;
 }
 
 static void encounter_clear(void)
@@ -504,17 +504,52 @@ static void player_new(player_data *self)
 	Texture2D *tex;
 	assert(self);
 
-	(void)snprintf(buf, sizeof(buf), "%s", game_data.playership);
+	//(void)snprintf(buf, sizeof(buf), "%s", game_data.playership);
 	self->x = screen_width / 2;
 	self->y = screen_height * 3 / 4;
 
-	shooter_drop = drop_bullet(BULLET_PLAYER_STRAIGHT);
-	self->shoot = bullet_lookup_shoot((char *)drop_to_string(&shooter_drop));
-	self->shoot_name = drop_to_string(&shooter_drop);
-	self->shotperiod = bullet_lookup_timeout(self->shoot);
-	self->hp = 30;
-	self->speed = PLAYER_DEFAULT_SPEED;
+	switch (game_data.playership) {
+	default:
+		game_data.playership = 0;
+		// fallthrough
+	case 0:
+		shooter_drop = drop_bullet(BULLET_PLAYER_STRAIGHT);
+		self->hp = 30;
+		self->speed = PLAYER_DEFAULT_SPEED;
+		break;
+	case 1:
+		shooter_drop = drop_bullet(BULLET_PLAYER_PARABOLA);
+		self->hp = 40;
+		self->speed = PLAYER_DEFAULT_SPEED * 1.2;
+		break;
+	case 2:
+		shooter_drop = drop_bullet(BULLET_PLAYER_SIN);
+		self->hp = 40;
+		self->speed = PLAYER_DEFAULT_SPEED;
+		break;
+	case 3:
+		shooter_drop = drop_bullet(BULLET_PLAYER_SPIN);
+		self->hp = 25;
+		self->speed = PLAYER_DEFAULT_SPEED * 1.1;
+		break;
+	case 4:
+		shooter_drop = drop_bullet(BULLET_PLAYER_BIG);
+		self->hp = 45;
+		self->speed = PLAYER_DEFAULT_SPEED * 0.75;
+		break;
+	case 5:
+		shooter_drop = drop_bullet(BULLET_PLAYER_BEAM);
+		self->hp = 15;
+		self->speed = PLAYER_DEFAULT_SPEED * 1.25;
+		break;
+	}
+
 	self->level = 0;
+	(void)snprintf(buf, sizeof(buf), "%s/%s%d.png", context_get_assetdir(), "default_player", game_data.playership);
+	self->shoot = bullet_lookup_shoot((char *)drop_to_string(&shooter_drop));
+	(void)snprintf(self->shoot_name, sizeof(self->shoot_name), "%s", drop_to_string(&shooter_drop));
+	self->shotperiod = bullet_lookup_timeout(self->shoot);
+
 	tex = texture_man_load_or_default(&texman, buf, TEXTURE_GEN(PLAYER_SIZE, PLAYER_SIZE, BLUE));
 	self->width = tex->width;
 	self->height = tex->height;
@@ -550,7 +585,8 @@ static void player_eat_drop(player_data *self, item_drop drop)
 	case DROP_BULLET:
 		tmp = (char *)drop_to_string(&drop);
 		self->shoot = bullet_lookup_shoot(tmp);
-		self->shoot_name = tmp;
+		(void)snprintf(self->shoot_name, sizeof(self->shoot_name), "%s", tmp);
+		self->shotperiod = bullet_lookup_timeout(self->shoot);
 		break;
 	case DROP_HEALTH:
 		self->hp += drop.spec.health_amount;

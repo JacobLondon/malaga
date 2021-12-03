@@ -7,7 +7,7 @@ void mg_update(void);
 void mg_draw(void);
 
 struct game_message {
-	char playership[128];
+	int playership;
 	char mapdir[128];
 	int endless_mode;
 	int trouble_mode;

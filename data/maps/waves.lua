@@ -1,6 +1,6 @@
 local m = require('maps/mg')
 
-m.header('Default')
+m.header('Asteroid')
 
 m.defencounter('wave1')
 	m.enemy{'downrightshooter', move='downright', shoot='straight', speed=5, hp=3}

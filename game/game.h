@@ -26,7 +26,7 @@ typedef struct player_data_tag {
 	int speed; // move speed
 	int level;
 	shoot_func shoot;
-	const char *shoot_name;
+	char shoot_name[32];
 	float lastshottime;
 	float shotperiod;
 	float lasttouchtime; // last time player touched enemy

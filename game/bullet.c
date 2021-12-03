@@ -16,6 +16,9 @@
 #define SHOOT_INT .4f
 #define SHOOT_SLOW .5f
 
+#define PARABOLA_RIGHT 0.1f
+#define PARABOLA_LEFT 0.2f
+
 typedef void (* move_func)(bullet_data *bullet);
 
 typedef struct timeout_lookup_tag {
@@ -96,9 +99,9 @@ static wrapper wrap_player_sin      = DEFINE_WRAPPER(bullet_player_sin,      mov
 static wrapper wrap_player_sin_wide = DEFINE_WRAPPER(bullet_player_sin_wide, move_sin_wide, enemies, 20, 20, SHOOT_FAST);
 static wrapper wrap_player_cos      = DEFINE_WRAPPER_NAME("bullet_player_cos",      bullet_player_sin,      move_cos,      enemies, 20, 20, SHOOT_FAST);
 static wrapper wrap_player_cos_wide = DEFINE_WRAPPER_NAME("bullet_player_cos_wide", bullet_player_sin_wide, move_cos_wide, enemies, 20, 20, SHOOT_FAST);
-static wrapper wrap_player_big      = DEFINE_WRAPPER(bullet_player_big,      move_big,      enemies, 20, 20, SHOOT_FAST);
-static wrapper wrap_player_beam     = DEFINE_WRAPPER(bullet_player_beam,     move_beam,     enemies, 20, 20, 0.01);
-static wrapper wrap_player_parabola = DEFINE_WRAPPER(bullet_player_parabola, move_parabola, enemies, 20, 20, SHOOT_INT);
+static wrapper wrap_player_big      = DEFINE_WRAPPER(bullet_player_big,      move_big,      enemies, 20, 20, 0.45);
+static wrapper wrap_player_beam     = DEFINE_WRAPPER(bullet_player_beam,     move_beam,     enemies, 20, 20, 0.05);
+static wrapper wrap_player_parabola = DEFINE_WRAPPER(bullet_player_parabola, move_parabola, enemies, 20, 20, 0.35);
 
 static wrapper *wrappers[] = {
 	&wrap_enemy_straight,
@@ -427,7 +430,7 @@ static void move_parabola(bullet_data *bullet)
 	 */
 
 	// player
-	if (bullet->direction == 1.f) {
+	if (bullet->direction == PARABOLA_RIGHT) {
 		// right
 		const float t = now - bullet->time;
 		const float m = 2.f * a * t + b; // derivative of parabola: ax^2 + bx + c
@@ -436,7 +439,7 @@ static void move_parabola(bullet_data *bullet)
 		bullet->x += 100.f * deltax * frametime;
 		bullet->y -= 50.f * deltay * frametime;
 	}
-	else if (bullet->direction == 2.f) {
+	else if (bullet->direction == PARABOLA_LEFT) {
 		// left
 		const float t = now - bullet->time;
 		const float m = 2.f * a * t + b; // derivative of parabola: ax^2 + bx + c
@@ -523,6 +526,11 @@ void bullet_enemy_spin(int x, int y, int level)
 void bullet_enemy_flower(int x, int y, int level)
 {
 	switch (level) {
+	case 999:
+		bullet_enemy_beam(x, y, 1);
+		bullet_enemy_flower(x + 100, y, 2);
+		bullet_enemy_flower(x - 100, y, 2);
+		break;
 	default: // fallthrough
 	case 2:
 		insert_bullet(x, y, 0, &wrap_enemy_flower);
@@ -531,10 +539,10 @@ void bullet_enemy_flower(int x, int y, int level)
 		insert_bullet(x, y, PI * 3.f / 2.f, &wrap_enemy_flower);
 		// fallthrough
 	case 1: // X
-		insert_bullet(x, y, PI / 4.f, &wrap_player_flower);
-		insert_bullet(x, y, 3.f * PI / 4.f, &wrap_player_flower);
-		insert_bullet(x, y, 5.f * PI / 4.f, &wrap_player_flower);
-		insert_bullet(x, y, 7.f * PI / 4.f, &wrap_player_flower);
+		insert_bullet(x, y, PI / 4.f, &wrap_enemy_flower);
+		insert_bullet(x, y, 3.f * PI / 4.f, &wrap_enemy_flower);
+		insert_bullet(x, y, 5.f * PI / 4.f, &wrap_enemy_flower);
+		insert_bullet(x, y, 7.f * PI / 4.f, &wrap_enemy_flower);
 		break;
 	case 0: // +
 		insert_bullet(x, y, 0, &wrap_enemy_flower);
@@ -574,14 +582,60 @@ void bullet_player_straight(int x, int y, int level)
 
 void bullet_player_left(int x, int y, int level)
 {
-	(void)level;
-	insert_bullet(x - SIZE_STRAIGHT_WIDTH, y, PI, &wrap_player_left);
+	wrapper *wrap = &wrap_player_straight;
+	switch (level) {
+	default: // fallthrough
+		insert_bullet(x - SIZE_STRAIGHT_WIDTH * 2, y + 10, PI, &wrap_player_left);
+		insert_bullet(x - SIZE_STRAIGHT_WIDTH * 2, y - 10, PI, &wrap_player_left);
+		// fallthrough
+	case 3:
+		insert_bullet(x - SIZE_STRAIGHT_WIDTH, y + 50, PI, &wrap_player_left);
+		insert_bullet(x - SIZE_STRAIGHT_WIDTH, y - 50, PI, &wrap_player_left);
+		insert_bullet(x - SIZE_STRAIGHT_WIDTH, y + 40, PI, &wrap_player_left);
+		insert_bullet(x - SIZE_STRAIGHT_WIDTH, y - 40, PI, &wrap_player_left);
+		// fallthrough
+	case 2:
+		insert_bullet(x - SIZE_STRAIGHT_WIDTH, y + 30, PI, &wrap_player_left);
+		insert_bullet(x - SIZE_STRAIGHT_WIDTH, y - 30, PI, &wrap_player_left);
+		// fallthrough
+	case 1:
+		insert_bullet(x - SIZE_STRAIGHT_WIDTH, y + 20, PI, &wrap_player_left);
+		insert_bullet(x - SIZE_STRAIGHT_WIDTH, y - 20, PI, &wrap_player_left);
+		// fallthrough
+	case 0:
+		insert_bullet(x - SIZE_STRAIGHT_WIDTH, y + 10, PI, &wrap_player_left);
+		insert_bullet(x - SIZE_STRAIGHT_WIDTH, y - 10, PI, &wrap_player_left);
+		break;
+	}
 }
 
 void bullet_player_right(int x, int y, int level)
 {
-	(void)level;
-	insert_bullet(x + SIZE_STRAIGHT_WIDTH, y, 0, &wrap_player_right);
+	wrapper *wrap = &wrap_player_straight;
+	switch (level) {
+	default: // fallthrough
+		insert_bullet(x - SIZE_STRAIGHT_WIDTH * 2, y + 10, 0, &wrap_player_left);
+		insert_bullet(x - SIZE_STRAIGHT_WIDTH * 2, y - 10, 0, &wrap_player_left);
+		// fallthrough
+	case 3:
+		insert_bullet(x - SIZE_STRAIGHT_WIDTH, y + 50, 0, &wrap_player_left);
+		insert_bullet(x - SIZE_STRAIGHT_WIDTH, y - 50, 0, &wrap_player_left);
+		insert_bullet(x - SIZE_STRAIGHT_WIDTH, y + 40, 0, &wrap_player_left);
+		insert_bullet(x - SIZE_STRAIGHT_WIDTH, y - 40, 0, &wrap_player_left);
+		// fallthrough
+	case 2:
+		insert_bullet(x - SIZE_STRAIGHT_WIDTH, y + 30, 0, &wrap_player_left);
+		insert_bullet(x - SIZE_STRAIGHT_WIDTH, y - 30, 0, &wrap_player_left);
+		// fallthrough
+	case 1:
+		insert_bullet(x - SIZE_STRAIGHT_WIDTH, y + 20, 0, &wrap_player_left);
+		insert_bullet(x - SIZE_STRAIGHT_WIDTH, y - 20, 0, &wrap_player_left);
+		// fallthrough
+	case 0:
+		insert_bullet(x - SIZE_STRAIGHT_WIDTH, y + 10, 0, &wrap_player_left);
+		insert_bullet(x - SIZE_STRAIGHT_WIDTH, y - 10, 0, &wrap_player_left);
+		break;
+	}
 }
 
 void bullet_player_spin(int x, int y, int level)
@@ -815,7 +869,28 @@ void bullet_player_beam(int x, int y, int level)
 
 void bullet_player_parabola(int x, int y, int level)
 {
-	(void)level;
-	insert_bullet(x, y + SIZE_STRAIGHT_HEIGHT, 1.f, &wrap_player_parabola);
-	insert_bullet(x, y + SIZE_STRAIGHT_HEIGHT, 2.f, &wrap_player_parabola);
+	wrapper *wrap = &wrap_player_straight;
+
+	switch (level) {
+	default: // fallthrough
+		insert_bullet(x - 80, y + SIZE_STRAIGHT_HEIGHT - 80, PARABOLA_RIGHT, &wrap_player_parabola);
+		insert_bullet(x + 80, y + SIZE_STRAIGHT_HEIGHT - 80, PARABOLA_LEFT, &wrap_player_parabola);
+		// fallthrough
+	case 3:
+		insert_bullet(x - 40, y + SIZE_STRAIGHT_HEIGHT - 40, PARABOLA_RIGHT, &wrap_player_parabola);
+		insert_bullet(x + 40, y + SIZE_STRAIGHT_HEIGHT - 40, PARABOLA_LEFT, &wrap_player_parabola);
+		// fallthrough
+	case 2:
+		insert_bullet(x - 80, y + SIZE_STRAIGHT_HEIGHT + 80, PARABOLA_RIGHT, &wrap_player_parabola);
+		insert_bullet(x + 80, y + SIZE_STRAIGHT_HEIGHT + 80, PARABOLA_LEFT, &wrap_player_parabola);
+		// fallthrough
+	case 1:
+		insert_bullet(x + 40, y + SIZE_STRAIGHT_HEIGHT + 40, PARABOLA_RIGHT, &wrap_player_parabola);
+		insert_bullet(x - 40, y + SIZE_STRAIGHT_HEIGHT + 40, PARABOLA_LEFT, &wrap_player_parabola);
+		// fallthrough
+	case 0:
+		insert_bullet(x, y + SIZE_STRAIGHT_HEIGHT, PARABOLA_RIGHT, &wrap_player_parabola);
+		insert_bullet(x, y + SIZE_STRAIGHT_HEIGHT, PARABOLA_LEFT, &wrap_player_parabola);
+		break;
+	}
 }
