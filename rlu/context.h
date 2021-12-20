@@ -74,4 +74,6 @@ void context_pop(void);
 
 char *context_get_skindir(void);
 
+void context_set_param(const char *name, void *value);
+
 #endif // RLU_CONTEXT_H

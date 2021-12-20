@@ -7,16 +7,17 @@ MG_O=main.o
 
 # find . -type f | grep -v main | grep '\.c$' | sed 's/\.c/\.o \\/g'
 CORE_O=\
-game.o \
+atmos.o \
 bullet.o \
 drop_manager.o \
-levelselect.o \
 drop.o \
-mg.o \
-score.o \
+game.o \
+levelselect.o \
 map.o \
+mg.o \
 pause.o \
-atmos.o
+score.o \
+skins.o
 
 .PHONY: clean $(MG_T)
 

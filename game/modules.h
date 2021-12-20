@@ -30,4 +30,9 @@ void levelselect_cleanup(void);
 void levelselect_update(void);
 void levelselect_draw(void);
 
+void skins_init(void);
+void skins_cleanup(void);
+void skins_update(void);
+void skins_draw(void);
+
 #endif // MG_MODULES_H

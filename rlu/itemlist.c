@@ -43,6 +43,11 @@ void itemlist_set(Itemlist *il, char **buf, size_t len)
 	}
 
 	for (i = 0; i < len; i++) {
+		// skin current/parent dir if there
+		if (streq(buf[i], ".") || streq(buf[i], "..")) {
+			continue;
+		}
+
 		// only get what the doctor ordered
 		if (il->args.search) {
 			if (strstr(buf[i], il->args.search)) {
@@ -80,6 +85,23 @@ bool itemlist_set_directory(Itemlist *il, const char *directory)
 			itemlist_set(il, files, filecount);
 		}
 	}
+}
+
+bool itemlist_try_select(Itemlist *il, const char *name)
+{
+	int i;
+
+	assert(il);
+	assert(name);
+
+	for (i = 0; i < il->filtered->size; i++) {
+		if (streq(name, (char *)il->filtered->buf[i])) {
+			il->bufndx = i;
+			return true;
+		}
+	}
+
+	return false;
 }
 
 char *itemlist_next(Itemlist *il)

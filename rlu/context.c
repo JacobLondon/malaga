@@ -292,3 +292,8 @@ char *context_get_skindir(void)
 	(void)snprintf(buf, sizeof(buf), "%s/%s", options.assetdir, options.skindir);
 	return buf;
 }
+
+void context_set_param(const char *name, void *value)
+{
+	param_save(paramList, name, value);
+}

@@ -121,6 +121,8 @@ typedef struct param_tag {
 int param_read(const char *filename, param paramList[]);
 /** write the param list to the file */
 int param_write(const char *filename, param paramList[]);
+/** save a parameter by name, void * must be the correct type */
+void param_save(param paramList[], const char *name, void *value);
 
 /**
  * Wrap an array to act as a growing/shrinkable vector.

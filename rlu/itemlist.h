@@ -38,6 +38,7 @@ void itemlist_delete(Itemlist *il);
 
 void itemlist_set(Itemlist *il, char **buf, size_t len);
 bool itemlist_set_directory(Itemlist *il, const char *directory); // true if dir exists, false otherwise
+bool itemlist_try_select(Itemlist *il, const char *name); // try to select this item
 char *itemlist_next(Itemlist *il);
 char *itemlist_prev(Itemlist *il);
 void itemlist_draw(Itemlist *il);

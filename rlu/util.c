@@ -296,6 +296,7 @@ static void param_read_helper(param *item, char *value)
 		char boolean[8];
 	} tmp;
 	int rv;
+	char *p;
 
 	switch (item->type) {
 	case PARAM_TYPE_FLOAT:
@@ -341,6 +342,15 @@ static void param_read_helper(param *item, char *value)
 	case PARAM_TYPE_STRING:
 		// TODO: Is this fine? 'value' is in buf somewhere
 		(void)snprintf((char *)item->value, (size_t)item->len, "%s", value);
+
+		// eat that newline
+		p = strstr((char *)item->value, "\r");
+		if (!p) {
+			p = strstr((char *)item->value, "\n");
+		}
+		if (p) {
+			*p = '\0';
+		}
 		break;
 	default:
 		goto default_param;
@@ -393,6 +403,40 @@ int param_write(const char *filename, param paramList[])
 
 	(void)fclose(fp);
 	return 0;
+}
+
+void param_save(param paramList[], const char *name, void *value)
+{
+	int i;
+
+	assert(paramList);
+	assert(name);
+	assert(value);
+
+	for (i = 0; paramList[i].name != NULL; i++) {
+		if (streq(name, paramList[i].name)) {
+			switch (paramList[i].type) {
+			case PARAM_TYPE_FLOAT:
+				*(float *)paramList[i].value = *(float *)value;
+				break;
+			case PARAM_TYPE_INT:
+				*(int *)paramList[i].value = *(int *)value;
+				break;
+			case PARAM_TYPE_BOOL:
+				*(bool *)paramList[i].value = *(bool *)value;
+				break;
+			case PARAM_TYPE_COLOR:
+				*(Color *)paramList[i].value = *(Color *)value;
+				break;
+			case PARAM_TYPE_STRING:
+				(void)snprintf((char *)paramList[i].value, (size_t)paramList[i].len, "%s", value);
+				break;
+			default:
+				break;
+			}
+			return;
+		}
+	}
 }
 
 void svec_init(svec *out, void **static_array, size_t length)
