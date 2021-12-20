@@ -33,7 +33,7 @@ static void update_module_func(void *mod);
 static void draw_module_func(void *mod);
 
 static Image icon;
-static char iconPath[64+1];
+static char iconPath[128];
 static bool initialized = false;
 static bool done = false;
 static module_definition *modules = NULL;
@@ -75,6 +75,7 @@ static param paramList[] = {
 	DEFINE_PARAM(PARAM_TYPE_FLOAT, volume, options, defaultOptions),
 	DEFINE_PARAM(PARAM_TYPE_STRING, icon, options, defaultOptions),
 	DEFINE_PARAM(PARAM_TYPE_STRING, assetdir, options, defaultOptions),
+	DEFINE_PARAM(PARAM_TYPE_STRING, skindir, options, defaultOptions),
 	DEFINE_PARAM_END(),
 };
 
@@ -202,7 +203,7 @@ void context_init(context_opt *opt, module_definition definitions[])
 	SetTargetFPS(options.fps);
 
 	if (options.icon[0] != 0) {
-		(void)snprintf(iconPath, sizeof(iconPath), "./%s/%s", options.assetdir, options.icon);
+		(void)snprintf(iconPath, sizeof(iconPath), "%s/%s", context_get_skindir(), options.icon);
 		icon = LoadImage(iconPath);
 		SetWindowIcon(icon);
 	}
@@ -282,9 +283,10 @@ void context_pop(void)
 	popcount++;
 }
 
-
-char *context_get_assetdir(void)
+char *context_get_skindir(void)
 {
+	static char buf[96];
 	assert(initialized);
-	return options.assetdir;
+	(void)snprintf(buf, sizeof(buf), "%s/%s", options.assetdir, options.skindir);
+	return buf;
 }

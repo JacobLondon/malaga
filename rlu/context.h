@@ -55,7 +55,8 @@ typedef struct context_opt_tag {
 	bool use_audio;
 	float volume; // 0-100
 	char icon[32]; // path to the icon
-	char assetdir[32]; // path to assets, format: "dir/subdir" to leading or trailing items. Always relative
+	char assetdir[32];
+	char skindir[32]; // path to skin from assets, format: "dir/subdir" to leading or trailing items. Always relative
 } context_opt;
 
 /** ensure \a definitions is NULL terminated array. \a opt may be NULL to use defaults */
@@ -71,6 +72,6 @@ void context_push(const char *module_name);
 /** remove the top module from the buffer */
 void context_pop(void);
 
-char *context_get_assetdir(void);
+char *context_get_skindir(void);
 
 #endif // RLU_CONTEXT_H

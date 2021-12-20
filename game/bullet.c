@@ -145,7 +145,7 @@ static void wrapper_init(wrapper *self)
 	// each byte==1, will put it offscreen somewhere
 	(void)memset(self->bullets, BULLET_OFFSCREEN, sizeof(self->bullets));
 
-	(void)snprintf(buf, sizeof(buf), "%s/%s.png", context_get_assetdir(), self->name);
+	(void)snprintf(buf, sizeof(buf), "%s/%s.png", context_get_skindir(), self->name);
 	if (self->array == players) {
 		bullet_color = YELLOW;
 	}

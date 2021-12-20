@@ -5,7 +5,7 @@
  * Util specifically for animated backdrops and music.
  * 
  * Can be used for any module, ie. menu, game, ... to add
- * atmosphere. Just change the assetdir as needed and cleanup
+ * atmosphere. Just change the skindir as needed and cleanup
  * in between different atmosphere sessions.
  */
 

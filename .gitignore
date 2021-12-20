@@ -10,7 +10,7 @@ __pycache__/
 
 tmp/
 bin/*
-data/assets/
+data/skins/
 data/generate.mk
 data/maps/*.mg
 *.gen.h

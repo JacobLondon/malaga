@@ -21,6 +21,8 @@ texture_man.o \
 ui.o \
 util.o
 
+.PHONY: clean $(RLU_A)
+
 GEN_T=atmosphere.gen.h
 
 release: $(RLU_A)

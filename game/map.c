@@ -133,7 +133,7 @@ encounter **map_init(const char *mapfilename, struct MapHeader *out)
 	bool found_encounter = false;
 	bool found_set = false;
 
-	snprintf(defenemyasset, sizeof(defenemyasset), "%s/%s", context_get_assetdir(), DATA_ASSET_ENEMY);
+	snprintf(defenemyasset, sizeof(defenemyasset), "%s/%s", context_get_skindir(), DATA_ASSET_ENEMY);
 
 	enemies = parray_new(del_enemy);
 	encounters = parray_new(del_encounter_holder);
@@ -241,7 +241,7 @@ encounter **map_init(const char *mapfilename, struct MapHeader *out)
 					assert(enemy_template.name);
 				}
 				else if (strcmp(lhs, "png") == 0) {
-					enemy_template.pngname = strdup(tempbuf("%s/%s", context_get_assetdir(), rhs));
+					enemy_template.pngname = strdup(tempbuf("%s/%s", context_get_skindir(), rhs));
 					assert(enemy_template.pngname);
 				}
 				else if (strcmp(lhs, "shoot") == 0) {

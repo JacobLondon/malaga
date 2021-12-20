@@ -545,7 +545,7 @@ static void player_new(player_data *self)
 	}
 
 	self->level = 0;
-	(void)snprintf(buf, sizeof(buf), "%s/%s%d.png", context_get_assetdir(), "default_player", game_data.playership);
+	(void)snprintf(buf, sizeof(buf), "%s/%s%d.png", context_get_skindir(), "default_player", game_data.playership);
 	self->shoot = bullet_lookup_shoot((char *)drop_to_string(&shooter_drop));
 	(void)snprintf(self->shoot_name, sizeof(self->shoot_name), "%s", drop_to_string(&shooter_drop));
 	self->shotperiod = bullet_lookup_timeout(self->shoot);
@@ -749,7 +749,7 @@ static void detonations_init(void)
 	ko *k;
 	size_t i;
 
-	snprintf(path, sizeof(path), "%s/%s", context_get_assetdir(), "explosion.png");
+	snprintf(path, sizeof(path), "%s/%s", context_get_skindir(), "explosion.png");
 	if (!FileExists(path)) {
 		use_detonations = false;
 		return;

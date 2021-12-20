@@ -27,8 +27,8 @@ $(PROJECT): mybuild
 	cp game/malaga $(PROJECT)
 	mkdir -p $(PROJECT)/maps
 	cp data/maps/* $(PROJECT)/maps/
-	mkdir -p $(PROJECT)/assets
-	[ -d data/assets ] && cp data/assets/* $(PROJECT)/assets/ || true
+	mkdir -p $(PROJECT)/skins
+	[ -d data/skins ] && cp -a data/skins/* $(PROJECT)/skins/ || true
 
 zip: COMPRESS_TOOL = zip -r
 zip: COMPRESS_EXT = zip

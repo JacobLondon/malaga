@@ -10,7 +10,8 @@ static context_opt options = {
 	.use_audio=true,
 	.volume=50,
 	.icon="icon.png",
-	.assetdir="assets",
+	.assetdir="skins",
+	.skindir="default",
 };
 
 static module_definition definitions[] = {

@@ -61,7 +61,7 @@ void levelselect_init(void)
 	for (i = 0; i < ARRAY_SIZE(shiptexas); i++) {
 		shiptexas[i] = texture_man_load_or_default(
 			&texman,
-			tempbuf("%s/%s%d.png", context_get_assetdir(), "default_player", i),
+			tempbuf("%s/%s%d.png", context_get_skindir(), "default_player", i),
 			TEXTURE_GEN(50, 50, BLUE));
 	}
 

@@ -43,7 +43,7 @@ make zip
 * Darker background option
 * Make new `so_cb_strobe`
   * and a new mode called solar flare mode
-* Level files can define assets and which background to use
+* Level files can define skins and which background to use
 
 # Requirements
 * Raylib
