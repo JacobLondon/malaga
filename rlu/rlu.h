@@ -23,6 +23,7 @@
 #include "anim_man.h"
 #include "context.h"
 #include "input.h"
+#include "itemlist.h"
 #include "key_object.h"
 #include "key_man.h"
 #include "music_man.h"

@@ -10,6 +10,7 @@ anim_man.o \
 atmosphere.o \
 context.o \
 input.o \
+itemlist.o \
 key_man.o \
 key_object.o \
 music_man.o \

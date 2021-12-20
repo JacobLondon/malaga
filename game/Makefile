@@ -18,6 +18,8 @@ map.o \
 pause.o \
 atmos.o
 
+.PHONY: clean $(MG_T)
+
 ALL_O = $(CORE_O) $(MG_O)
 
 release: $(MG_T)

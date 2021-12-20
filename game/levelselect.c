@@ -13,12 +13,7 @@ static void tdamage(void *client);
 static void tinvinc(void *client);
 static void nextship(void *client);
 static void prevship(void *client);
-
 static void index_maps(void);
-static void clear_maps(void);
-static char *get_around(int center, int AB, int max, void **buf);
-static char *find_next(void);
-static char *find_prev(void);
 
 static button *select_button;
 static button *menu_button;
@@ -29,10 +24,6 @@ static button *nextship_button;
 static button *prevship_button;
 
 static char *mapdir = "";
-static char **dirfiles = NULL;
-static int dircount = -1;
-static int dirndx = 0;
-static struct parray *maplist; // point into dir files with the correct files
 static bool mapdirexists = false;
 static bool endless_mode = false;
 static bool trouble_mode = false;
@@ -41,6 +32,8 @@ static bool invinc_mode = false;
 static texture_manager texman;
 static Texture2D *shiptexas[SHIP_COUNT];
 static int shipndx = 0;
+
+static Itemlist *allmaps;
 
 void levelselect_init(void)
 {
@@ -53,8 +46,6 @@ void levelselect_init(void)
 	invinc_button = button_new("INVINCIBLE", tinvinc, NULL);
 	nextship_button = button_new("Next Ship", nextship, NULL);
 	prevship_button = button_new("Previous Ship", prevship, NULL);
-	maplist = parray_new(NULL);
-	assert(maplist);
 
 	shipndx = 0;
 	texture_man_new(&texman);
@@ -113,11 +104,30 @@ void levelselect_init(void)
 	shipndx = 0;
 
 	atmos_init("Dark");
+
+	ItemlistArgs args = {
+		.fontsize = 40,
+		.AB = AROUND_SELECTED,
+		.offsetVert = (int)(GetScreenHeight() * 0.3f),
+		.offsetHorz = GetScreenWidth() / 10,
+		.totalVert = GetScreenHeight(),
+		.totalHorz = GetScreenWidth(),
+		.bgSelected = WHITE,
+		.fgSelected = BLACK,
+		.fgNotSelected = WHITE,
+		.search = DATA_MAPS_EXT,
+	};
+	allmaps = itemlist_new(&args);
 	index_maps();
 }
 
 void levelselect_cleanup(void)
 {
+	if (allmaps) {
+		itemlist_delete(allmaps);
+		allmaps = NULL;
+	}
+
 	texture_man_del(&texman);
 	memset(shiptexas, 0, sizeof(shiptexas));
 	clear_maps();
@@ -129,7 +139,6 @@ void levelselect_cleanup(void)
 	component_del(invinc_button);
 	component_del(prevship_button);
 	component_del(nextship_button);
-	parray_free(maplist);
 }
 
 void levelselect_update(void)
@@ -157,56 +166,20 @@ void levelselect_update(void)
 
 		int dir = GetMouseWheelMove();
 		if (dir < 0 || rlu_input_key(0, RLU_KEY_DPAD_DOWN, RLU_PRESS_RELEASED)) {
-			mapdir = find_next();
+			mapdir = itemlist_next(allmaps);
 		}
 		else if (dir > 0 || rlu_input_key(0, RLU_KEY_DPAD_UP, RLU_PRESS_RELEASED)) {
-			mapdir = find_prev();
+			mapdir = itemlist_prev(allmaps);
 		}
 	}
 }
 
 void levelselect_draw(void)
 {
-	const int AB = AROUND_SELECTED;
-	const int fontsize = 40;
-	const int height = fontsize;
-	const int offset = (int)(GetScreenHeight() * .3f);
-	int i;
-
 	atmos_draw();
 
 	// draw around
-	if (dirndx != -1 && mapdirexists) {
-		for (i = -AB + 1; i < AB; i++) {
-			if (i == 0) {
-				DrawRectangle(
-					0,
-					GetScreenHeight() / height * i + offset,
-					GetScreenWidth(),
-					fontsize,
-					WHITE
-				);
-				DrawText(
-					mapdir,
-					GetScreenWidth() / 10,
-					GetScreenHeight() / height * i + offset,
-					fontsize,
-					BLACK);
-			}
-			else {
-				const Color c = (Color){
-					.r=255, .g=255, .b=255,
-					.a=(int)(255.0 * (1 - ((double)abs(i) / (double)AB)))
-				};
-				DrawText(
-					get_around(dirndx, i, (int)maplist->size, maplist->buf),
-					GetScreenWidth() / 10,
-					GetScreenHeight() * .075 / 1.75 * i + offset,
-					fontsize,
-					c);
-			}
-		}
-	}
+	itemlist_draw(allmaps);
 
 	component_draw(select_button);
 	component_draw(menu_button);
@@ -215,6 +188,7 @@ void levelselect_draw(void)
 	component_draw(invinc_button);
 	component_draw(prevship_button);
 	component_draw(nextship_button);
+
 	texture_man_draw_tex(shiptexas[shipndx], GetScreenWidth() * 0.70, GetScreenHeight() * 0.1);
 }
 
@@ -290,98 +264,7 @@ static void tinvinc(void *client)
 
 static void index_maps(void)
 {
-	int i;
-
-	mapdirexists = DirectoryExists(DATA_MAPS_DIR);
-	if (mapdirexists) {
-		dirfiles = GetDirectoryFiles(DATA_MAPS_DIR, &dircount);
-
-		for (i = 0; i < dircount; i++) {
-			if (strstr(dirfiles[i], DATA_MAPS_EXT)) {
-				parray_push(maplist, dirfiles[i]);
-			}
-		}
-		qsort(maplist->buf, maplist->size, sizeof(char *), (int (*)(const void *, const void *))strcmp);
-		mapdir = find_next();
-	}
-}
-
-static void clear_maps(void)
-{
-	if (dirfiles) {
-		ClearDirectoryFiles();
-		dirfiles = NULL;
-		dircount = -1;
-		mapdir = NULL;
-	}
-
-	while (maplist->size > 0) {
-		parray_pop(maplist);
-	}
-}
-
-static char *get_around(int center, int AB, int max, void **buf)
-{
-	assert(buf);
-
-	if (center + AB < 0 || center + AB >= max) {
-		return NULL;
-	}
-
-	return buf[center + AB];
-}
-
-static char *find_next(void)
-{
-	int i;
-	char *p;
-	for (i = dirndx + 1; (size_t)i < maplist->size; i++) {
-		p = maplist->buf[i];
-		if (strstr(p, DATA_MAPS_EXT)) {
-			dirndx = (int)i;
-			return p;
-		}
-	}
-
-	// didn't find it yet
-	for (i = 0; i < dirndx; i++) {
-		p = maplist->buf[i];
-		if (strstr(p, DATA_MAPS_EXT)) {
-			dirndx = i;
-			return p;
-		}
-	}
-
-	if (dirndx == -1) {
-		return "";
-	}
-	return maplist->buf[dirndx];
-}
-
-static char *find_prev(void)
-{
-	int i;
-	char *p;
-	for (i = dirndx - 1; i >= 0; i--) {
-		p = maplist->buf[i];
-		if (strstr(p, DATA_MAPS_EXT)) {
-			dirndx = i;
-			return p;
-		}
-	}
-
-	for (i = maplist->size - 1; i > dirndx; i--) {
-		p = maplist->buf[i];
-		if (strstr(p, DATA_MAPS_EXT)) {
-			dirndx = i;
-			return p;
-		}
-	}
-
-	if (dirndx == -1) {
-		return "";
-	}
-	return maplist->buf[dirndx];
+	mapdirexists = itemlist_set_directory(allmaps, DATA_MAPS_DIR);
 }
 
 static void nextship(void *client)
