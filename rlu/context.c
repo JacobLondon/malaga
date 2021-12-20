@@ -231,6 +231,8 @@ void context_cleanup(void)
 		UnloadImage(icon);
 	}
 	CloseWindow();
+
+	param_write(PARAMETER_FILE, paramList);
 }
 
 void context_loop(void)

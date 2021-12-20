@@ -130,7 +130,6 @@ void levelselect_cleanup(void)
 
 	texture_man_del(&texman);
 	memset(shiptexas, 0, sizeof(shiptexas));
-	clear_maps();
 	atmos_cleanup();
 	component_del(select_button);
 	component_del(menu_button);
@@ -153,7 +152,6 @@ void levelselect_update(void)
 	component_update(nextship_button);
 
 	if (IsKeyDown(KEY_R)) {
-		clear_maps();
 		index_maps();
 	}
 
