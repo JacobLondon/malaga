@@ -130,7 +130,7 @@ void itemlist_draw(Itemlist *il)
 			// selected
 			if (i == 0) {
 				DrawRectangle(
-					0,
+					il->args.offsetX,
 					il->args.totalVert / il->args.fontsize * i + il->args.offsetVert,
 					il->args.totalHorz,
 					il->args.fontsize,

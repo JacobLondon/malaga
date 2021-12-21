@@ -36,6 +36,7 @@ void skins_init(void)
 		.AB = 5,
 		.offsetVert = (int)(GetScreenHeight() * 0.3f),
 		.offsetHorz = GetScreenWidth() / 10,
+		.offsetX = 0,
 		.totalVert = GetScreenHeight(),
 		.totalHorz = GetScreenWidth(),
 		.bgSelected = WHITE,

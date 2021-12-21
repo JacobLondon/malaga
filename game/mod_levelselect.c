@@ -110,6 +110,7 @@ void levelselect_init(void)
 		.AB = AROUND_SELECTED,
 		.offsetVert = (int)(GetScreenHeight() * 0.3f),
 		.offsetHorz = GetScreenWidth() / 10,
+		.offsetX = 0,
 		.totalVert = GetScreenHeight(),
 		.totalHorz = GetScreenWidth(),
 		.bgSelected = WHITE,

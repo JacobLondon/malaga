@@ -14,6 +14,7 @@ typedef struct ItemlistArgsStruct
 	int AB; // number above/below to show of the list
 	int offsetVert; // location to put highlighted from top of screen in pixels
 	int offsetHorz; // location to put text from left of screen in pixels
+	int offsetX; // location to put highlighted from left of screen in pixels
 	int totalVert; // total height of the area
 	int totalHorz; // total width of the area
 	Color bgSelected;

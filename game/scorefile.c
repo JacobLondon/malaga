@@ -152,9 +152,9 @@ void score_draw(Score *s, float x, float y, int fontsize, Color color)
 	char buf[32];
 	assert(s);
 
-	(void)snprintf(buf, sizeof(buf), "%s  %llu", s->name, s->score);
+	(void)snprintf(buf, sizeof(buf), "%s - %llu", s->name, s->score);
 	measure = MeasureText(buf, fontsize);
-	DrawText(buf, GetScreenWidth() * x - measure / 2, GetScreenHeight() * y - fontsize / 2, fontsize, color);
+	DrawText(buf, GetScreenWidth() * x - measure / 2, GetScreenHeight() * y, fontsize, color);
 }
 
 static FILE *open_file(const char *filename)

@@ -22,7 +22,7 @@ static bool encounter_done(void);
 
 static void player_new(player_data *self);
 static void player_del(player_data *self);
-static void player_eat_drop(player_data *self, item_drop drop);
+static bool player_eat_drop(player_data *self, item_drop drop);
 static void enemy_new(enemy_data *self, encounter *enc);
 static void enemy_del(enemy_data *self);
 static void detonations_cleanup(void);
@@ -238,7 +238,9 @@ void game_update(void)
 	}
 
 	// move it after the player tries to eat the last frame instance
-	player_eat_drop(&player, drop_manager_pickup(&player));
+	if (player_eat_drop(&player, drop_manager_pickup(&player))) {
+		score_increase_points();
+	}
 	drop_manager_update();
 
 	/*if (IsGamepadAvailable(0)) {
@@ -577,31 +579,32 @@ static void player_del(player_data *self)
 	}
 }
 
-static void player_eat_drop(player_data *self, item_drop drop)
+static bool player_eat_drop(player_data *self, item_drop drop)
 {
 	char *tmp;
 	assert(self);
 	switch (drop.type) {
 	case DROP_NONE:
-		break;
+		return false;
 	case DROP_LEVEL:
 		self->level += drop.spec.level_amount;
-		break;
+		return true;
 	case DROP_BULLET:
 		tmp = (char *)drop_to_string(&drop);
 		self->shoot = bullet_lookup_shoot(tmp);
 		(void)snprintf(self->shoot_name, sizeof(self->shoot_name), "%s", tmp);
 		self->shotperiod = bullet_lookup_timeout(self->shoot);
-		break;
+		return true;
 	case DROP_HEALTH:
 		self->hp += drop.spec.health_amount;
-		break;
+		return true;
 	case DROP_SPEED:
 		self->speed += drop.spec.speed_amount;
-		break;
+		return true;
 	default:
 		msg_assert(0, "Invalid path");
 	}
+	return false;
 }
 
 static void enemy_new(enemy_data *self, encounter *enc)
