@@ -6,7 +6,7 @@
 #define WIN_TEXT "- WINNER -"
 #define LOSE_TEXT "- LOSER -"
 #define NEWHI_TEXT "- NEW HIGHSCORE -"
-#define SCORES_SHOWN_MAX 8
+#define SCORES_SHOWN_MAX 6
 
 static void back_func(void *client);
 static void save_func(void *client);
@@ -34,6 +34,7 @@ static Itemlist *letter2;
 void hiscore_init(void)
 {
 	Score *highest;
+	char template[2] = {0};
 
 	new_highscore = false;
 
@@ -56,6 +57,7 @@ void hiscore_init(void)
 		}
 	}
 
+	// 3 lists take up the left half of the screen (1/6) with centered text (1/12)
 	ItemlistArgs args = {
 		.fontsize = 24,
 		.AB = 3,
@@ -83,11 +85,16 @@ void hiscore_init(void)
 	itemlist_set(letter1, letterchoice, ARRAY_SIZE(letterchoice));
 	itemlist_set(letter2, letterchoice, ARRAY_SIZE(letterchoice));
 
+	// set defaults and select default nickname
 	memset(&myscore, 0, sizeof(myscore));
 	myscore.score = score_get();
-	myscore.name[0] = *itemlist_get_selected(letter0);
-	myscore.name[1] = *itemlist_get_selected(letter1);
-	myscore.name[2] = *itemlist_get_selected(letter2);
+	(void)snprintf(myscore.name, sizeof(myscore.name), "%s", context_get_nickname());
+	template[0] = myscore.name[0];
+	itemlist_try_select(letter0, template);
+	template[0] = myscore.name[1];
+	itemlist_try_select(letter1, template);
+	template[0] = myscore.name[2];
+	itemlist_try_select(letter2, template);
 
 	save_button = button_new("SAVE", save_func, NULL);
 	back_button = button_new("BACK", back_func, NULL);
@@ -226,6 +233,9 @@ static void save_func(void *client)
 		scorefile_add_score(scorefile, myscore.name, myscore.score);
 		(void)scorefile_save(scorefile);
 	}
+
+	// save for next launch
+	context_set_param("nickname", myscore.name);
 
 	// go back anyways if you choose to save
 	back_func(NULL);

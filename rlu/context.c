@@ -63,6 +63,7 @@ static context_opt defaultOptions = {
 	.title="RLU",
 	.use_audio=true,
 	.volume=50,
+	.nickname="AAA",
 };
 
 static param paramList[] = {
@@ -76,6 +77,7 @@ static param paramList[] = {
 	DEFINE_PARAM(PARAM_TYPE_STRING, icon, options, defaultOptions),
 	DEFINE_PARAM(PARAM_TYPE_STRING, assetdir, options, defaultOptions),
 	DEFINE_PARAM(PARAM_TYPE_STRING, skindir, options, defaultOptions),
+	DEFINE_PARAM(PARAM_TYPE_STRING, nickname, options, defaultOptions),
 	DEFINE_PARAM_END(),
 };
 
@@ -291,6 +293,11 @@ char *context_get_skindir(void)
 	assert(initialized);
 	(void)snprintf(buf, sizeof(buf), "%s/%s", options.assetdir, options.skindir);
 	return buf;
+}
+
+char *context_get_nickname(void)
+{
+	return options.nickname;
 }
 
 void context_set_param(const char *name, void *value)

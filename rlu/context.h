@@ -57,6 +57,7 @@ typedef struct context_opt_tag {
 	char icon[32]; // path to the icon
 	char assetdir[32];
 	char skindir[32]; // path to skin from assets, format: "dir/subdir" to leading or trailing items. Always relative
+	char nickname[4]; // 3 letter name default
 } context_opt;
 
 /** ensure \a definitions is NULL terminated array. \a opt may be NULL to use defaults */
@@ -73,6 +74,7 @@ void context_push(const char *module_name);
 void context_pop(void);
 
 char *context_get_skindir(void);
+char *context_get_nickname(void);
 
 void context_set_param(const char *name, void *value);
 

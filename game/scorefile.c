@@ -7,9 +7,9 @@ struct ScorefileStruct {
 	Score *scores;
 };
 
-/** fp must be open for reading in binary */
 static FILE *open_file(const char *filename);
 static int score_cmp(const void *a, const void *b);
+static size_t sfcount(Scorefile *s);
 
 Scorefile *scorefile_open(const char *filename)
 {
@@ -30,10 +30,11 @@ Scorefile *scorefile_open(const char *filename)
 	// read the scores
 	(void)fseek(fp, 0, SEEK_END);
 	s->length = ftell(fp);
+	(void)fseek(fp, 0, SEEK_SET);
 	if (s->length != 0) {
-		s->scores = malloc(s->length);
+		s->scores = malloc((size_t)s->length);
 		assert(s->scores);
-		fread(s->scores, 1, s->length, fp);
+		(void)fread(s->scores, sizeof(Score), sfcount(s), fp);
 	}
 	else {
 		s->scores = NULL;
@@ -85,13 +86,14 @@ Score *scorefile_get_scores(Scorefile *s, size_t *count)
 	}
 
 	if (count) {
-		*count = s->length / sizeof(Score);
+		*count = sfcount(s);
 	}
 	return s->scores;
 }
 
 void scorefile_add_score(Scorefile *s, const char *name, score_t score)
 {
+	size_t newsize;
 	Score newscore;
 	Score *p;
 
@@ -103,16 +105,17 @@ void scorefile_add_score(Scorefile *s, const char *name, score_t score)
 
 	// at least one element
 	if (s->scores) {
-		p = realloc(s->scores, s->length + sizeof(Score));
+		newsize = s->length + sizeof(Score);
+		p = realloc(s->scores, newsize);
 		assert(p);
 
 		// now 1 longer, so length is the end element
 		s->scores = p;
-		s->scores[s->length / sizeof(Score)] = newscore;
-		s->length += sizeof(Score);
+		s->scores[sfcount(s)] = newscore;
+		s->length = (long)newsize;
 
 		// needs sorting
-		qsort(s->scores, s->length / sizeof(Score), sizeof(Score), score_cmp);
+		//qsort(s->scores, s->length / sizeof(Score), sizeof(Score), score_cmp);
 	}
 	// no scores yet
 	else {
@@ -140,7 +143,7 @@ int scorefile_save(Scorefile *s)
 		return 1;
 	}
 
-	(void)fwrite(s->scores, 1, s->length, fp);
+	(void)fwrite(s->scores, sizeof(Score), sfcount(s), fp);
 	(void)fclose(fp);
 
 	return 0;
@@ -162,6 +165,7 @@ static FILE *open_file(const char *filename)
 	FILE *fp;
 	assert(filename);
 
+	// open and/or create file if necessary
 	fp = fopen(filename, "rb");
 	if (!fp) {
 		fp = fopen(filename, "wb");
@@ -180,8 +184,8 @@ static FILE *open_file(const char *filename)
 
 static int score_cmp(const void *a, const void *b)
 {
-	Score *_a = a;
-	Score *_b = b;
+	Score *_a = (Score *)a;
+	Score *_b = (Score *)b;
 
 	if (_a->score > _b->score) {
 		return 1;
@@ -190,4 +194,10 @@ static int score_cmp(const void *a, const void *b)
 		return 0;
 	}
 	return -1;
+}
+
+static size_t sfcount(Scorefile *s)
+{
+	assert(s);
+	return (size_t)s->length / sizeof(Score);
 }

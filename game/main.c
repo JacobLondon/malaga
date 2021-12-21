@@ -12,6 +12,7 @@ static context_opt options = {
 	.icon="icon.png",
 	.assetdir="skins",
 	.skindir="default",
+	.nickname="AAA",
 };
 
 static module_definition definitions[] = {
