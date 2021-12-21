@@ -12,10 +12,10 @@ bullet.o \
 drop_manager.o \
 drop.o \
 map.o \
-mg.o \
 mod_game.o \
 mod_hiscore.o \
 mod_levelselect.o \
+mod_mg.o \
 mod_pause.o \
 mod_skins.o \
 score.o \
@@ -34,7 +34,7 @@ $(MG_T): $(ALL_O)
 	$(CC) -o $@ $(ALL_O) $(MYLIBS) $(MYLDFLAGS) $(CFLAGS)
 
 clean:
-	$(RM_F) $(ALL_O) $(MG_T)
+	$(RM_F) *.o $(MG_T)
 
 depend:
 	find . | grep -E '\.c|\.h' | xargs $(CC) $(CFLAGS) -MM

@@ -204,3 +204,10 @@ static char *find_prev(Itemlist *il)
 	il->bufndx = il->buflen - 1;
 	return il->buf[il->bufndx];
 }
+
+char *itemlist_get_selected(Itemlist *il)
+{
+	assert(il);
+
+	return il->buf[il->bufndx];
+}

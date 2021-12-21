@@ -119,6 +119,7 @@ void levelselect_init(void)
 	};
 	allmaps = itemlist_new(&args);
 	index_maps();
+	mapdir = itemlist_get_selected(allmaps);
 }
 
 void levelselect_cleanup(void)
@@ -196,6 +197,8 @@ static void lselect(void *client)
 	(void)client;
 
 	if (mapdirexists) {
+		memset(&msg, 0, sizeof(msg));
+
 		// load configuration and launch
 		msg.endless_mode = endless_mode;
 		msg.trouble_mode = trouble_mode;

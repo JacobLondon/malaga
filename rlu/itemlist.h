@@ -42,5 +42,6 @@ bool itemlist_try_select(Itemlist *il, const char *name); // try to select this 
 char *itemlist_next(Itemlist *il);
 char *itemlist_prev(Itemlist *il);
 void itemlist_draw(Itemlist *il);
+char *itemlist_get_selected(Itemlist *il);
 
 #endif // RLU_ITEMLIST_H
