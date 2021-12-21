@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include "score.h"
 
-static unsigned long long multiplier = 100;
-static unsigned long long points = 0;
+static score_t multiplier = 100;
+static score_t points = 0;
 
 void score_init(void)
 {
@@ -10,7 +10,7 @@ void score_init(void)
 	points = 0;
 }
 
-unsigned long long score_get(void)
+score_t score_get(void)
 {
 	return points;
 }
@@ -18,7 +18,7 @@ unsigned long long score_get(void)
 char *score_get_string(void)
 {
 	static char buf[256];
-	static unsigned long long points_last = 1;
+	static score_t points_last = 1;
 	if (points_last != points) {
 		(void)snprintf(buf, sizeof(buf), "%llu", points);
 		points_last = points;
@@ -29,7 +29,7 @@ char *score_get_string(void)
 char *score_get_multiplier(void)
 {
 	static char buf[256];
-	static unsigned long long mult_last = 0;
+	static score_t mult_last = 0;
 	if (mult_last != multiplier) {
 		(void)snprintf(buf, sizeof(buf), "x%.2lf", (float)multiplier / 100.0);
 		mult_last = multiplier;
@@ -44,11 +44,11 @@ void score_increase_points(void)
 
 void score_increase_multiplier(void)
 {
-	multiplier = (unsigned long long)(multiplier * 1.5);
+	multiplier = (score_t)(multiplier * 1.5);
 }
 
 void score_decrease_multiplier(void)
 {
-	multiplier = (unsigned long long)(multiplier * 0.9);
+	multiplier = (score_t)(multiplier * 0.9);
 	multiplier = (multiplier < 100) ? 100 : multiplier;
 }

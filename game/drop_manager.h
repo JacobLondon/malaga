@@ -1,7 +1,7 @@
 #ifndef MG_DROP_MANAGER_H
 #define MG_DROP_MANAGER_H
 
-#include "game.h"
+#include "mod_game.h"
 #include "drop.h"
 
 void drop_manager_init(void);

@@ -547,3 +547,16 @@ char *tempbuf(const char *fmt, ...)
 	va_end(ap);
 	return buf;
 }
+
+const char *mybasename(const char *path)
+{
+	char *p;
+	assert(path);
+
+	p = strrchr(path, '/');
+	if (p) {
+		return &p[1];
+	}
+
+	return path;
+}

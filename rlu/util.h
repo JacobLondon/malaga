@@ -145,4 +145,6 @@ Color color_lookup(const char *color);
 
 char *tempbuf(const char *fmt, ...);
 
+const char *mybasename(const char *path);
+
 #endif // RLU_UTIL_H

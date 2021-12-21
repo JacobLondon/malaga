@@ -126,7 +126,7 @@ void drop_manager_draw(void)
 		if (ctx.drops[i].drop.type != DROP_NONE) {
 			so_draw(ctx.drops[i].object);
 
-			p = drop_to_string(&ctx.drops[i].drop);
+			p = (char *)drop_to_string(&ctx.drops[i].drop);
 			if (ctx.drops[i].drop.type == DROP_BULLET) {
 				p += + sizeof("player_bullet");
 			}

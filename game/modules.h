@@ -35,4 +35,15 @@ void skins_cleanup(void);
 void skins_update(void);
 void skins_draw(void);
 
+struct hiscore_message {
+	int won;
+	char scorefile[128];
+};
+
+void hiscore_init(void);
+void hiscore_cleanup(void);
+void hiscore_update(void);
+void hiscore_draw(void);
+void hiscore_conf(struct hiscore_message *msg);
+
 #endif // MG_MODULES_H

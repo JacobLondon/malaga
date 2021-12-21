@@ -7,8 +7,6 @@
 #include "drop.h"
 #include "drop_manager.h"
 
-#define WIN_TEXT "- WINNER -"
-#define LOSE_TEXT "- LOSER -"
 #define PLAYER_DEFAULT_SPEED 650
 #define PLAYER_SIZE 25
 #define ENEMY_SIZE 35
@@ -300,6 +298,22 @@ void game_update(void)
 		gamelost = true;
 		player.y = 10000;
 	}
+
+	if (gamewon || gamelost) {
+		struct hiscore_message msg = {
+			.won = gamewon && !gamelost,
+		};
+		(void)snprintf(msg.scorefile, sizeof(msg.scorefile), "%s", game_data.mapdir);
+
+		// replace .mg with .sc for the score file
+		char *p = strstr(msg.scorefile, DATA_MAPS_EXT);
+		if (p) {
+			(void)snprintf(p, sizeof(DATA_SCORE_EXT), "%s", DATA_SCORE_EXT);
+		}
+
+		hiscore_conf(&msg);
+		context_push("HISCORE");
+	}
 }
 
 void game_draw(void)
@@ -353,15 +367,6 @@ void game_draw(void)
 	// bottom left
 	snprintf(shoot, sizeof(shoot), "%s: %d", &player.shoot_name[sizeof("player_bullet")], player.level);
 	DrawText(shoot, 5, screen_height - FONTSIZE - 5, FONTSIZE, WHITE);
-
-	if (gamewon && !gamelost) {
-		DrawRectangle(0, GetScreenHeight() * 0.2, GetScreenWidth(), 40, WHITE);
-		DrawText(WIN_TEXT, GetScreenWidth() / 2 - MeasureText(WIN_TEXT, 40) / 2, GetScreenHeight() * 0.2, 40, BLACK);
-	}
-	else if (gamelost && !gamewon) {
-		DrawRectangle(0, GetScreenHeight() * 0.2, GetScreenWidth(), 40, WHITE);
-		DrawText(LOSE_TEXT, GetScreenWidth() / 2 - MeasureText(LOSE_TEXT, 40) / 2, GetScreenHeight() * 0.2, 40, BLACK);
-	}
 }
 
 void game_conf(struct game_message *msg)

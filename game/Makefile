@@ -11,13 +11,15 @@ atmos.o \
 bullet.o \
 drop_manager.o \
 drop.o \
-game.o \
-levelselect.o \
 map.o \
 mg.o \
-pause.o \
+mod_game.o \
+mod_hiscore.o \
+mod_levelselect.o \
+mod_pause.o \
+mod_skins.o \
 score.o \
-skins.o
+scorefile.o
 
 .PHONY: clean $(MG_T)
 

@@ -2,7 +2,7 @@
 #include <rlu/rlu.h>
 #include "bullet.h"
 #include "score.h"
-#include "game.h"
+#include "mod_game.h"
 
 #define ENEMY_HITTABLES 64
 #define PLAYER_HITTABLES 4

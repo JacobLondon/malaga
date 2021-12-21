@@ -46,15 +46,7 @@ void skins_init(void)
 	allskins = itemlist_new(&args);
 	skinsexist = itemlist_set_directory(allskins, DATA_SKINS_DIR);
 
-	// just get the basename
-	p = strrchr(context_get_skindir(), '/');
-	if (!p) {
-		p = context_get_skindir();
-	}
-	else {
-		p += 1;
-	}
-
+	p = (char *)mybasename((const char *)context_get_skindir());
 	(void)itemlist_try_select(allskins, p);
 }
 

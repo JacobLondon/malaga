@@ -7,6 +7,7 @@
 #define DATA_MAPS_DIR "maps"
 #define DATA_SKINS_DIR "skins"
 #define DATA_MAPS_EXT ".mg"
+#define DATA_SCORE_EXT ".sc" // **MUST** be the same length as maps ext
 #define DATA_ASSET_MAP "test" DATA_MAPS_EXT
 #define DATA_ASSET_DROP "drop.png"
 #define DATA_ASSET_SKIN_DEFAULT "default"

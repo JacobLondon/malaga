@@ -5,7 +5,7 @@
  * Load maps / encounters
  */
 
-#include "game.h"
+#include "mod_game.h"
 
 struct MapHeader {
 	char atmosphere[128]; // name of atmosphere
