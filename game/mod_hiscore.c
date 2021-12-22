@@ -17,6 +17,7 @@ static button *save_button;
 static bool new_highscore;
 static bool won;
 static char scorefilename[128];
+static score_t scorevalue;
 static Score myscore;
 static Scorefile *scorefile;
 
@@ -42,7 +43,7 @@ void hiscore_init(void)
 	Color dark = BACKGROUND_SHADE;
 
 	memset(&myscore, 0, sizeof(myscore));
-	myscore.score = score_get();
+	myscore.score = scorevalue;
 
 	new_highscore = false;
 
@@ -119,6 +120,7 @@ void hiscore_cleanup(void)
 {
 	new_highscore = false;
 	won = false;
+	scorevalue = 0;
 	(void)memset(scorefilename, 0, sizeof(scorefilename));
 
 	if (scorefile) {
@@ -228,6 +230,7 @@ void hiscore_conf(struct hiscore_message *msg)
 
 	won = !!msg->won;
 	(void)snprintf(scorefilename, sizeof(scorefilename), "%s", msg->scorefile);
+	scorevalue = msg->score;
 }
 
 static void back_func(void *client)

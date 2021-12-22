@@ -18,6 +18,7 @@ mod_levelselect.o \
 mod_mg.o \
 mod_pause.o \
 mod_skins.o \
+mod_scorelist.o \
 score.o \
 scorefile.o
 

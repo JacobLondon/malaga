@@ -304,6 +304,7 @@ void game_update(void)
 	if (gamewon || gamelost) {
 		struct hiscore_message msg = {
 			.won = gamewon && !gamelost,
+			.score = score_get(),
 		};
 		(void)snprintf(msg.scorefile, sizeof(msg.scorefile), "%s", game_data.mapdir);
 

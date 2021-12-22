@@ -22,6 +22,7 @@ static module_definition definitions[] = {
 	DEFINE_MODULE("SELECT", levelselect_init, levelselect_cleanup, levelselect_update, levelselect_draw),
 	DEFINE_MODULE("SKINS", skins_init, skins_cleanup, skins_update, skins_draw),
 	DEFINE_MODULE("HISCORE", hiscore_init, hiscore_cleanup, hiscore_update, hiscore_draw),
+	DEFINE_MODULE("SCORES", scorelist_init, scorelist_cleanup, scorelist_update, scorelist_draw),
 	DEFINE_MODULE_END(),
 };
 
