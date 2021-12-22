@@ -1,7 +1,7 @@
 
 include include.mk
 
-.PHONY: clean
+.PHONY: clean textures
 
 BUILD_MODE=
 COMPRESS_TOOL=
@@ -22,13 +22,18 @@ debug: $(PROJECT)
 release: BUILD_MODE += release
 release: $(PROJECT)
 
-$(PROJECT): mybuild
+$(PROJECT): mybuild mytextures
 	mkdir -p $(PROJECT)
 	cp game/malaga $(PROJECT)
 	mkdir -p $(PROJECT)/maps
 	cp data/maps/* $(PROJECT)/maps/
+textures:
 	mkdir -p $(PROJECT)/skins
 	[ -d data/skins ] && cp -a data/skins/* $(PROJECT)/skins/ || true
+mytextures:
+	mkdir -p $(PROJECT)/skins
+	[ -d data/skins ] && cp -a data/skins/* $(PROJECT)/skins/ || true
+	touch mytextures
 
 zip: COMPRESS_TOOL = zip -r
 zip: COMPRESS_EXT = zip
@@ -52,6 +57,7 @@ run:
 	$(shell cd $(PROJECT) && ./$(PROJECT) ; cd ..)
 
 clean:
+	$(RM_F) mytextures
 	$(RM_F) bin
 	make -C rlu clean
 	make -C rlua clean

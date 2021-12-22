@@ -44,6 +44,8 @@ make zip
 * Make new `so_cb_strobe`
   * and a new mode called solar flare mode
 * Level files can define skins and which background to use
+* Sound system (maybe keeping track across modules?)
+* Enemies need to indicate they are hit (visual flashing/parts breaking and audio)
 
 # Requirements
 * Raylib
