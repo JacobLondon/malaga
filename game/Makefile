@@ -23,18 +23,20 @@ scorefile.o
 
 .PHONY: clean $(MG_T)
 
-ALL_O = $(CORE_O) $(MG_O)
-
 release: $(MG_T)
 debug: $(MG_T)
 
+$(MG_A): $(CORE_O)
+	$(AR) $@ $(CORE_O)
+	$(RANLIB) $@
+
 # *MUST* be this order... at least for tcc
 # all CC -o TARGET *.o *.data *.a -l* CFLAGS
-$(MG_T): $(ALL_O)
-	$(CC) -o $@ $(ALL_O) $(MYLIBS) $(MYLDFLAGS) $(CFLAGS)
+$(MG_T): $(MG_O) $(MG_A)
+	$(CC) -o $@ $(MG_O) $(MYLIBS) $(MYLDFLAGS) $(CFLAGS)
 
 clean:
-	$(RM_F) *.o $(MG_T)
+	$(RM_F) *.o $(MG_T) $(MG_A)
 
 depend:
 	find . | grep -E '\.c|\.h' | xargs $(CC) $(CFLAGS) -MM

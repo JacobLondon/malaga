@@ -19,12 +19,13 @@ RM_F = rm -rf
 default_target = debug
 found = No
 
+MG_A = ../game/libmg.a
 RLU_A = ../rlu/librlu.a
 MYLUA_A = ../lua/lua/liblua.a
 LUA = ../lua/lua/lua$(MYEXT)
 DEF = ../collections/def$(MYEXT)
 
-MYLIBS = $(RLU_A) $(MYLUA_A)
+MYLIBS = $(MG_A) $(RLU_A) $(MYLUA_A)
 
 ifeq ($(OS),Windows_NT)
 	found    = Yes

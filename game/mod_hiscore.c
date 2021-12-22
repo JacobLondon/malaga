@@ -7,6 +7,7 @@
 #define LOSE_TEXT "- LOSER -"
 #define NEWHI_TEXT "- NEW HIGHSCORE -"
 #define SCORES_SHOWN_MAX 6
+#define BACKGROUND_SHADE CLITERAL(Color){0, 0, 0, 100}
 
 static void back_func(void *client);
 static void save_func(void *client);
@@ -31,12 +32,22 @@ static Itemlist *letter0;
 static Itemlist *letter1;
 static Itemlist *letter2;
 
+static Image idarkening;
+static Texture2D darkening;
+
 void hiscore_init(void)
 {
 	Score *highest;
 	char template[2] = {0};
+	Color dark = BACKGROUND_SHADE;
+
+	memset(&myscore, 0, sizeof(myscore));
+	myscore.score = score_get();
 
 	new_highscore = false;
+
+	idarkening = GenImageColor(GetScreenWidth(), GetScreenHeight(), dark);
+	darkening = LoadTextureFromImage(idarkening);
 
 	// only if the scorefilename is valid
 	if (scorefilename[0]) {
@@ -86,8 +97,6 @@ void hiscore_init(void)
 	itemlist_set(letter2, letterchoice, ARRAY_SIZE(letterchoice));
 
 	// set defaults and select default nickname
-	memset(&myscore, 0, sizeof(myscore));
-	myscore.score = score_get();
 	(void)snprintf(myscore.name, sizeof(myscore.name), "%s", context_get_nickname());
 	template[0] = myscore.name[0];
 	itemlist_try_select(letter0, template);
@@ -97,7 +106,7 @@ void hiscore_init(void)
 	itemlist_try_select(letter2, template);
 
 	save_button = button_new("SAVE", save_func, NULL);
-	back_button = button_new("BACK", back_func, NULL);
+	back_button = button_new("MENU", back_func, NULL);
 	component_set_size(save_button, 24, .4, .1);
 	component_set_size(back_button, 24, .4, .1);
 	component_set_pos(save_button, .75, .9);
@@ -128,6 +137,9 @@ void hiscore_cleanup(void)
 	letter1 = NULL;
 	itemlist_delete(letter2);
 	letter2 = NULL;
+
+	UnloadTexture(darkening);
+	UnloadImage(idarkening);
 }
 
 void hiscore_update(void)
@@ -177,6 +189,8 @@ void hiscore_draw(void)
 	int count;
 	int i;
 	char *p;
+
+	texture_man_draw_tex(&darkening, 0, 0);
 
 	itemlist_draw(letter0);
 	itemlist_draw(letter1);

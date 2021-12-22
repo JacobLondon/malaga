@@ -115,7 +115,7 @@ void scorefile_add_score(Scorefile *s, const char *name, score_t score)
 		s->length = (long)newsize;
 
 		// needs sorting
-		//qsort(s->scores, s->length / sizeof(Score), sizeof(Score), score_cmp);
+		qsort(s->scores, s->length / sizeof(Score), sizeof(Score), score_cmp);
 	}
 	// no scores yet
 	else {
@@ -188,12 +188,12 @@ static int score_cmp(const void *a, const void *b)
 	Score *_b = (Score *)b;
 
 	if (_a->score > _b->score) {
-		return 1;
+		return -1;
 	}
 	else if (_a->score == _b->score) {
 		return 0;
 	}
-	return -1;
+	return 1;
 }
 
 static size_t sfcount(Scorefile *s)

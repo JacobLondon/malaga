@@ -34,11 +34,9 @@ make zip
 ```
 
 # TODO
-* highscore system
+* differentiate highscores depending on game mode and starting ship
 * Flower which spins
 * Make more levels
-* Powerups and drops
-* Level select with high score stored in level file
 * Flashlight mode
 * Darker background option
 * Make new `so_cb_strobe`
