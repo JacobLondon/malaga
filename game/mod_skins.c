@@ -29,7 +29,7 @@ void skins_init(void)
 	component_set_color(reload_button, WHITE, MYDARKGRAY);
 	component_set_color(menu_button, WHITE, MYDARKGRAY);
 
-	atmos_init("Dark");
+	atmos_init("Flyby");
 
 	ItemlistArgs args = {
 		.fontsize = 40,

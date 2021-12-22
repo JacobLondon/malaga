@@ -39,7 +39,7 @@ void scorelist_init(void)
 	selected_scorefilename = itemlist_get_selected(scorefiles);
 	prev_scorefilename = NULL;
 
-	atmos_init("Dark");
+	atmos_init("PlanetField");
 }
 
 void scorelist_cleanup(void)

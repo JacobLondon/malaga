@@ -103,7 +103,7 @@ void levelselect_init(void)
 
 	shipndx = 0;
 
-	atmos_init("Dark");
+	atmos_init("Sunspot");
 
 	ItemlistArgs args = {
 		.fontsize = 40,

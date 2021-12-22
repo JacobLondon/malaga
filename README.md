@@ -90,3 +90,7 @@ wget https://github.com/raysan5/raylib/releases/download/3.5.0/raylib-3.5.0_maco
 tar xzf raylib-3.5.0_macos.tar.gz
 cp raylib-3.5.0_macos/lib/libraylib.a /usr/local/lib/
 ```
+
+# Bugs
+* Can't re-create: MENU from level select screen crashes
+* Memory leak on module context switch, suspect there are resources overlooked

@@ -57,6 +57,7 @@ extern void (*dealloc)(void *p);
 #define RAND_RANGE(min, max) (rand() % (max - min) + min)
 int rand_range(int min, int max);
 float rand_uniform(void);
+int rand_sign(void);
 
 #define streq(s1, s2) (strcmp((s1), (s2)) == 0)
 

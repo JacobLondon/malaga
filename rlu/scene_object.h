@@ -45,6 +45,8 @@ void so_cb_rot_cclockwise(so *self, float amt, bool *trigger);
 void so_cb_scale(so *self, float amt, bool *trigger);
 void so_cb_trk_vrt(so *self, float amt, bool *trigger); /* vertical mouse track */
 void so_cb_trk_hrz(so *self, float amt, bool *trigger); /* horizontal mouse track */
+void so_cb_shift_vrt(so *self, float amt, bool *trigger); /* move with the mouse kinda */
+void so_cb_shift_hrz(so *self, float amt, bool *trigger); /* move with the mouse kinda */
 void so_cb_left(so *self, float amt, bool *trigger);
 void so_cb_right(so *self, float amt, bool *trigger);
 void so_cb_up(so *self, float amt, bool *trigger);

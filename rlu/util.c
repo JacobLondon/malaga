@@ -64,6 +64,11 @@ float rand_uniform(void)
 	return (float)rand() / (float)RAND_MAX;
 }
 
+int rand_sign(void)
+{
+	return rand_range(0, 2) == 1 ? 1 : -1;
+}
+
 char *file_read(const char *fname, size_t *size)
 {
 	if (!fname) {

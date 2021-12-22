@@ -199,6 +199,40 @@ void so_cb_trk_hrz(so *self, float amt, bool *trigger)
 	}
 }
 
+void so_cb_shift_vrt(so *self, float amt, bool *trigger)
+{
+	const int y = GetMouseY();
+	const float h = (float)GetScreenHeight();
+	const float h2 = h / 2.f;
+	const float dir = (y < h2) ? -(1.f - (float)y / h2) : ((float)(y - h2) / h2);
+	if (trigger == NULL || *trigger == true) {
+		self->pos.y += dir * amt;
+		if (self->pos.y < 0) {
+			self->pos.y = h;
+		}
+		else if (self->pos.y > h) {
+			self->pos.y = 0;
+		}
+	}
+}
+
+void so_cb_shift_hrz(so *self, float amt, bool *trigger)
+{
+	const int x = GetMouseX();
+	const float w = (float)GetScreenWidth();
+	const float w2 = w / 2.f;
+	const float dir = (x < w2) ? -(1.f - (float)x / w2) : ((float)(x - w2) / w2);
+	if (trigger == NULL || *trigger == true) {
+		self->pos.x += dir * amt;
+		if (self->pos.x < 0) {
+			self->pos.x = w;
+		}
+		else if (self->pos.x > w) {
+			self->pos.x = 0;
+		}
+	}
+}
+
 void so_cb_left(so *self, float amt, bool *trigger)
 {
 	if (trigger == NULL || *trigger == true) {
