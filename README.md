@@ -5,7 +5,7 @@ Space shooter, galaga-like game. Note that I don't own these assets, and they wi
 git clone git@github.com:/JacobLondon/malaga --recurse-submodules
 ```
 
-![](https://user-images.githubusercontent.com/17059471/126079271-e560e05b-bd8f-429b-96b5-016c79d9e1de.png)
+![](https://user-images.githubusercontent.com/17059471/147126396-6eacfa7b-8010-4b27-a970-b1b2ecd106d4.png)
 
 # Features
 * Xbox Controller Support (non-menu, just in-game)
