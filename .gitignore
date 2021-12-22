@@ -11,6 +11,7 @@ __pycache__/
 tmp/
 bin/*
 data/skins/
+data/sound/
 data/generate.mk
 data/maps/*.mg
 *.gen.h
