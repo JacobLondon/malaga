@@ -16,6 +16,8 @@ git clone git@github.com:/JacobLondon/malaga --recurse-submodules
 * Enemy explosions when sprites are available
 * Statically compiled
 * Default sprites if some or all are missing
+* Skinning - just drop in a folder into the skins directory!
+* Highscore system -- compete against your friends!
 
 # Compiling
 ```bash
