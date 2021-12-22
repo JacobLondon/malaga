@@ -9,24 +9,33 @@ void texture_man_new(texture_manager *out)
 void texture_man_del(texture_manager *self)
 {
 	int i;
+	assert(self);
 	for (i = 0; i < TEXTURES_MAX; i++) {
 		if (self->textures[i].png) {
 			UnloadTexture(self->textures[i].texture);
 			free(self->textures[i].png);
 		}
 	}
+
+	for (i = 0; i < self->messndx; i++) {
+		UnloadImage(self->mess[i]);
+	}
+
 	memset(self->textures, 0, sizeof(self->textures));
 }
 
 Texture2D *texture_man_load(texture_manager *self, char *png)
 {
-	return texture_man_load_or_default(self, png, LoadTextureFromImage(GenImageChecked(100, 100, 2, 2, MAGENTA, BLACK)));
+	assert(self);
+	assert(png);
+	return texture_man_load_or_default(self, png, 100, 100, MAGENTA);
 }
 
-Texture2D *texture_man_load_or_default(texture_manager *self, char *png, Texture2D def)
+Texture2D *texture_man_load_or_default(texture_manager *self, char *png, int defwidth, int defheight, Color defcolor)
 {
 	int i;
 	Texture2D *ret = NULL;
+	assert(self);
 	assert(png);
 
 	for (i = 0; i < TEXTURES_MAX; i++) {
@@ -38,7 +47,10 @@ Texture2D *texture_man_load_or_default(texture_manager *self, char *png, Texture
 				self->textures[i].texture = LoadTexture(self->textures[i].png);
 			}
 			else {
-				self->textures[i].texture = def;
+				const Image img = GenImageColor(defwidth, defheight, defcolor);
+				self->mess[self->messndx] = img;
+				self->messndx++;
+				self->textures[i].texture = LoadTextureFromImage(img);
 				msg_warning("Could not load texture '%s'. Using default", png);
 			}
 			ret = &self->textures[i].texture;
@@ -56,6 +68,7 @@ Texture2D *texture_man_load_or_default(texture_manager *self, char *png, Texture
 Texture2D *texture_man_get(texture_manager *self, char *png)
 {
 	int i;
+	assert(self);
 	assert(png);
 	for (i = 0; i < TEXTURES_MAX; i++) {
 		if (self->textures[i].png == NULL) {

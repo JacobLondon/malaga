@@ -106,7 +106,7 @@ static void init_cb_background(scene *self, void *client)
 	(void)client;
 	
 	snprintf(path, sizeof(path), "%s/%s", context_get_skindir(), "background.png");
-	t = texture_man_load_or_default(textureman, path, TEXTURE_GEN(1000, 1000, BLACK));
+	t = texture_man_load_or_default(textureman, path, 1000, 1000, BLACK);
 	a = anim_man_load(scene_man_get_anim_man(manager), t, 1, 1);
 	s = so_new(a);
 	so_set_pos(s, 0, 0);
@@ -125,7 +125,7 @@ static void init_cb_starfield(scene *self, void *client)
 	// 90 items max...
 
 	snprintf(path, sizeof(path), "%s/%s", context_get_skindir(), "starfar.png");
-	t = texture_man_load_or_default(textureman, path, TEXTURE_GEN(1, 1, WHITE));
+	t = texture_man_load_or_default(textureman, path, 1, 1, WHITE);
 	a = anim_man_load(scene_man_get_anim_man(manager), t, 1, 1);
 	for (i = 0; i < 30; i++) {
 		s = so_new(a);
@@ -135,7 +135,7 @@ static void init_cb_starfield(scene *self, void *client)
 	}
 
 	snprintf(path, sizeof(path), "%s/%s", context_get_skindir(), "starmed.png");
-	t = texture_man_load_or_default(textureman, path, TEXTURE_GEN(2, 2, WHITE));
+	t = texture_man_load_or_default(textureman, path, 2, 2, WHITE);
 	a = anim_man_load(scene_man_get_anim_man(manager), t, 1, 1);
 	for (i = 0; i < 30; i++) {
 		s = so_new(a);
@@ -145,7 +145,7 @@ static void init_cb_starfield(scene *self, void *client)
 	}
 
 	snprintf(path, sizeof(path), "%s/%s", context_get_skindir(), "starnear.png");
-	t = texture_man_load_or_default(textureman, path, TEXTURE_GEN(4, 4, WHITE));
+	t = texture_man_load_or_default(textureman, path, 4, 4, WHITE);
 	a = anim_man_load(scene_man_get_anim_man(manager), t, 1, 1);
 	for (i = 0; i < 30; i++) {
 		s = so_new(a);
@@ -162,7 +162,7 @@ static void init_cb_planetfield(scene *self, void *client)
 	so *s;
 	(void)client;
 
-	t = texture_man_load_or_default(textureman, tempbuf("%s/%s", context_get_skindir(), "planet.png"), TEXTURE_GEN(35, 35, GRAY));
+	t = texture_man_load_or_default(textureman, tempbuf("%s/%s", context_get_skindir(), "planet.png"), 35, 35, GRAY);
 	a = anim_man_load(scene_man_get_anim_man(manager), t, 1, 1);
 	s = so_new(a);
 	so_set_pos(s, GetScreenWidth() * rand_uniform(), GetScreenHeight() * rand_uniform());
@@ -179,7 +179,7 @@ static void init_cb_spacefield(scene *self, void *client)
 	(void)client;
 
 	snprintf(path, sizeof(path), "%s/%s", context_get_skindir(), "background2.png");
-	t = texture_man_load_or_default(textureman, path, TEXTURE_GEN(1000, 1000, BLACK));
+	t = texture_man_load_or_default(textureman, path, 1000, 1000, BLACK);
 	a = anim_man_load(scene_man_get_anim_man(manager), t, 1, 1);
 	s = so_new(a);
 	so_set_pos(s, 0, 0);
@@ -195,7 +195,7 @@ static void init_cb_planet(scene *self, void *client)
 	(void)client;
 
 	snprintf(path, sizeof(path), "%s/%s", context_get_skindir(), "planet2.png");
-	t = texture_man_load_or_default(textureman, path, TEXTURE_GEN(500, 500, GRAY));
+	t = texture_man_load_or_default(textureman, path, 500, 500, GRAY);
 	a = anim_man_load(scene_man_get_anim_man(manager), t, 1, 1);
 	s = so_new(a);
 	so_set_pos(s, 0, 0);
@@ -232,7 +232,7 @@ static void init_cb_asteroids(scene *self, void *client)
 
 	for (i = 0; asteroids[i] != NULL; i++) {
 		snprintf(path, sizeof(path), "%s/%s", context_get_skindir(), asteroids[i]);
-		t = texture_man_load_or_default(textureman, path, TEXTURE_GEN(50, 50, BROWN));
+		t = texture_man_load_or_default(textureman, path, 50, 50, BROWN);
 		a = anim_man_load(scene_man_get_anim_man(manager), t, 1, 1);
 
 		for (j = 0; j < 10; j++) {
@@ -248,9 +248,9 @@ static void init_cb_traffic(scene *self, void *client)
 {
 	int i;
 	(void)client;
-	Texture2D *t1 = texture_man_load_or_default(textureman, tempbuf("%s/%s", context_get_skindir(), "ship_lakota.png"), TEXTURE_GEN(50, 50, GRAY));
-	Texture2D *t2 = texture_man_load_or_default(textureman, tempbuf("%s/%s", context_get_skindir(), "ship_brokenarm.png"), TEXTURE_GEN(75, 75, GRAY));
-	Texture2D *t3 = texture_man_load_or_default(textureman, tempbuf("%s/%s", context_get_skindir(), "ship_dreadnought.png"), TEXTURE_GEN(100, 100, GRAY));
+	Texture2D *t1 = texture_man_load_or_default(textureman, tempbuf("%s/%s", context_get_skindir(), "ship_lakota.png"), 50, 50, GRAY);
+	Texture2D *t2 = texture_man_load_or_default(textureman, tempbuf("%s/%s", context_get_skindir(), "ship_brokenarm.png"), 75, 75, GRAY);
+	Texture2D *t3 = texture_man_load_or_default(textureman, tempbuf("%s/%s", context_get_skindir(), "ship_dreadnought.png"), 100, 100, GRAY);
 	anim *a1 = anim_man_load(scene_man_get_anim_man(manager), t1, 1, 1);
 	anim *a2 = anim_man_load(scene_man_get_anim_man(manager), t2, 1, 1);
 	anim *a3 = anim_man_load(scene_man_get_anim_man(manager), t3, 1, 1);
@@ -298,7 +298,7 @@ static void init_cb_darkrise(scene *self, void *client)
 	(void)client;
 
 	snprintf(path, sizeof(path), "%s/%s", context_get_skindir(), "background_dark.png");
-	t = texture_man_load_or_default(textureman, path, TEXTURE_GEN(1000, 1000, BLACK));
+	t = texture_man_load_or_default(textureman, path, 1000, 1000, BLACK);
 	a = anim_man_load(scene_man_get_anim_man(manager), t, 1, 1);
 	s = so_new(a);
 	so_set_pos(s, -t->width / 2, 0);
@@ -315,7 +315,7 @@ static void init_cb_sunsurface(scene *self, void *client)
 	(void)client;
 
 	p = tempbuf("%s/%s", context_get_skindir(), "bg_starsurface.png");
-	t = texture_man_load_or_default(textureman, p, TEXTURE_GEN(1000, 1000, BLACK));
+	t = texture_man_load_or_default(textureman, p, 1000, 1000, BLACK);
 	a = anim_man_load(scene_man_get_anim_man(manager), t, 1, 1);
 	s = so_new(a);
 	so_set_pos(s, -t->width / 2, 0);
@@ -349,7 +349,7 @@ static void init_cb_sunblast(scene *self, void *client)
 	for (i = 0; sunblasts[i] != NULL; i++) {
 		count = (ARRAY_SIZE(sunblasts) - i) * 2;
 		p = tempbuf("%s/%s", context_get_skindir(), sunblasts[i]);
-		t = texture_man_load_or_default(textureman, p, TEXTURE_GEN(count, count, BROWN));
+		t = texture_man_load_or_default(textureman, p, count, count, BROWN);
 		a = anim_man_load(scene_man_get_anim_man(manager), t, 1, 1);
 
 		for (j = 0; j < count; j++) {
@@ -372,7 +372,7 @@ static void init_cb_chaosplanet(scene *self, void *client)
 	(void)client;
 
 	p = tempbuf("%s/%s", context_get_skindir(), "bg_blue_rising.png");
-	t = texture_man_load_or_default(textureman, p, TEXTURE_GEN(1000, 1000, BLACK));
+	t = texture_man_load_or_default(textureman, p, 1000, 1000, BLACK);
 	a = anim_man_load(scene_man_get_anim_man(manager), t, 1, 1);
 	s = so_new(a);
 	so_set_pos(s, -t->width / 2, 0);
@@ -389,7 +389,7 @@ static void init_cb_chaosflyby(scene *self, void *client)
 
 	// boss adds
 	p = tempbuf("%s/%s", context_get_skindir(), "default_enemy.png");
-	t = texture_man_load_or_default(textureman, p, TEXTURE_GEN(25, 25, GRAY));
+	t = texture_man_load_or_default(textureman, p, 25, 25, GRAY);
 	a = anim_man_load(scene_man_get_anim_man(manager), t, 1, 1);
 	s = so_new(a);
 
@@ -405,7 +405,7 @@ static void init_cb_chaosflyby(scene *self, void *client)
 
 	// boss ship
 	p = tempbuf("%s/%s", context_get_skindir(), "bossman.png");
-	t = texture_man_load_or_default(textureman, p, TEXTURE_GEN(50, 50, GRAY));
+	t = texture_man_load_or_default(textureman, p, 50, 50, GRAY);
 	a = anim_man_load(scene_man_get_anim_man(manager), t, 1, 1);
 	s = so_new(a);
 	so_set_pos(s, GetScreenWidth() * 0.05, GetScreenHeight() * 0.05);
@@ -425,7 +425,7 @@ static void init_cb_planetnebula(scene *self, void *client)
 	(void)client;
 
 	p = tempbuf("%s/%s", context_get_skindir(), "bg_nebula.png");
-	t = texture_man_load_or_default(textureman, p, TEXTURE_GEN(1000, 1000, BLACK));
+	t = texture_man_load_or_default(textureman, p, 1000, 1000, BLACK);
 	a = anim_man_load(scene_man_get_anim_man(manager), t, 1, 1);
 	s = so_new(a);
 	//so_set_pos(s, -t->width / 2, 0);
@@ -445,7 +445,7 @@ static void init_cb_trackingstars(scene *self, void *client)
 	// 90 items max...
 
 	snprintf(path, sizeof(path), "%s/%s", context_get_skindir(), "starfar.png");
-	t = texture_man_load_or_default(textureman, path, TEXTURE_GEN(1, 1, WHITE));
+	t = texture_man_load_or_default(textureman, path, 1, 1, WHITE);
 	a = anim_man_load(scene_man_get_anim_man(manager), t, 1, 1);
 	for (i = 0; i < 30; i++) {
 		s = so_new(a);
@@ -456,7 +456,7 @@ static void init_cb_trackingstars(scene *self, void *client)
 	}
 
 	snprintf(path, sizeof(path), "%s/%s", context_get_skindir(), "starmed.png");
-	t = texture_man_load_or_default(textureman, path, TEXTURE_GEN(2, 2, WHITE));
+	t = texture_man_load_or_default(textureman, path, 2, 2, WHITE);
 	a = anim_man_load(scene_man_get_anim_man(manager), t, 1, 1);
 	for (i = 0; i < 30; i++) {
 		s = so_new(a);
@@ -467,7 +467,7 @@ static void init_cb_trackingstars(scene *self, void *client)
 	}
 
 	snprintf(path, sizeof(path), "%s/%s", context_get_skindir(), "starnear.png");
-	t = texture_man_load_or_default(textureman, path, TEXTURE_GEN(4, 4, WHITE));
+	t = texture_man_load_or_default(textureman, path, 4, 4, WHITE);
 	a = anim_man_load(scene_man_get_anim_man(manager), t, 1, 1);
 	for (i = 0; i < 30; i++) {
 		s = so_new(a);

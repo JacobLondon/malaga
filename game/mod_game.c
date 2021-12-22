@@ -558,7 +558,7 @@ static void player_new(player_data *self)
 	(void)snprintf(self->shoot_name, sizeof(self->shoot_name), "%s", drop_to_string(&shooter_drop));
 	self->shotperiod = bullet_lookup_timeout(self->shoot);
 
-	tex = texture_man_load_or_default(&texman, buf, TEXTURE_GEN(PLAYER_SIZE, PLAYER_SIZE, BLUE));
+	tex = texture_man_load_or_default(&texman, buf, PLAYER_SIZE, PLAYER_SIZE, BLUE);
 	self->width = tex->width;
 	self->height = tex->height;
 	self->object = so_new(
@@ -627,7 +627,7 @@ static void enemy_new(enemy_data *self, encounter *enc)
 	self->shotperiod = bullet_lookup_timeout(enc->definition->shoot);
 	self->spawntime = enc->spawntime;
 
-	tex = texture_man_load_or_default(&texman, enc->definition->pngname, TEXTURE_GEN(self->width, self->height, RED));
+	tex = texture_man_load_or_default(&texman, enc->definition->pngname, self->width, self->height, RED);
 	self->width = tex->width;
 	self->height = tex->height;
 

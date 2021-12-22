@@ -48,7 +48,7 @@ void drop_manager_init(void)
 	memset(&ctx, 0, sizeof(ctx));
 	snprintf(buf, sizeof(buf), "%s/%s", context_get_skindir(), DATA_ASSET_DROP);
 	for (i = 0; i < DROPS_MAX; i++) {
-		t = texture_man_load_or_default(&texman, buf, TEXTURE_GEN(DROP_WIDTH, DROP_HEIGHT, DROP_DEFCOLOR));
+		t = texture_man_load_or_default(&texman, buf, DROP_WIDTH, DROP_HEIGHT, DROP_DEFCOLOR);
 		s = so_new(anim_man_load(animan, t, 1, 1));
 		ctx.drops[i].object = s;
 		setpos(&ctx.drops[i], OUT_OF_BOUNDS, OUT_OF_BOUNDS);

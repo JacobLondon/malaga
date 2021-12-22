@@ -53,7 +53,7 @@ void levelselect_init(void)
 		shiptexas[i] = texture_man_load_or_default(
 			&texman,
 			tempbuf("%s/%s%d.png", context_get_skindir(), "default_player", i),
-			TEXTURE_GEN(50, 50, BLUE));
+			50, 50, BLUE);
 	}
 
 	// menu-ing

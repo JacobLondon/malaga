@@ -152,7 +152,7 @@ static void wrapper_init(wrapper *self)
 	else {
 		bullet_color = GREEN;
 	}
-	self->tex = texture_man_load_or_default(&texman, buf, TEXTURE_GEN(self->width, self->height, bullet_color));
+	self->tex = texture_man_load_or_default(&texman, buf, self->width, self->height, bullet_color);
 }
 
 static void wrapper_update(wrapper *self)

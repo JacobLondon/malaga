@@ -91,6 +91,6 @@ anim_man *scene_man_get_anim_man(scene_manager *self);
  * Given a png file, animation width, height, get shared so*
  */
 #define SCENE_MAN_LOAD_SO(man, texman, path, x, y, width, height, color) \
-	(so_new(anim_man_load(scene_man_get_anim_man(man), texture_man_load_or_default((texman), (path), TEXTURE_GEN((width), (height), (color))), (x), (y))))
+	(so_new(anim_man_load(scene_man_get_anim_man(man), texture_man_load_or_default((texman), (path), (width), (height), (color)), (x), (y))))
 
 #endif // RLU_SCENE_MAN_H

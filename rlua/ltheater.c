@@ -126,12 +126,14 @@ static int ltheater_anim_new(lua_State *L)
 	lua_Integer def_width = luaL_checkinteger(L, 5);
 	lua_Integer def_height = luaL_checkinteger(L, 6);
 
-	Texture2D gen = TEXTURE_GEN(def_width, def_height, color_lookup(color));
+	/** TODO */
+	/*Texture2D gen = TEXTURE_GEN(def_width, def_height, color_lookup(color));
 	snprintf(path, sizeof(path), "%s/%s", context_get_skindir(), filename);
 	Texture2D *t = texture_man_load_or_default(tman, path, gen);
 	anim *a = anim_man_load(scene_man_get_anim_man(sman), t, anim_width, anim_height);
 	lua_Integer n = ptr_to_Lint(a);
 	lua_pushinteger(L, n);
+	*/
 	return 1;
 }
 
