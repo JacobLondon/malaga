@@ -1,4 +1,5 @@
 #include <rlu/rlu.h>
+#include "atmos.h"
 #include "data.h"
 #include "modules.h"
 #include "scorefile.h"
@@ -68,8 +69,8 @@ void scorelist_update(void)
 		selected_scorefilename = itemlist_prev(scorefiles);
 	}
 
-	// the pointer changed
-	if ((void *)prev_scorefilename != (void *)selected_scorefilename) {
+	// the pointer changed and scorefile isn't empty
+	if (selected_scorefilename && ((void *)prev_scorefilename != (void *)selected_scorefilename)) {
 		if (selected_scorefile) {
 			scorefile_close(selected_scorefile);
 		}

@@ -434,7 +434,7 @@ void param_save(param paramList[], const char *name, void *value)
 				*(Color *)paramList[i].value = *(Color *)value;
 				break;
 			case PARAM_TYPE_STRING:
-				(void)snprintf((char *)paramList[i].value, (size_t)paramList[i].len, "%s", value);
+				(void)snprintf((char *)paramList[i].value, (size_t)paramList[i].len, "%s", (char *)value);
 				break;
 			default:
 				break;

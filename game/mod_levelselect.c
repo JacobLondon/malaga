@@ -37,7 +37,7 @@ static Itemlist *allmaps;
 
 void levelselect_init(void)
 {
-	int i;
+	size_t i;
 
 	select_button = button_new("SELECT", lselect, NULL);
 	menu_button = button_new("MENU", menu, NULL);
@@ -52,7 +52,7 @@ void levelselect_init(void)
 	for (i = 0; i < ARRAY_SIZE(shiptexas); i++) {
 		shiptexas[i] = texture_man_load_or_default(
 			&texman,
-			tempbuf("%s/%s%d.png", context_get_skindir(), "default_player", i),
+			tempbuf("%s/%s%zu.png", context_get_skindir(), "default_player", i),
 			50, 50, BLUE);
 	}
 

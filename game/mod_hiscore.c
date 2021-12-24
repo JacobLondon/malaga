@@ -147,7 +147,6 @@ void hiscore_cleanup(void)
 void hiscore_update(void)
 {
 	int x;
-	int y;
 	int dir;
 	char *p;
 	char *letter = NULL;
@@ -158,7 +157,6 @@ void hiscore_update(void)
 
 	// select column based on mouse position and update the pointers for that column
 	x = GetMouseX();
-	y = GetMouseY();
 	if (0 <= x && x < GetScreenWidth() / 6) {
 		selected = letter0;
 		letter = &myscore.name[0];
@@ -188,8 +186,8 @@ void hiscore_update(void)
 void hiscore_draw(void)
 {
 	Score *scores;
-	int count;
-	int i;
+	size_t count;
+	size_t i;
 	char *p;
 
 	texture_man_draw_tex(&darkening, 0, 0);
@@ -225,7 +223,6 @@ void hiscore_draw(void)
 
 void hiscore_conf(struct hiscore_message *msg)
 {
-	char *p;
 	assert(msg);
 
 	won = !!msg->won;

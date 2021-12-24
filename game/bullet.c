@@ -582,7 +582,6 @@ void bullet_player_straight(int x, int y, int level)
 
 void bullet_player_left(int x, int y, int level)
 {
-	wrapper *wrap = &wrap_player_straight;
 	switch (level) {
 	default: // fallthrough
 		insert_bullet(x - SIZE_STRAIGHT_WIDTH * 2, y + 10, PI, &wrap_player_left);
@@ -611,7 +610,6 @@ void bullet_player_left(int x, int y, int level)
 
 void bullet_player_right(int x, int y, int level)
 {
-	wrapper *wrap = &wrap_player_straight;
 	switch (level) {
 	default: // fallthrough
 		insert_bullet(x - SIZE_STRAIGHT_WIDTH * 2, y + 10, 0, &wrap_player_left);
@@ -869,8 +867,6 @@ void bullet_player_beam(int x, int y, int level)
 
 void bullet_player_parabola(int x, int y, int level)
 {
-	wrapper *wrap = &wrap_player_straight;
-
 	switch (level) {
 	default: // fallthrough
 		insert_bullet(x - 80, y + SIZE_STRAIGHT_HEIGHT - 80, PARABOLA_RIGHT, &wrap_player_parabola);

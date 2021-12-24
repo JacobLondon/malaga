@@ -60,7 +60,7 @@ void itemlist_set(Itemlist *il, char **buf, size_t len)
 		}
 	}
 
-	il->buf = il->filtered->buf;
+	il->buf = (char **)il->filtered->buf;
 	il->buflen = il->filtered->size;
 	il->bufndx = 0;
 }
@@ -83,13 +83,15 @@ bool itemlist_set_directory(Itemlist *il, const char *directory)
 			il->dirset = true;
 			files = GetDirectoryFiles(directory, &filecount);
 			itemlist_set(il, files, filecount);
+			return true;
 		}
 	}
+	return false;
 }
 
 bool itemlist_try_select(Itemlist *il, const char *name)
 {
-	int i;
+	size_t i;
 
 	assert(il);
 	assert(name);
@@ -120,7 +122,7 @@ void itemlist_draw(Itemlist *il)
 
 	assert(il);
 
-	if (!il->buf) {
+	if (!il->buf || il->buflen == 0) {
 		return;
 	}
 
@@ -175,12 +177,13 @@ static char *get_around(int center, int AB, int max, char **buf)
 
 static char *find_next(Itemlist *il)
 {
-	int i;
-	char *p;
-
 	assert(il);
 
-	if (il->bufndx + 1 < il->buflen) {
+	if (il->buflen == 0) {
+		return NULL;
+	}
+
+	if ((size_t)il->bufndx + 1 < il->buflen) {
 		il->bufndx += 1;
 		return il->buf[il->bufndx];
 	}
@@ -191,10 +194,11 @@ static char *find_next(Itemlist *il)
 
 static char *find_prev(Itemlist *il)
 {
-	int i;
-	char *p;
-
 	assert(il);
+
+	if (il->buflen == 0) {
+		return NULL;
+	}
 
 	if (il->bufndx - 1 >= 0) {
 		il->bufndx -= 1;
@@ -208,6 +212,10 @@ static char *find_prev(Itemlist *il)
 char *itemlist_get_selected(Itemlist *il)
 {
 	assert(il);
+
+	if (il->buflen == 0) {
+		return NULL;
+	}
 
 	return il->buf[il->bufndx];
 }

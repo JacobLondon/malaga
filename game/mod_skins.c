@@ -100,7 +100,8 @@ static void menu_func(void *client)
 
 static void save_skin(void)
 {
-	if (strlen(skin) > 0) {
+	// itemlist isn't empty and skin is valid
+	if (skin && strlen(skin) > 0) {
 		context_set_param("skindir", skin);
 	}
 }
