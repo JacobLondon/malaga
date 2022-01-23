@@ -11,10 +11,16 @@
 #define PLAYER_SIZE 25
 #define ENEMY_SIZE 35
 #define ENEMIES_MAX 32
+#define TEXT_FONTSIZE 30
+#define MODE_COUNT 3 /* Number of total modes. This isn't a great way to label this */
 
 #define ENCOUNTER_DEFAULT -1
 #define PLAYER_DAMAGE_DEFAULT 1
 #define TROUBLE_MODE_MULT_DEFAULT 2
+
+static void draw_health(int player, int hp);
+static void draw_mode(int do_draw, const char *text, int height);
+static void draw_bullet_name(const char *name, int level);
 
 static void encounter_clear(void);
 static void encounter_next(void);
@@ -323,7 +329,6 @@ void game_draw(void)
 {
 	static char health[128];
 	static char round[64];
-	static char shoot[128];
 	int i;
 
 	//DrawFPS(20, 20);
@@ -346,30 +351,21 @@ void game_draw(void)
 	}
 
 	// top left
-	const int FONTSIZE = 30;
-	snprintf(health, sizeof(health), "HP %d", player.hp);
-	DrawText(health, 5, 5, FONTSIZE, WHITE);
+	draw_health(0, player.hp);
 
 	// top right
 	snprintf(round, sizeof(round), "Round %zu", roundno);
-	DrawText(round, screen_width - 5 - MeasureText(round, FONTSIZE), 5, FONTSIZE, WHITE);
-	DrawText(score_get_string(), screen_width - 5 - MeasureText(score_get_string(), FONTSIZE), 40, FONTSIZE, WHITE);
-	DrawText(score_get_multiplier(), screen_width - 5 - MeasureText(score_get_multiplier(), FONTSIZE), 75, FONTSIZE, WHITE);
+	DrawText(round, screen_width - 5 - MeasureText(round, TEXT_FONTSIZE), 5, TEXT_FONTSIZE, WHITE);
+	DrawText(score_get_string(), screen_width - 5 - MeasureText(score_get_string(), TEXT_FONTSIZE), 40, TEXT_FONTSIZE, WHITE);
+	DrawText(score_get_multiplier(), screen_width - 5 - MeasureText(score_get_multiplier(), TEXT_FONTSIZE), 75, TEXT_FONTSIZE, WHITE);
 
 	// bottom right
-	if (game_data.endless_mode) {
-		DrawText("ENDLESS", screen_width - 5 - MeasureText("ENDLESS", FONTSIZE), screen_height - FONTSIZE, FONTSIZE, WHITE);
-	}
-	if (game_data.trouble_mode) {
-		DrawText("2x TROUBLE", screen_width - 5 - MeasureText("2x TROUBLE", FONTSIZE), screen_height - 2 * FONTSIZE, FONTSIZE, WHITE);
-	}
-	if (game_data.god_mode) {
-		DrawText("INVINCIBLE", screen_width - 5 - MeasureText("INVINCIBLE", FONTSIZE), screen_height - 3 * FONTSIZE, FONTSIZE, WHITE);
-	}
+	i = MODE_COUNT;
+	draw_mode(game_data.god_mode, "INVINCIBLE", i -= game_data.god_mode);
+	draw_mode(game_data.trouble_mode, "2x TROUBLE", i -= game_data.trouble_mode);
+	draw_mode(game_data.endless_mode, "ENDLESS", i -= game_data.endless_mode);
 
-	// bottom left
-	snprintf(shoot, sizeof(shoot), "%s: %d", &player.shoot_name[sizeof("player_bullet")], player.level);
-	DrawText(shoot, 5, screen_height - FONTSIZE - 5, FONTSIZE, WHITE);
+	draw_bullet_name(&player.shoot_name[sizeof("player_bullet")], player.level);
 }
 
 void game_conf(struct game_message *msg)
@@ -381,6 +377,58 @@ void game_conf(struct game_message *msg)
 	game_data.trouble_mode = msg->trouble_mode;
 	game_data.god_mode = msg->god_mode;
 	game_data.playership = msg->playership;
+}
+
+static void draw_health(int player, int hp)
+{
+	static char health[128];
+
+	/**
+	 * Bar
+	 * It takes up 3/4 of the width of the screen.
+	 * Let's say that
+	 * - max width represents 30. Clamp higher HP for this width
+	 * - half to max to green
+	 * - quarter to half is yellow
+	 * - below quarter is red
+	 */
+
+	const int y = 5 + player * TEXT_FONTSIZE;
+
+	Color c = (hp >= 30/2) ? GREEN : (hp >= 30/4) ? YELLOW : RED;
+	c.a = 100; // some transparency
+	const int width = (screen_width * 3.0f / 4.0f) * (min(hp, 30) / 30.0f);
+
+	DrawRectangle(5, y, width, TEXT_FONTSIZE, c);
+
+	// text
+	snprintf(health, sizeof(health), "HP %d", hp);
+	DrawText(health, 5, y, TEXT_FONTSIZE, WHITE);
+}
+
+static void draw_mode(int do_draw, const char *text, int height)
+{
+	if (!do_draw)
+	{
+		return;
+	}
+
+	/* bottom right */
+	DrawText(
+		text,
+		screen_width - 5 - MeasureText(text, TEXT_FONTSIZE),
+		screen_height - (MODE_COUNT - height) * TEXT_FONTSIZE,
+		TEXT_FONTSIZE,
+		WHITE);
+}
+
+static void draw_bullet_name(const char *name, int level)
+{
+	static char shoot[128];
+
+	// bottom left
+	snprintf(shoot, sizeof(shoot), "%s: %d", name, level);
+	DrawText(shoot, 5, screen_height - TEXT_FONTSIZE - 5, TEXT_FONTSIZE, WHITE);
 }
 
 static void encounter_clear(void)

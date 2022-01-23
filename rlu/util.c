@@ -218,7 +218,7 @@ float fclamp(float x, float max, float min)
 #ifndef min
 int min(int a, int b)
 {
-	return (a > b) ? a : b;
+	return (a < b) ? a : b;
 }
 #endif
 

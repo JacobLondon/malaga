@@ -157,10 +157,12 @@ void component_draw(component *comp)
 		tmp = comp->bg;
 		txt = comp->fg;
 		if (component_contains(comp, GetMouseX(), GetMouseY())) {
-			tmp.r = min(255, tmp.r * 1.2);
-			tmp.g = min(255, tmp.g * 1.2);
-			tmp.b = min(255, tmp.b * 1.2);
-			txt = comp->bg;
+			tmp.r = min(255, tmp.r * 1.5);
+			tmp.g = min(255, tmp.g * 1.5);
+			tmp.b = min(255, tmp.b * 1.5);
+			txt.r = 255; // a nice light yellow
+			txt.g = 203;
+			txt.b = 107;
 		}
 		DrawRectangle(comp->x, comp->y, comp->w, comp->h, tmp);
 		DrawText(
