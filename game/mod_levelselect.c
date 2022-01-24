@@ -39,7 +39,7 @@ void levelselect_init(void)
 {
 	size_t i;
 
-	select_button = button_new("SELECT", lselect, NULL);
+	select_button = button_new("PLAY", lselect, NULL);
 	menu_button = button_new("MENU", menu, NULL);
 	endless_button = button_new("ENDLESS", tendless, NULL);
 	damage_button = button_new("2x TROUBLE", tdamage, NULL);
