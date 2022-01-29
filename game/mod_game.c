@@ -18,7 +18,7 @@
 #define PLAYER_DAMAGE_DEFAULT 1
 #define TROUBLE_MODE_MULT_DEFAULT 2
 
-static void draw_health(int player, int hp);
+static void draw_health(int player_number, int hp);
 static void draw_mode(int do_draw, const char *text, int height);
 static void draw_bullet_name(const char *name, int level);
 
@@ -327,7 +327,6 @@ void game_update(void)
 
 void game_draw(void)
 {
-	static char health[128];
 	static char round[64];
 	int i;
 
@@ -379,7 +378,7 @@ void game_conf(struct game_message *msg)
 	game_data.playership = msg->playership;
 }
 
-static void draw_health(int player, int hp)
+static void draw_health(int player_number, int hp)
 {
 	static char health[128];
 
@@ -393,7 +392,7 @@ static void draw_health(int player, int hp)
 	 * - below quarter is red
 	 */
 
-	const int y = 5 + player * TEXT_FONTSIZE;
+	const int y = 5 + player_number * TEXT_FONTSIZE;
 
 	Color c = (hp >= 30/2) ? GREEN : (hp >= 30/4) ? YELLOW : RED;
 	c.a = 100; // some transparency
