@@ -53,7 +53,7 @@ void music_man_unload(void)
 	for (i = 0; music_definitions[i].name; i++) {
 		if (music_definitions[i].loaded) {
 			music_definitions[i].loaded = false;
-			if (IsMusicPlaying(music_definitions[i].music)) {
+			if (IsMusicStreamPlaying(music_definitions[i].music)) {
 				StopMusicStream(music_definitions[i].music);
 			}
 			UnloadMusicStream(music_definitions[i].music);

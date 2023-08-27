@@ -205,7 +205,8 @@ static void lselect(void *client)
 		msg.trouble_mode = trouble_mode;
 		msg.god_mode = invinc_mode;
 		if (strlen(mapdir) > 0) {
-			(void)snprintf(msg.mapdir, sizeof(msg.mapdir), "%s/%s", DATA_MAPS_DIR, mapdir);
+			//(void)snprintf(msg.mapdir, sizeof(msg.mapdir), "%s/%s", DATA_MAPS_DIR, mapdir);
+			(void)snprintf(msg.mapdir, sizeof(msg.mapdir), "%s", mapdir);
 		}
 		msg.playership = shipndx;
 

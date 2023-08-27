@@ -102,6 +102,6 @@ static void save_skin(void)
 {
 	// itemlist isn't empty and skin is valid
 	if (skin && strlen(skin) > 0) {
-		context_set_param("skindir", skin);
+		context_set_param("skindir", (void *)mybasename(skin));
 	}
 }

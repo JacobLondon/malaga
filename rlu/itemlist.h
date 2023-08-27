@@ -31,7 +31,9 @@ typedef struct ItemlistStruct
 	size_t buflen;
 	int bufndx;
 	struct parray *filtered; // buf points to in here
+
 	bool dirset;
+	FilePathList filepaths;
 } Itemlist;
 
 Itemlist *itemlist_new(ItemlistArgs *args);

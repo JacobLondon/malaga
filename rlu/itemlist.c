@@ -24,7 +24,7 @@ void itemlist_delete(Itemlist *il)
 	assert(il->filtered);
 
 	if (il->dirset) {
-		ClearDirectoryFiles();
+		UnloadDirectoryFiles(il->filepaths);
 	}
 
 	parray_free(il->filtered);
@@ -67,22 +67,19 @@ void itemlist_set(Itemlist *il, char **buf, size_t len)
 
 bool itemlist_set_directory(Itemlist *il, const char *directory)
 {
-	char **files;
-	int filecount;
-
 	assert(il);
 	assert(directory);
 	
 	if (il->dirset) {
-		ClearDirectoryFiles();
+		UnloadDirectoryFiles(il->filepaths);
 		il->dirset = false;
 	}
 
 	if (!il->dirset) {
 		if (DirectoryExists(directory)) {
 			il->dirset = true;
-			files = GetDirectoryFiles(directory, &filecount);
-			itemlist_set(il, files, filecount);
+			il->filepaths = LoadDirectoryFiles(directory);
+			itemlist_set(il, il->filepaths.paths, il->filepaths.count);
 			return true;
 		}
 	}

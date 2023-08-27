@@ -52,7 +52,7 @@ else
 		found     = Yes
 		CC        = clang
 		MYLDFLAGS = -DPLATFORM_DESKTOP
-		MYLIBS   += -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL -lraylib
+		MYLIBS   += -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL -L /opt/homebrew/lib/ -lraylib
 	endif
 endif
 

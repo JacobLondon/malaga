@@ -2,8 +2,8 @@
 #include "scorefile.h"
 
 struct ScorefileStruct {
-	long length;
 	char *filename;
+	long length;
 	Score *scores;
 };
 

@@ -73,8 +73,10 @@ void scorelist_update(void)
 	if (selected_scorefilename && ((void *)prev_scorefilename != (void *)selected_scorefilename)) {
 		if (selected_scorefile) {
 			scorefile_close(selected_scorefile);
+			selected_scorefile = NULL;
 		}
-		selected_scorefile = scorefile_open((const char *)tempbuf("%s/%s", DATA_MAPS_DIR, selected_scorefilename));
+		const char *p = (const char *)tempbuf("%s", selected_scorefilename);
+		selected_scorefile = scorefile_open(p);
 		prev_scorefilename = selected_scorefilename;
 	}
 }
